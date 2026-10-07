@@ -11,7 +11,7 @@
 
 **Phase:** 6 - Business Modules (Company Management)  
 **Week:** 1 of 4  
-**Day:** 1 of 5 (🔄 IN PROGRESS)
+**Day:** 2 of 5 (🔄 READY TO START)
 
 ---
 
@@ -382,16 +382,240 @@ Applied to routes in `bootstrap/app.php`:
 
 ---
 
+### Phase 6 Week 1 Day 1: Company Management CRUD API ✅ (Oct 7, 2026)
+
+**Company Model & Migration:**
+
+**Model Features:**
+- Full business information: name, registration_number, tax_number
+- Contact details: email, phone, alternate_phone
+- Address: address, city, state, country, postal_code
+- Business details: website, logo_path, description, established_date
+- Hierarchical structure: parent_company_id for subsidiaries
+- Enums:
+  - company_type: real_estate, construction, property_management, land_development, general_contractor, other
+  - status: active, inactive, suspended, pending
+- UUID for API exposure
+- metadata JSON field for custom attributes
+- Soft deletes enabled
+- Timestamps (created_at, updated_at)
+
+**Model Relationships:**
+- parentCompany() - belongsTo Company (for subsidiaries)
+- subsidiaries() - hasMany Company (child companies)
+- users() - hasMany User (company employees)
+- projects() - hasMany Project (future)
+- sites() - hasMany Site (future)
+
+**Model Scopes:**
+- active() - Filter by active status
+- ofType($type) - Filter by company_type
+- parentCompanies() - Filter parent companies only
+
+**Model Methods:**
+- isActive() - Check if company is active
+- hasSubsidiaries() - Check if has child companies
+- isSubsidiary() - Check if is a subsidiary
+- getFullAddressAttribute() - Computed full address string
+
+**Migration:**
+- Comprehensive indexes on uuid, email, registration_number, tax_number, parent_company_id, status, company_type
+- Soft delete support
+- Foreign key constraint on parent_company_id
+- Added company_id foreign key to users table
+
+**Company Policy & Authorization:**
+
+**CompanyPolicy** (app/Policies/CompanyPolicy.php):
+- Super Admin: Full access via before() method (bypasses all checks)
+- Company Admin: Can only view/update own company (via company_id match)
+- Authorization methods:
+  - viewAny() - List companies
+  - view() - View specific company
+  - create() - Create new company
+  - update() - Update company (own company only for Company Admin)
+  - delete() - Delete company (prevents if has subsidiaries or users)
+  - restore() - Restore soft-deleted company
+  - forceDelete() - Permanently delete
+  - manageSubsidiaries() - Manage child companies
+  - assignUsers() - Assign users to company
+
+**Registered in AppServiceProvider:**
+- Company::class => CompanyPolicy::class
+
+**Company Controller & Endpoints:**
+
+**CompanyController** (app/Http/Controllers/Api/CompanyController.php):
+
+1. **index()** - `GET /api/v1/companies`
+   - List companies with pagination (default 15 per page)
+   - Filters: status, company_type, parent_only (boolean), search (by name)
+   - Sorting: sort_by, sort_direction (default: created_at desc)
+   - Optional relationships: with_parent, with_subsidiaries, with_users_count
+   - Returns: CompanyResource collection with pagination
+
+2. **store()** - `POST /api/v1/companies`
+   - Create new company
+   - Validates via StoreCompanyRequest
+   - Logs activity via LogsActivity trait
+   - Returns: CompanyResource with 201 status
+
+3. **show()** - `GET /api/v1/companies/{uuid}`
+   - View single company
+   - Optional relationships: with_parent, with_subsidiaries, with_users
+   - Authorization via CompanyPolicy
+   - Returns: CompanyResource
+
+4. **update()** - `PUT /api/v1/companies/{uuid}`
+   - Update company
+   - Validates via UpdateCompanyRequest
+   - Tracks changes (old vs new values)
+   - Logs activity with change tracking
+   - Returns: CompanyResource
+
+5. **destroy()** - `DELETE /api/v1/companies/{uuid}`
+   - Soft delete company
+   - Validates: Cannot delete if has subsidiaries
+   - Validates: Cannot delete if has users
+   - Logs activity before deletion
+   - Returns: Success message
+
+6. **restore()** - `POST /api/v1/companies/{uuid}/restore`
+   - Restore soft-deleted company
+   - Authorization check
+   - Logs restoration activity
+   - Returns: CompanyResource
+
+7. **subsidiaries()** - `GET /api/v1/companies/{uuid}/subsidiaries`
+   - List company's subsidiaries
+   - Paginated (15 per page)
+   - Returns: CompanyResource collection
+
+8. **users()** - `GET /api/v1/companies/{uuid}/users`
+   - List company's users
+   - Paginated (15 per page)
+   - Returns: User data
+
+9. **statistics()** - `GET /api/v1/admin/companies/statistics`
+   - Company statistics for dashboard
+   - Returns:
+     - total_companies
+     - active_companies
+     - inactive_companies
+     - parent_companies
+     - subsidiaries count
+     - by_type breakdown
+     - recent_companies (last 5)
+
+**Form Request Validators:**
+
+**StoreCompanyRequest:**
+- name: required, string, max:255
+- registration_number: nullable, unique, max:100
+- tax_number: nullable, unique, max:100
+- email: required, email, unique:companies
+- phone: required, string, max:20
+- alternate_phone: nullable, max:20
+- address: required, string
+- city: required, string, max:100
+- state: nullable, max:100
+- country: required, string, max:100
+- postal_code: nullable, max:20
+- website: nullable, url, max:255
+- logo_path: nullable, string, max:255
+- company_type: required, in:real_estate,construction,property_management,land_development,general_contractor,other
+- status: required, in:active,inactive,suspended,pending
+- established_date: nullable, date, before_or_equal:today
+- description: nullable, string, max:1000
+- metadata: nullable, json
+- parent_company_id: nullable, exists:companies,uuid
+
+**UpdateCompanyRequest:**
+- Similar to Store but all fields optional
+- unique rules ignore current company
+- Circular reference prevention:
+  - Cannot set parent_company_id to own uuid
+  - Cannot set parent_company_id to any of own subsidiaries
+
+**Custom Error Messages:**
+- Field-specific validation messages
+- User-friendly attribute names
+- Clear error descriptions
+
+**Company Resource:**
+
+**CompanyResource** (app/Http/Resources/CompanyResource.php):
+- Consistent JSON structure
+- Returns:
+  - uuid, name, registration_number, tax_number
+  - email, phone, alternate_phone
+  - address, city, state, country, postal_code, full_address (computed)
+  - website, logo_path
+  - company_type, established_date, description, status
+  - is_active (boolean)
+  - metadata
+  - Conditional fields:
+    - parent_company (when loaded) - {uuid, name, company_type}
+    - subsidiaries (when loaded) - full subsidiary details
+    - subsidiaries_count (when counted)
+    - users_count (when counted)
+  - is_subsidiary (boolean)
+  - has_subsidiaries (boolean)
+  - created_at, updated_at (ISO8601 format)
+
+**API Routes:**
+
+**Registered in routes/api.php:**
+- Protected with auth:sanctum middleware
+- Rate limiting: 60 req/min (regular), 30 req/min (admin)
+- Routes:
+  ```
+  GET    /api/v1/companies
+  POST   /api/v1/companies
+  GET    /api/v1/companies/{uuid}
+  PUT    /api/v1/companies/{uuid}
+  DELETE /api/v1/companies/{uuid}
+  POST   /api/v1/companies/{uuid}/restore
+  GET    /api/v1/companies/{uuid}/subsidiaries
+  GET    /api/v1/companies/{uuid}/users
+  GET    /api/v1/admin/companies/statistics
+  ```
+
+**Testing Results:**
+- ✅ Authentication working (Sanctum tokens)
+- ✅ Create company (POST) - 201 status
+- ✅ List companies (GET) - 200 with pagination
+- ✅ Get single company (GET) - 200 with full details
+- ✅ Update company (PUT) - 200 with updated data
+- ✅ Get subsidiaries (GET) - 200 paginated list
+- ✅ Get company users (GET) - 200 paginated list
+- ✅ Get statistics (GET) - 200 with dashboard data
+- ✅ Soft delete (DELETE) - 200, validates no subsidiaries/users
+- ✅ Restore (POST) - 200, restores soft-deleted company
+- ✅ Filters working (status, company_type, parent_only, search)
+- ✅ Authorization working (Super Admin full access, Company Admin own company)
+- ✅ Activity logging working (created, updated, deleted, restored)
+- ✅ Validation working (unique fields, circular reference prevention)
+
+**Bug Fixes:**
+- Fixed LogsActivity trait method signatures in CompanyController
+- Removed extra description parameter from logCreated/logUpdated/logDeleted/logRestored calls
+- Methods now match trait signature: logCreated($entity, array $properties)
+
+**Git Commit:** feat: Add Company Management CRUD API (Phase 6 Week 1 Day 1) (b040fa1)
+
+---
+
 ## 🚀 Next Steps
 
-### Phase 6 Week 1: Company Management Module (IN PROGRESS)
+### Phase 6 Week 1 Day 2: Project Management Module (NEXT)
 
 **Planned Tasks:**
-1. Create Company model and migration
-2. Create CompanyController with CRUD operations
-3. Implement company permissions and policies
-4. Create company API endpoints
-5. Build company management UI in React
+- Day 1: ✅ Company Management CRUD API
+- Day 2: Project Management CRUD API (model, controller, policies, routes)
+- Day 3: Site Management CRUD API
+- Day 4: Project-Site relationship APIs
+- Day 5: React UI for Companies and Projects
 
 ---
 
@@ -407,7 +631,8 @@ d:\Fab Homes\
 │   │   │   │       ├── AuthController.php
 │   │   │   │       ├── UserManagementController.php
 │   │   │   │       ├── RoleManagementController.php
-│   │   │   │       └── ActivityController.php
+│   │   │   │       ├── ActivityController.php
+│   │   │   │       └── CompanyController.php (NEW)
 │   │   │   ├── Middleware/
 │   │   │   │   ├── CheckPermission.php
 │   │   │   │   └── CheckRole.php
@@ -416,27 +641,34 @@ d:\Fab Homes\
 │   │   │   │   ├── RegisterRequest.php
 │   │   │   │   ├── UpdateProfileRequest.php
 │   │   │   │   ├── ForgotPasswordRequest.php
-│   │   │   │   └── ResetPasswordRequest.php
+│   │   │   │   ├── ResetPasswordRequest.php
+│   │   │   │   ├── StoreCompanyRequest.php (NEW)
+│   │   │   │   └── UpdateCompanyRequest.php (NEW)
 │   │   │   └── Resources/
 │   │   │       ├── UserResource.php
 │   │   │       ├── UserCollection.php
 │   │   │       ├── RoleResource.php
 │   │   │       ├── PermissionResource.php
-│   │   │       └── ActivityResource.php
+│   │   │       ├── ActivityResource.php
+│   │   │       └── CompanyResource.php (NEW)
 │   │   ├── Models/
 │   │   │   ├── User.php (enhanced)
-│   │   │   └── Activity.php
+│   │   │   ├── Activity.php
+│   │   │   └── Company.php (NEW)
 │   │   ├── Policies/
 │   │   │   ├── UserPolicy.php
 │   │   │   ├── RolePolicy.php
-│   │   │   └── PermissionPolicy.php
+│   │   │   ├── PermissionPolicy.php
+│   │   │   └── CompanyPolicy.php (NEW)
 │   │   └── Traits/
 │   │       └── LogsActivity.php
 │   ├── database/
 │   │   ├── migrations/
 │   │   │   ├── *_create_users_table.php (enhanced)
 │   │   │   ├── *_create_permission_tables.php
-│   │   │   └── *_create_activities_table.php
+│   │   │   ├── *_create_activities_table.php
+│   │   │   ├── *_create_companies_table.php (NEW)
+│   │   │   └── *_add_company_id_to_users_table.php (NEW)
 │   │   └── seeders/
 │   │       ├── RoleSeeder.php
 │   │       ├── PermissionSeeder.php
@@ -487,16 +719,23 @@ d:\Fab Homes\
 
 ## 📊 Development Metrics
 
-**Lines of Code Added (Week 1):**
-- Day 2 (Authentication): ~600 lines
-- Day 3 (Authorization): ~800 lines  
-- Day 4-5 (Resources, Rate Limiting, Logging): ~900 lines
-- Total: ~2,300 lines
+**Lines of Code Added (Weeks 1-2):**
+- Week 1 Day 2 (Authentication): ~600 lines
+- Week 1 Day 3 (Authorization): ~800 lines  
+- Week 1 Day 4-5 (Resources, Rate Limiting, Logging): ~900 lines
+- Week 2 (React Frontend): ~1,500 lines
+- Week 3 Day 1 (Company Management): ~1,100 lines
+- Total: ~4,900 lines
 
-**API Endpoints Created:** 22 endpoints
+**API Endpoints Created:** 31 endpoints
 - Public: 4 (register, login, forgot password, reset password)
 - Protected: 3 (logout, get profile, update profile)
-- Admin: 15 (user management, role management, activity logs)
+- Admin User Management: 8
+- Admin Role Management: 7
+- Admin Activity Logs: 4
+- Company Management: 9 (NEW)
+
+**Models Created:** 3 (User, Activity, Company)
 
 **Test Coverage:** All endpoints tested and working  
 **Database Records:** 
@@ -519,6 +758,11 @@ d:\Fab Homes\
 **Test Accounts:**
 - Super Admin: admin@zimbani.com / password
 - Test User: john.smith@example.com / password123
+
+**Test Data:**
+- 2 users
+- 7 roles with 153 permissions
+- Test companies created during API testing
 
 ---
 
@@ -557,7 +801,8 @@ d:\Fab Homes\
 - [x] API Resources provide consistent responses
 - [x] Git repository up to date
 - [x] Progress documented
-- [x] Phase 5 Week 1 Complete (5/5 days)
+- [x] Phase 5 Complete (Week 1: Backend Auth API, Week 2: React Frontend)
+- [x] Phase 6 Week 1 Day 1 Complete (Company Management CRUD API)
 
 ---
 
