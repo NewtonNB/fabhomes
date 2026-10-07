@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserManagementController;
 use App\Http\Controllers\Api\RoleManagementController;
 use App\Http\Controllers\Api\ActivityController;
+use App\Http\Controllers\Api\CompanyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -44,6 +45,12 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     // User's own activity logs
     Route::get('/activities/me', [ActivityController::class, 'myActivities']);
 
+    // Company Management routes
+    Route::apiResource('companies', CompanyController::class);
+    Route::post('/companies/{uuid}/restore', [CompanyController::class, 'restore']);
+    Route::get('/companies/{company}/subsidiaries', [CompanyController::class, 'subsidiaries']);
+    Route::get('/companies/{company}/users', [CompanyController::class, 'users']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -71,5 +78,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::get('/activities', [ActivityController::class, 'index']);
         Route::get('/activities/statistics', [ActivityController::class, 'statistics']);
         Route::get('/activities/{id}', [ActivityController::class, 'show']);
+        
+        // Company statistics
+        Route::get('/companies/statistics', [CompanyController::class, 'statistics']);
     });
 });

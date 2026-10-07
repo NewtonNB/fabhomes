@@ -31,6 +31,7 @@ class User extends Authenticatable
         'status',
         'last_login_at',
         'metadata',
+        'company_id',
     ];
 
     /**
@@ -80,5 +81,17 @@ class User extends Authenticatable
     public function getRouteKeyName()
     {
         return 'uuid';
+    }
+
+    /**
+     * Relationships
+     */
+
+    /**
+     * Get the company that the user belongs to.
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 }

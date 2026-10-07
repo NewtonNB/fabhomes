@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Models\Company;
 use App\Policies\UserPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\PermissionPolicy;
+use App\Policies\CompanyPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Role;
@@ -22,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
         User::class => UserPolicy::class,
         Role::class => RolePolicy::class,
         Permission::class => PermissionPolicy::class,
+        Company::class => CompanyPolicy::class,
     ];
 
     /**
