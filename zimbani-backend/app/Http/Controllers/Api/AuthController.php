@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -13,6 +15,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    use LogsActivity;
     /**
      * Register a new user
      *
@@ -47,6 +50,9 @@ class AuthController extends Controller
         // Assign default role (Client)
         $user->assignRole('Client');
 
+        // Log registration activity
+        $this->logCreated($user);
+
         // Create Sanctum token
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -54,15 +60,7 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'User registered successfully',
             'data' => [
-                'user' => [
-                    'uuid' => $user->uuid,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $user->phone,
-                    'status' => $user->status,
-                    'roles' => $user->getRoleNames(),
-                    'permissions' => $user->getAllPermissions()->pluck('name'),
-                ],
+                'user' => new UserResource($user),
                 'token' => $token,
             ]
         ], 201);
@@ -113,6 +111,9 @@ class AuthController extends Controller
         // Update last login time
         $user->update(['last_login_at' => now()]);
 
+        // Log login activity
+        $this->logLogin($user);
+
         // Create Sanctum token
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -120,16 +121,7 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Login successful',
             'data' => [
-                'user' => [
-                    'uuid' => $user->uuid,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $user->phone,
-                    'status' => $user->status,
-                    'roles' => $user->getRoleNames(),
-                    'permissions' => $user->getAllPermissions()->pluck('name'),
-                    'last_login_at' => $user->last_login_at,
-                ],
+                'user' => new UserResource($user),
                 'token' => $token,
             ]
         ], 200);
@@ -143,6 +135,11 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $user = $request->user();
+        
+        // Log logout activity
+        $this->logLogout($user);
+        
         // Revoke the current user's token
         $request->user()->currentAccessToken()->delete();
 
@@ -165,19 +162,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'user' => [
-                    'uuid' => $user->uuid,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $user->phone,
-                    'status' => $user->status,
-                    'email_verified_at' => $user->email_verified_at,
-                    'last_login_at' => $user->last_login_at,
-                    'roles' => $user->getRoleNames(),
-                    'permissions' => $user->getAllPermissions()->pluck('name'),
-                    'metadata' => $user->metadata,
-                    'created_at' => $user->created_at,
-                ]
+                'user' => new UserResource($user)
             ]
         ], 200);
     }
@@ -219,13 +204,7 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Profile updated successfully',
             'data' => [
-                'user' => [
-                    'uuid' => $user->uuid,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $user->phone,
-                    'status' => $user->status,
-                ]
+                'user' => new UserResource($user)
             ]
         ], 200);
     }
