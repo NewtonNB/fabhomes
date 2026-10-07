@@ -1,0 +1,58 @@
+# Documentation (not pushed to repository)
+/docs/
+
+# Laravel Backend
+/zimbani-backend/vendor/
+/zimbani-backend/node_modules/
+/zimbani-backend/.env
+/zimbani-backend/.env.backup
+/zimbani-backend/.phpunit.result.cache
+/zimbani-backend/Homestead.json
+/zimbani-backend/Homestead.yaml
+/zimbani-backend/npm-debug.log
+/zimbani-backend/yarn-error.log
+/zimbani-backend/.idea
+/zimbani-backend/.vscode
+/zimbani-backend/storage/*.key
+/zimbani-backend/storage/app/*
+!/zimbani-backend/storage/app/.gitignore
+/zimbani-backend/storage/framework/cache/*
+!/zimbani-backend/storage/framework/cache/.gitignore
+/zimbani-backend/storage/framework/sessions/*
+!/zimbani-backend/storage/framework/sessions/.gitignore
+/zimbani-backend/storage/framework/testing/*
+!/zimbani-backend/storage/framework/testing/.gitignore
+/zimbani-backend/storage/framework/views/*
+!/zimbani-backend/storage/framework/views/.gitignore
+/zimbani-backend/storage/logs/*
+!/zimbani-backend/storage/logs/.gitignore
+
+# React Frontend
+/zimbani-frontend/node_modules/
+/zimbani-frontend/dist/
+/zimbani-frontend/dist-ssr/
+/zimbani-frontend/.env
+/zimbani-frontend/.env.local
+/zimbani-frontend/.env.production.local
+/zimbani-frontend/.env.development.local
+/zimbani-frontend/.env.test.local
+/zimbani-frontend/coverage/
+/zimbani-frontend/.vite/
+/zimbani-frontend/.idea
+/zimbani-frontend/.vscode
+
+# OS Files
+.DS_Store
+Thumbs.db
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
