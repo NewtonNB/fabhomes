@@ -19,6 +19,10 @@ import CompaniesList from './pages/companies/CompaniesList'
 import CompanyForm from './pages/companies/CompanyForm'
 import CompanyDetails from './pages/companies/CompanyDetails'
 
+// Project Pages
+import ProjectsList from './pages/projects/ProjectsList'
+import ProjectForm from './pages/projects/ProjectForm'
+
 // Layout
 import Layout from './components/layout/Layout'
 
@@ -51,10 +55,10 @@ function App() {
             <Route path="companies/:id/edit" element={<CompanyForm isEdit={true} />} />
 
             {/* Projects Routes */}
-            <Route path="projects" element={<div>Projects List (Coming Soon)</div>} />
-            <Route path="projects/create" element={<div>Create Project (Coming Soon)</div>} />
+            <Route path="projects" element={<ProjectsList />} />
+            <Route path="projects/create" element={<ProjectForm />} />
             <Route path="projects/:id" element={<div>Project Details (Coming Soon)</div>} />
-            <Route path="projects/:id/edit" element={<div>Edit Project (Coming Soon)</div>} />
+            <Route path="projects/:id/edit" element={<ProjectForm isEdit={true} />} />
 
             {/* Sites Routes */}
             <Route path="sites" element={<div>Sites List (Coming Soon)</div>} />
