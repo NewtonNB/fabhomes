@@ -14,6 +14,11 @@ const Sidebar = () => {
   const location = useLocation()
   const { user } = useAuth()
 
+  // Debug: Log user data
+  console.log('Sidebar - User:', user)
+  console.log('Sidebar - Roles:', user?.roles)
+  console.log('Sidebar - Permissions:', user?.permissions)
+
   // Check if user has permission
   const hasPermission = (permission?: string): boolean => {
     if (!permission) return true
@@ -101,8 +106,11 @@ const Sidebar = () => {
   }
 
   const renderMenuItem = (item: MenuItem) => {
-    // Check permission
-    if (!hasPermission(item.permission)) {
+    // Super Admin bypasses all permission checks
+    const isSuperAdmin = user?.roles?.includes('Super Admin')
+    
+    // Check permission (Super Admin sees everything)
+    if (!isSuperAdmin && !hasPermission(item.permission)) {
       return null
     }
 

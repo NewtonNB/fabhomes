@@ -7,8 +7,10 @@ const Header = () => {
   const navigate = useNavigate()
 
   const handleLogout = async () => {
+    console.log('Logout button clicked')
     try {
       await logout()
+      console.log('Logout successful, navigating to login')
       navigate('/login')
     } catch (error) {
       console.error('Logout error:', error)
@@ -50,6 +52,7 @@ const Header = () => {
                   onClick={handleLogout}
                   className="btn-logout"
                   title="Logout"
+                  style={{ pointerEvents: 'auto', cursor: 'pointer' }}
                 >
                   Logout
                 </button>
