@@ -1,11 +1,22 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { 
+  MdDashboard, 
+  MdBusiness, 
+  MdFolder, 
+  MdConstruction, 
+  MdHome,
+  MdSettings,
+  MdPeople,
+  MdSecurity,
+  MdHistory
+} from 'react-icons/md'
 import './Sidebar.css'
 
 interface MenuItem {
   path: string
   label: string
-  icon: string
+  icon: React.ReactNode
   permission?: string
   children?: MenuItem[]
 }
@@ -32,35 +43,29 @@ const Sidebar = () => {
     return user.roles.some((userRole) => roles.includes(userRole))
   }
 
-  // Menu structure
+  // Menu structure (Companies removed - single company setup)
   const menuItems: MenuItem[] = [
     {
       path: '/dashboard',
       label: 'Dashboard',
-      icon: '📊',
-    },
-    {
-      path: '/companies',
-      label: 'Companies',
-      icon: '🏢',
-      permission: 'view companies',
+      icon: <MdDashboard />,
     },
     {
       path: '/projects',
       label: 'Projects',
-      icon: '📁',
+      icon: <MdFolder />,
       permission: 'view projects',
     },
     {
       path: '/sites',
       label: 'Sites',
-      icon: '🏗️',
+      icon: <MdConstruction />,
       permission: 'view sites',
     },
     {
       path: '/units',
       label: 'Units',
-      icon: '🏠',
+      icon: <MdHome />,
       permission: 'view units',
     },
   ]
@@ -71,24 +76,24 @@ const Sidebar = () => {
         {
           path: '/admin',
           label: 'Administration',
-          icon: '⚙️',
+          icon: <MdSettings />,
           children: [
             {
               path: '/admin/users',
               label: 'Users',
-              icon: '👥',
+              icon: <MdPeople />,
               permission: 'view users',
             },
             {
               path: '/admin/roles',
               label: 'Roles & Permissions',
-              icon: '🔐',
+              icon: <MdSecurity />,
               permission: 'view roles',
             },
             {
               path: '/admin/activities',
               label: 'Activity Logs',
-              icon: '📋',
+              icon: <MdHistory />,
               permission: 'view activities',
             },
           ],
@@ -135,6 +140,9 @@ const Sidebar = () => {
         key={item.path}
         to={item.path}
         className={`menu-item ${isActive(item.path) ? 'active' : ''}`}
+        onClick={(e) => {
+          console.log('Menu item clicked:', item.label, item.path)
+        }}
       >
         <span className="menu-icon">{item.icon}</span>
         <span className="menu-label">{item.label}</span>

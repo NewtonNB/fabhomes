@@ -2,6 +2,7 @@
   min-height: 100vh;
   display: flex;
   position: relative;
+  pointer-events: auto;
 }
 
 .layout-main {
@@ -10,6 +11,7 @@
   flex-direction: column;
   margin-left: 260px;
   min-height: 100vh;
+  pointer-events: auto;
 }
 
 .main-content {
