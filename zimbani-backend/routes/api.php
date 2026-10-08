@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\RoleManagementController;
 use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\SiteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -60,6 +61,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/projects/{project}/users/assign', [ProjectController::class, 'assignUsers']);
     Route::post('/projects/{project}/users/remove', [ProjectController::class, 'removeUsers']);
 
+    // Site Management routes
+    Route::apiResource('sites', SiteController::class);
+    Route::post('/sites/{uuid}/restore', [SiteController::class, 'restore']);
+    Route::get('/sites/{site}/workers', [SiteController::class, 'workers']);
+    Route::post('/sites/{site}/workers/assign', [SiteController::class, 'assignWorkers']);
+    Route::post('/sites/{site}/workers/remove', [SiteController::class, 'removeWorkers']);
+    Route::post('/sites/{site}/inspection', [SiteController::class, 'updateInspection']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -93,5 +102,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         
         // Project statistics
         Route::get('/projects/statistics', [ProjectController::class, 'statistics']);
+        
+        // Site statistics
+        Route::get('/sites/statistics', [SiteController::class, 'statistics']);
     });
 });
