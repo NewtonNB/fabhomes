@@ -18,13 +18,13 @@ const Sidebar = () => {
   const hasPermission = (permission?: string): boolean => {
     if (!permission) return true
     if (!user?.permissions) return false
-    return user.permissions.some((p: any) => p.name === permission)
+    return user.permissions.includes(permission)
   }
 
   // Check if user has any role
   const hasRole = (roles: string[]): boolean => {
     if (!user?.roles) return false
-    return user.roles.some((r: any) => roles.includes(r.name))
+    return user.roles.some((userRole) => roles.includes(userRole))
   }
 
   // Menu structure
@@ -150,7 +150,7 @@ const Sidebar = () => {
           <div className="user-details">
             <div className="user-name">{user?.name}</div>
             <div className="user-role">
-              {user?.roles?.[0]?.name || 'User'}
+              {user?.roles?.[0] || 'User'}
             </div>
           </div>
         </div>
