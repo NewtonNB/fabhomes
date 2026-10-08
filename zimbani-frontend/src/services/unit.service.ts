@@ -226,4 +226,6 @@ class UnitService {
 }
 
 // Export singleton instance
-export default new UnitService()
+const unitService = new UnitService()
+export { unitService }
+export default unitService

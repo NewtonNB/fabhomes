@@ -180,4 +180,6 @@ class ProjectService {
 }
 
 // Export singleton instance
-export default new ProjectService()
+const projectService = new ProjectService()
+export { projectService }
+export default projectService

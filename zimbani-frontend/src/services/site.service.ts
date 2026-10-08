@@ -187,4 +187,6 @@ class SiteService {
 }
 
 // Export singleton instance
-export default new SiteService()
+const siteService = new SiteService()
+export { siteService }
+export default siteService

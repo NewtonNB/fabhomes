@@ -149,4 +149,6 @@ class CompanyService {
 }
 
 // Export singleton instance
-export default new CompanyService()
+const companyService = new CompanyService()
+export { companyService }
+export default companyService
