@@ -1,0 +1,347 @@
+/* Unit Modals Shared Styles */
+
+.modal-alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.modal-alert-error {
+  background-color: #fee;
+  color: #c00;
+  border: 1px solid #fcc;
+}
+
+.modal-alert-success {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.modal-alert-info {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.required {
+  color: #dc2626;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group select,
+.form-group textarea {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group input.error,
+.form-group select.error,
+.form-group textarea.error {
+  border-color: #dc2626;
+}
+
+.form-group input.error:focus,
+.form-group select.error:focus,
+.form-group textarea.error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 13px;
+}
+
+.field-hint {
+  color: #6b7280;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Payment Summary */
+.payment-summary,
+.payment-info-box {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.summary-row,
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.summary-row:not(:last-child),
+.info-row:not(:last-child) {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.summary-row.highlight {
+  background: #fef3c7;
+  margin: 0 -16px -16px -16px;
+  padding: 12px 16px;
+  border-radius: 0 0 8px 8px;
+  border-top: 2px solid #fbbf24;
+}
+
+.summary-row.fully-paid {
+  background: #d1fae5;
+  border-top-color: #10b981;
+}
+
+.summary-row span,
+.info-row span {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.summary-row strong,
+.info-row strong {
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.balance-amount {
+  color: #dc2626;
+}
+
+.payment-amount {
+  color: #10b981;
+}
+
+/* Progress Input */
+.progress-input-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-slider {
+  flex: 1;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #e5e7eb;
+  border-radius: 4px;
+  outline: none;
+}
+
+.progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #3b82f6;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.progress-slider::-webkit-slider-thumb:hover {
+  background: #2563eb;
+}
+
+.progress-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.progress-slider::-moz-range-thumb:hover {
+  background: #2563eb;
+}
+
+.progress-number-input {
+  width: 80px;
+  text-align: center;
+  padding: 8px;
+}
+
+.progress-percentage {
+  font-weight: 600;
+  color: #374151;
+  font-size: 16px;
+}
+
+.progress-bar-display {
+  height: 12px;
+  background-color: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-fill-display {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  transition: width 0.3s ease;
+}
+
+/* Checkbox */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkbox-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  margin: 0;
+}
+
+.follow-up-field {
+  margin-left: 28px;
+  padding-left: 16px;
+  border-left: 3px solid #3b82f6;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2563eb;
+}
+
+.btn-primary:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #4b5563;
+}
+
+.btn-secondary:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+  
+  .modal-actions button {
+    width: 100%;
+  }
+  
+  .progress-input-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .progress-number-input {
+    width: 100%;
+  }
+}

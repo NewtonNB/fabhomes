@@ -28,6 +28,11 @@ import SitesList from './pages/sites/SitesList'
 import SiteForm from './pages/sites/SiteForm'
 import SiteDetails from './pages/sites/SiteDetails'
 
+// Unit Pages
+import UnitsList from './pages/units/UnitsList'
+import UnitForm from './pages/units/UnitForm'
+import UnitDetails from './pages/units/UnitDetails'
+
 // Layout
 import Layout from './components/layout/Layout'
 
@@ -72,10 +77,10 @@ function App() {
             <Route path="sites/:id/edit" element={<SiteForm />} />
 
             {/* Units Routes */}
-            <Route path="units" element={<div>Units List (Coming Soon)</div>} />
-            <Route path="units/create" element={<div>Create Unit (Coming Soon)</div>} />
-            <Route path="units/:id" element={<div>Unit Details (Coming Soon)</div>} />
-            <Route path="units/:id/edit" element={<div>Edit Unit (Coming Soon)</div>} />
+            <Route path="units" element={<UnitsList />} />
+            <Route path="units/new" element={<UnitForm />} />
+            <Route path="units/:uuid" element={<UnitDetails />} />
+            <Route path="units/:uuid/edit" element={<UnitForm />} />
 
             {/* Admin Routes */}
             <Route path="admin/users" element={<div>Users Management (Coming Soon)</div>} />
