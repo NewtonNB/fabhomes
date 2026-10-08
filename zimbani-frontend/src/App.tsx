@@ -23,6 +23,11 @@ import CompanyDetails from './pages/companies/CompanyDetails'
 import ProjectsList from './pages/projects/ProjectsList'
 import ProjectForm from './pages/projects/ProjectForm'
 
+// Site Pages
+import SitesList from './pages/sites/SitesList'
+import SiteForm from './pages/sites/SiteForm'
+import SiteDetails from './pages/sites/SiteDetails'
+
 // Layout
 import Layout from './components/layout/Layout'
 
@@ -61,10 +66,10 @@ function App() {
             <Route path="projects/:id/edit" element={<ProjectForm isEdit={true} />} />
 
             {/* Sites Routes */}
-            <Route path="sites" element={<div>Sites List (Coming Soon)</div>} />
-            <Route path="sites/create" element={<div>Create Site (Coming Soon)</div>} />
-            <Route path="sites/:id" element={<div>Site Details (Coming Soon)</div>} />
-            <Route path="sites/:id/edit" element={<div>Edit Site (Coming Soon)</div>} />
+            <Route path="sites" element={<SitesList />} />
+            <Route path="sites/new" element={<SiteForm />} />
+            <Route path="sites/:id" element={<SiteDetails />} />
+            <Route path="sites/:id/edit" element={<SiteForm />} />
 
             {/* Units Routes */}
             <Route path="units" element={<div>Units List (Coming Soon)</div>} />
