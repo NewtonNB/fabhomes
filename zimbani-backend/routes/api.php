@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\SiteController;
+use App\Http\Controllers\Api\UnitController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -69,6 +70,15 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/sites/{site}/workers/remove', [SiteController::class, 'removeWorkers']);
     Route::post('/sites/{site}/inspection', [SiteController::class, 'updateInspection']);
 
+    // Unit Management routes
+    Route::apiResource('units', UnitController::class);
+    Route::post('/units/{uuid}/restore', [UnitController::class, 'restore']);
+    Route::post('/units/{unit}/reserve', [UnitController::class, 'reserve']);
+    Route::post('/units/{unit}/sell', [UnitController::class, 'sell']);
+    Route::post('/units/{unit}/progress', [UnitController::class, 'updateProgress']);
+    Route::post('/units/{unit}/inspection', [UnitController::class, 'updateInspection']);
+    Route::post('/units/{unit}/payment', [UnitController::class, 'updatePayment']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -105,5 +115,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         
         // Site statistics
         Route::get('/sites/statistics', [SiteController::class, 'statistics']);
+        
+        // Unit statistics
+        Route::get('/units/statistics', [UnitController::class, 'statistics']);
     });
 });

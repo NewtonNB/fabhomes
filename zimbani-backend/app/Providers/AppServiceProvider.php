@@ -6,12 +6,14 @@ use App\Models\User;
 use App\Models\Company;
 use App\Models\Project;
 use App\Models\Site;
+use App\Models\Unit;
 use App\Policies\UserPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\PermissionPolicy;
 use App\Policies\CompanyPolicy;
 use App\Policies\ProjectPolicy;
 use App\Policies\SitePolicy;
+use App\Policies\UnitPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Role;
@@ -31,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
         Company::class => CompanyPolicy::class,
         Project::class => ProjectPolicy::class,
         Site::class => SitePolicy::class,
+        Unit::class => UnitPolicy::class,
     ];
 
     /**
