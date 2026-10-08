@@ -2,14 +2,14 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { 
   MdDashboard, 
-  MdBusiness, 
   MdFolder, 
   MdConstruction, 
   MdHome,
   MdSettings,
   MdPeople,
   MdSecurity,
-  MdHistory
+  MdHistory,
+  MdPersonOutline
 } from 'react-icons/md'
 import './Sidebar.css'
 
@@ -67,6 +67,12 @@ const Sidebar = () => {
       label: 'Units',
       icon: <MdHome />,
       permission: 'view units',
+    },
+    {
+      path: '/clients',
+      label: 'Clients',
+      icon: <MdPersonOutline />,
+      permission: 'view clients',
     },
   ]
 
@@ -140,7 +146,7 @@ const Sidebar = () => {
         key={item.path}
         to={item.path}
         className={`menu-item ${isActive(item.path) ? 'active' : ''}`}
-        onClick={(e) => {
+        onClick={() => {
           console.log('Menu item clicked:', item.label, item.path)
         }}
       >

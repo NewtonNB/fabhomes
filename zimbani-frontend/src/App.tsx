@@ -33,6 +33,11 @@ import UnitsList from './pages/units/UnitsList'
 import UnitForm from './pages/units/UnitForm'
 import UnitDetails from './pages/units/UnitDetails'
 
+// Client Pages
+import ClientsList from './pages/clients/ClientsList'
+import ClientForm from './pages/clients/ClientForm'
+import ClientDetails from './pages/clients/ClientDetails'
+
 // Layout
 import Layout from './components/layout/Layout'
 
@@ -81,6 +86,12 @@ function App() {
             <Route path="units/new" element={<UnitForm />} />
             <Route path="units/:uuid" element={<UnitDetails />} />
             <Route path="units/:uuid/edit" element={<UnitForm />} />
+
+            {/* Clients Routes */}
+            <Route path="clients" element={<ClientsList />} />
+            <Route path="clients/new" element={<ClientForm />} />
+            <Route path="clients/:uuid" element={<ClientDetails />} />
+            <Route path="clients/edit/:uuid" element={<ClientForm />} />
 
             {/* Admin Routes */}
             <Route path="admin/users" element={<div>Users Management (Coming Soon)</div>} />

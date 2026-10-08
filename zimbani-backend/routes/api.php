@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\SiteController;
 use App\Http\Controllers\Api\UnitController;
+use App\Http\Controllers\Api\ClientController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -79,6 +80,13 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/units/{unit}/inspection', [UnitController::class, 'updateInspection']);
     Route::post('/units/{unit}/payment', [UnitController::class, 'updatePayment']);
 
+    // Client Management routes
+    Route::apiResource('clients', ClientController::class);
+    Route::post('/clients/{uuid}/restore', [ClientController::class, 'restore']);
+    Route::get('/clients/{client}/units', [ClientController::class, 'units']);
+    Route::post('/clients/{client}/verify-kyc', [ClientController::class, 'verifyKyc']);
+    Route::post('/clients/{client}/reject-kyc', [ClientController::class, 'rejectKyc']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -118,5 +126,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         
         // Unit statistics
         Route::get('/units/statistics', [UnitController::class, 'statistics']);
+        
+        // Client statistics
+        Route::get('/clients/statistics', [ClientController::class, 'statistics']);
     });
 });

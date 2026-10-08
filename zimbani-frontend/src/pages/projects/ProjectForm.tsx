@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import projectService from '../../services/project.service'
-import companyService from '../../services/company.service'
-import { Project, ProjectFormData } from '../../types/project.types'
-import { Company } from '../../types/company.types'
+import { ProjectFormData } from '../../types/project.types'
 import '../companies/CompanyForm.css'
 
 interface ProjectFormProps {
@@ -17,12 +15,14 @@ const ProjectForm = ({ isEdit = false }: ProjectFormProps) => {
   const [loading, setLoading] = useState(isEdit)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [companies, setCompanies] = useState<Company[]>([])
+  
+  // Set default company_id (since single company) - you'll need to get this from auth context or config
+  const DEFAULT_COMPANY_ID = '1' // TODO: Get from auth context or environment
   
   const [formData, setFormData] = useState<ProjectFormData>({
     name: '',
     code: '',
-    company_id: '',
+    company_id: DEFAULT_COMPANY_ID,
     project_type: 'residential',
     country: 'Uganda',
     status: 'planning',
@@ -33,7 +33,6 @@ const ProjectForm = ({ isEdit = false }: ProjectFormProps) => {
     if (isEdit && id) {
       fetchProject()
     }
-    fetchCompanies()
   }, [id, isEdit])
 
   const fetchProject = async () => {
@@ -53,35 +52,18 @@ const ProjectForm = ({ isEdit = false }: ProjectFormProps) => {
         expected_end_date: project.expected_end_date,
         actual_end_date: project.actual_end_date,
         total_budget: project.total_budget,
-        spent_budget: project.spent_budget,
         currency: project.currency,
         location: project.location,
         city: project.city,
         region: project.region,
         country: project.country,
-        client_name: project.client_name,
-        client_contact: project.client_contact,
-        contract_value: project.contract_value,
         progress_percentage: project.progress_percentage,
         priority: project.priority,
-        tags: project.tags,
       })
     } catch (err: any) {
       setError(err.message || 'Failed to fetch project')
     } finally {
       setLoading(false)
-    }
-  }
-
-  const fetchCompanies = async () => {
-    try {
-      const response = await companyService.getCompanies({
-        status: 'active',
-        per_page: 100,
-      })
-      setCompanies(response.data)
-    } catch (err) {
-      console.error('Failed to fetch companies:', err)
     }
   }
 
@@ -180,25 +162,6 @@ const ProjectForm = ({ isEdit = false }: ProjectFormProps) => {
           </div>
 
           <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="company_id" className="required">Company</label>
-              <select
-                id="company_id"
-                name="company_id"
-                value={formData.company_id}
-                onChange={handleChange}
-                required
-                className="form-input"
-              >
-                <option value="">Select Company</option>
-                {companies.map((company) => (
-                  <option key={company.uuid} value={company.uuid}>
-                    {company.name} ({company.code})
-                  </option>
-                ))}
-              </select>
-            </div>
-
             <div className="form-group">
               <label htmlFor="project_type" className="required">Project Type</label>
               <select
@@ -329,20 +292,6 @@ const ProjectForm = ({ isEdit = false }: ProjectFormProps) => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="spent_budget">Spent Budget</label>
-              <input
-                type="number"
-                id="spent_budget"
-                name="spent_budget"
-                value={formData.spent_budget || ''}
-                onChange={handleChange}
-                className="form-input"
-                min="0"
-                step="0.01"
-              />
-            </div>
-
-            <div className="form-group">
               <label htmlFor="currency" className="required">Currency</label>
               <input
                 type="text"
@@ -353,20 +302,6 @@ const ProjectForm = ({ isEdit = false }: ProjectFormProps) => {
                 required
                 className="form-input"
                 placeholder="UGX"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="contract_value">Contract Value</label>
-              <input
-                type="number"
-                id="contract_value"
-                name="contract_value"
-                value={formData.contract_value || ''}
-                onChange={handleChange}
-                className="form-input"
-                min="0"
-                step="0.01"
               />
             </div>
           </div>
@@ -426,39 +361,6 @@ const ProjectForm = ({ isEdit = false }: ProjectFormProps) => {
                 onChange={handleChange}
                 required
                 className="form-input"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Client Information */}
-        <div className="form-section">
-          <h2 className="section-title">Client Information</h2>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="client_name">Client Name</label>
-              <input
-                type="text"
-                id="client_name"
-                name="client_name"
-                value={formData.client_name || ''}
-                onChange={handleChange}
-                className="form-input"
-                placeholder="Client or Organization Name"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="client_contact">Client Contact</label>
-              <input
-                type="text"
-                id="client_contact"
-                name="client_contact"
-                value={formData.client_contact || ''}
-                onChange={handleChange}
-                className="form-input"
-                placeholder="Email or Phone"
               />
             </div>
           </div>
