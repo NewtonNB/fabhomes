@@ -22,7 +22,7 @@ const UnitsList: React.FC = () => {
 
   const [filters, setFilters] = useState<UnitFilters>({
     search: '',
-    site_id: searchParams.get('site_id') ? Number(searchParams.get('site_id')) : undefined,
+    site_id: searchParams.get('site_id') || undefined,
     unit_type: undefined,
     status: undefined,
     page: 1,
@@ -37,7 +37,7 @@ const UnitsList: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await unitService.getAll(filters);
+      const response = await unitService.getUnits(filters);
       setUnits(response.data);
       setPagination(response.meta);
     } catch (err: any) {
@@ -53,13 +53,13 @@ const UnitsList: React.FC = () => {
     setFilters({ ...filters, page: 1 });
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (uuid: string) => {
     if (!window.confirm('Are you sure you want to delete this unit?')) {
       return;
     }
 
     try {
-      await unitService.delete(id);
+      await unitService.deleteUnit(uuid);
       fetchUnits();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to delete unit');
@@ -291,7 +291,7 @@ const UnitsList: React.FC = () => {
                     </td>
                     <td>
                       <div className="cell-main">
-                        {formatCurrency(unit.current_price)}
+                        {formatCurrency(unit.current_price || 0)}
                       </div>
                     </td>
                     <td>
@@ -315,21 +315,21 @@ const UnitsList: React.FC = () => {
                     <td>
                       <div className="action-buttons">
                         <button
-                          onClick={() => navigate(`/units/${unit.uuid}`)}
+                          onClick={() => navigate(`/units/${unit.uuid || unit.id}`)}
                           className="btn-icon"
                           title="View Details"
                         >
                           👁️
                         </button>
                         <button
-                          onClick={() => navigate(`/units/${unit.uuid}/edit`)}
+                          onClick={() => navigate(`/units/${unit.uuid || unit.id}/edit`)}
                           className="btn-icon"
                           title="Edit"
                         >
                           ✏️
                         </button>
                         <button
-                          onClick={() => handleDelete(unit.id)}
+                          onClick={() => handleDelete(unit.uuid || unit.id)}
                           className="btn-icon btn-icon-danger"
                           title="Delete"
                         >

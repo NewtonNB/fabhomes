@@ -54,8 +54,8 @@ const SellUnitModal: React.FC<SellUnitModalProps> = ({
     setValidationErrors({});
 
     try {
-      await unitService.sell(unitUuid, {
-        client_id: Number(formData.client_id),
+      await unitService.sellUnit(unitUuid, {
+        client_id: String(formData.client_id),
         sale_date: formData.sale_date,
         sale_price: Number(formData.sale_price),
         initial_payment: Number(formData.initial_payment) || undefined,
@@ -63,7 +63,7 @@ const SellUnitModal: React.FC<SellUnitModalProps> = ({
         payment_plan: formData.payment_plan,
         agreement_number: formData.agreement_number || undefined,
         notes: formData.notes || undefined
-      });
+      } as any);
 
       if (onSuccess) {
         onSuccess();

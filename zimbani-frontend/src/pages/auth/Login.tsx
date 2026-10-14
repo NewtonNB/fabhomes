@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react'
+import { useState, useEffect, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import './Auth.css'
@@ -15,8 +15,13 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false)
 
   // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard')
+    }
+  }, [isAuthenticated, navigate])
+
   if (isAuthenticated) {
-    navigate('/dashboard')
     return null
   }
 

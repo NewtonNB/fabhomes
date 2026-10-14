@@ -9,9 +9,16 @@ import {
   MdPeople,
   MdSecurity,
   MdHistory,
-  MdPersonOutline
+  MdPersonOutline,
+  MdReceipt,
+  MdClose
 } from 'react-icons/md'
 import './Sidebar.css'
+
+interface SidebarProps {
+  isOpen?: boolean
+  onClose?: () => void
+}
 
 interface MenuItem {
   path: string
@@ -21,7 +28,7 @@ interface MenuItem {
   children?: MenuItem[]
 }
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   const location = useLocation()
   const { user } = useAuth()
 
@@ -34,7 +41,24 @@ const Sidebar = () => {
   const hasPermission = (permission?: string): boolean => {
     if (!permission) return true
     if (!user?.permissions) return false
-    return user.permissions.includes(permission)
+    if (user.permissions.includes(permission)) return true
+
+    // Handle "action module" (e.g. "view projects") -> "module.action" ("projects.view")
+    const words = permission.trim().split(/\s+/)
+    if (words.length === 2) {
+      const [action, module] = words
+      if (user.permissions.includes(`${module}.${action}`)) return true
+      if (action === 'view' && user.permissions.includes(`${module}.view-any`)) return true
+    }
+
+    // Handle "module.action" (e.g. "projects.view") -> "view projects"
+    if (permission.includes('.')) {
+      const [module, action] = permission.split('.')
+      if (user.permissions.includes(`${action} ${module}`)) return true
+      if (action === 'view' && user.permissions.includes(`view-any ${module}`)) return true
+    }
+
+    return false
   }
 
   // Check if user has any role
@@ -73,6 +97,12 @@ const Sidebar = () => {
       label: 'Clients',
       icon: <MdPersonOutline />,
       permission: 'view clients',
+    },
+    {
+      path: '/payments',
+      label: 'Payments',
+      icon: <MdReceipt />,
+      permission: 'view payments',
     },
   ]
 
@@ -140,6 +170,12 @@ const Sidebar = () => {
       )
     }
 
+    const handleNavigate = () => {
+      if (onClose && window.innerWidth <= 1024) {
+        onClose()
+      }
+    }
+
     // Regular menu item
     return (
       <Link
@@ -147,7 +183,7 @@ const Sidebar = () => {
         to={item.path}
         className={`menu-item ${isActive(item.path) ? 'active' : ''}`}
         onClick={() => {
-          console.log('Menu item clicked:', item.label, item.path)
+          handleNavigate()
         }}
       >
         <span className="menu-icon">{item.icon}</span>
@@ -157,9 +193,19 @@ const Sidebar = () => {
   }
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
         <h2>Menu</h2>
+        {onClose && (
+          <button 
+            type="button"
+            className="btn-sidebar-close"
+            onClick={onClose}
+            aria-label="Close sidebar"
+          >
+            <MdClose />
+          </button>
+        )}
       </div>
       <nav className="sidebar-menu">
         {allMenuItems.map((item) => renderMenuItem(item))}

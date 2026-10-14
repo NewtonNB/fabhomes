@@ -349,3 +349,56 @@
   color: #6b7280;
   font-size: 16px;
 }
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+  .sites-list-container {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sites-list-container {
+    padding: 12px 4px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filters-card {
+    padding: 14px;
+  }
+
+  .search-input-group {
+    flex-direction: column;
+  }
+
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filter-group {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .table-card {
+    padding: 12px 8px;
+  }
+
+  .data-table {
+    min-width: 750px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+}
+

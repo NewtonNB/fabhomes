@@ -127,20 +127,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Logout function
   const logout = async () => {
+    // Clear state immediately (don't wait for API)
+    setUser(null)
+    setToken(null)
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(USER_KEY)
+    setIsLoading(false)
+    
+    // Call API in background to revoke token (don't wait)
     try {
-      setIsLoading(true)
-      
       const { default: authService } = await import('../services/auth.service')
-      await authService.logout()
+      authService.logout().catch((error) => {
+        // Silently fail - user is already logged out locally
+        console.debug('Logout API call failed (user already logged out locally):', error)
+      })
     } catch (error) {
-      console.error('Logout error:', error)
-    } finally {
-      // Clear state regardless of API call result
-      setUser(null)
-      setToken(null)
-      localStorage.removeItem(TOKEN_KEY)
-      localStorage.removeItem(USER_KEY)
-      setIsLoading(false)
+      // Silently fail - user is already logged out locally
+      console.debug('Logout error:', error)
     }
   }
 

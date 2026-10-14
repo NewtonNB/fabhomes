@@ -25,7 +25,13 @@ class RoleManagementController extends Controller
     {
         $this->authorize('viewAny', Role::class);
 
-        $roles = Role::with('permissions')->withCount('users')->get();
+        $roles = Role::with('permissions')->get();
+
+        foreach ($roles as $role) {
+            $role->users_count = \Illuminate\Support\Facades\DB::table(config('permission.table_names.model_has_roles', 'model_has_roles'))
+                ->where('role_id', $role->id)
+                ->count();
+        }
 
         return response()->json([
             'success' => true,

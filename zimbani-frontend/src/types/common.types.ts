@@ -22,6 +22,8 @@ export interface PaginatedResponse<T> {
   }
 }
 
+export type PaginationMeta = PaginatedResponse<any>['meta']
+
 export interface PaginationParams {
   page?: number
   per_page?: number

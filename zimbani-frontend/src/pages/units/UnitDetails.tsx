@@ -91,7 +91,7 @@ const UnitDetails: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await unitService.getByUuid(unitUuid);
+      const data = await unitService.getUnit(unitUuid);
       setUnit(data as any);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch unit details');
@@ -107,7 +107,7 @@ const UnitDetails: React.FC = () => {
     }
 
     try {
-      await unitService.delete(unit.id);
+      await unitService.deleteUnit(unit.uuid);
       navigate('/units');
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to delete unit');
@@ -315,12 +315,25 @@ const UnitDetails: React.FC = () => {
           {canUpdatePayment && (
             <button 
               className="action-button action-payment"
-              onClick={() => setShowPaymentModal(true)}
+              onClick={() => navigate(`/payments/new?unit_id=${unit.uuid}`)}
             >
               <span className="action-icon">💵</span>
               <div>
                 <div className="action-title">Record Payment</div>
-                <div className="action-description">Add client payment</div>
+                <div className="action-description">Add client payment receipt</div>
+              </div>
+            </button>
+          )}
+
+          {isSoldOrReserved && (
+            <button 
+              className="action-button"
+              onClick={() => navigate(`/payments?search=${encodeURIComponent(unit.unit_number)}`)}
+            >
+              <span className="action-icon">🧾</span>
+              <div>
+                <div className="action-title">Payment History</div>
+                <div className="action-description">View unit transactions</div>
               </div>
             </button>
           )}

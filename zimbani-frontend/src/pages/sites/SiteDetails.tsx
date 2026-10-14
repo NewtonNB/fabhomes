@@ -17,11 +17,11 @@ const SiteDetails: React.FC = () => {
     }
   }, [id]);
 
-  const fetchSiteDetails = async (siteId: number) => {
+  const fetchSiteDetails = async (siteId: number | string) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await siteService.getById(siteId);
+      const data = await siteService.getSite(String(siteId));
       setSite(data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch site details');
@@ -37,7 +37,7 @@ const SiteDetails: React.FC = () => {
     }
 
     try {
-      await siteService.delete(site.id);
+      await siteService.deleteSite(site.uuid || site.id);
       navigate('/sites');
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to delete site');
@@ -162,7 +162,7 @@ const SiteDetails: React.FC = () => {
           <div className="stat-icon">💰</div>
           <div className="stat-content">
             <div className="stat-label">Site Value</div>
-            <div className="stat-value">{formatCurrency(site.total_site_value)}</div>
+            <div className="stat-value">{formatCurrency(site.total_site_value || 0)}</div>
           </div>
         </div>
       </div>
@@ -189,7 +189,7 @@ const SiteDetails: React.FC = () => {
                     className="link-value"
                     onClick={() => navigate(`/projects/${site.project_id}`)}
                   >
-                    {site.project.project_name}
+                    {(site.project as any)?.project_name || site.project.name}
                   </span>
                 ) : (
                   'N/A'
@@ -269,7 +269,7 @@ const SiteDetails: React.FC = () => {
             </div>
             <div className="info-item">
               <span className="info-label">Total Site Value</span>
-              <span className="info-value">{formatCurrency(site.total_site_value)}</span>
+              <span className="info-value">{formatCurrency(site.total_site_value || 0)}</span>
             </div>
           </div>
         </div>

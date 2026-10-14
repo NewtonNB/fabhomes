@@ -35,7 +35,7 @@ const SitesList: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await siteService.getAll(filters);
+      const response = await siteService.getSites(filters);
       setSites(response.data);
       setPagination(response.meta);
     } catch (err: any) {
@@ -51,13 +51,13 @@ const SitesList: React.FC = () => {
     setFilters({ ...filters, page: 1 });
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string | number) => {
     if (!window.confirm('Are you sure you want to delete this site?')) {
       return;
     }
 
     try {
-      await siteService.delete(id);
+      await siteService.deleteSite(String(id));
       fetchSites();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to delete site');
@@ -231,7 +231,7 @@ const SitesList: React.FC = () => {
                       <div className="cell-main">{site.site_name}</div>
                     </td>
                     <td>
-                      <div className="cell-sub">{site.project?.project_name || 'N/A'}</div>
+                      <div className="cell-sub">{(site.project as any)?.project_name || site.project?.name || 'N/A'}</div>
                     </td>
                     <td>
                       <div className="cell-main">{site.location}</div>
@@ -256,7 +256,7 @@ const SitesList: React.FC = () => {
                     </td>
                     <td>
                       <div className="cell-main">
-                        {formatCurrency(site.total_site_value)}
+                        {formatCurrency(site.total_site_value || 0)}
                       </div>
                     </td>
                     <td>

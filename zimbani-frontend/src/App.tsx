@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext'
 
 // Protected Route Component
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import PermissionRoute from './components/auth/PermissionRoute'
 
 // Pages
 import Login from './pages/auth/Login'
@@ -22,6 +23,7 @@ import CompanyDetails from './pages/companies/CompanyDetails'
 // Project Pages
 import ProjectsList from './pages/projects/ProjectsList'
 import ProjectForm from './pages/projects/ProjectForm'
+import ProjectDetails from './pages/projects/ProjectDetails'
 
 // Site Pages
 import SitesList from './pages/sites/SitesList'
@@ -37,6 +39,16 @@ import UnitDetails from './pages/units/UnitDetails'
 import ClientsList from './pages/clients/ClientsList'
 import ClientForm from './pages/clients/ClientForm'
 import ClientDetails from './pages/clients/ClientDetails'
+
+// Payment Pages
+import PaymentsList from './pages/payments/PaymentsList'
+import PaymentForm from './pages/payments/PaymentForm'
+import PaymentDetails from './pages/payments/PaymentDetails'
+
+// Admin Pages
+import UsersList from './pages/admin/UsersList'
+import RolesList from './pages/admin/RolesList'
+import ActivityLogs from './pages/admin/ActivityLogs'
 
 // Layout
 import Layout from './components/layout/Layout'
@@ -64,39 +76,234 @@ function App() {
             <Route path="profile" element={<Profile />} />
 
             {/* Companies Routes */}
-            <Route path="companies" element={<CompaniesList />} />
-            <Route path="companies/create" element={<CompanyForm />} />
-            <Route path="companies/:id" element={<CompanyDetails />} />
-            <Route path="companies/:id/edit" element={<CompanyForm isEdit={true} />} />
+            <Route
+              path="companies"
+              element={
+                <PermissionRoute permission="view companies">
+                  <CompaniesList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="companies/create"
+              element={
+                <PermissionRoute permission="create companies">
+                  <CompanyForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="companies/:id"
+              element={
+                <PermissionRoute permission="view companies">
+                  <CompanyDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="companies/:id/edit"
+              element={
+                <PermissionRoute permission="edit companies">
+                  <CompanyForm isEdit={true} />
+                </PermissionRoute>
+              }
+            />
 
             {/* Projects Routes */}
-            <Route path="projects" element={<ProjectsList />} />
-            <Route path="projects/create" element={<ProjectForm />} />
-            <Route path="projects/:id" element={<div>Project Details (Coming Soon)</div>} />
-            <Route path="projects/:id/edit" element={<ProjectForm isEdit={true} />} />
+            <Route
+              path="projects"
+              element={
+                <PermissionRoute permission="view projects">
+                  <ProjectsList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="projects/create"
+              element={
+                <PermissionRoute permission="create projects">
+                  <ProjectForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="projects/:id"
+              element={
+                <PermissionRoute permission="view projects">
+                  <ProjectDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="projects/:id/edit"
+              element={
+                <PermissionRoute permission="edit projects">
+                  <ProjectForm isEdit={true} />
+                </PermissionRoute>
+              }
+            />
 
             {/* Sites Routes */}
-            <Route path="sites" element={<SitesList />} />
-            <Route path="sites/new" element={<SiteForm />} />
-            <Route path="sites/:id" element={<SiteDetails />} />
-            <Route path="sites/:id/edit" element={<SiteForm />} />
+            <Route
+              path="sites"
+              element={
+                <PermissionRoute permission="view sites">
+                  <SitesList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="sites/new"
+              element={
+                <PermissionRoute permission="create sites">
+                  <SiteForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="sites/:id"
+              element={
+                <PermissionRoute permission="view sites">
+                  <SiteDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="sites/:id/edit"
+              element={
+                <PermissionRoute permission="edit sites">
+                  <SiteForm />
+                </PermissionRoute>
+              }
+            />
 
             {/* Units Routes */}
-            <Route path="units" element={<UnitsList />} />
-            <Route path="units/new" element={<UnitForm />} />
-            <Route path="units/:uuid" element={<UnitDetails />} />
-            <Route path="units/:uuid/edit" element={<UnitForm />} />
+            <Route
+              path="units"
+              element={
+                <PermissionRoute permission="view units">
+                  <UnitsList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="units/new"
+              element={
+                <PermissionRoute permission="create units">
+                  <UnitForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="units/:uuid"
+              element={
+                <PermissionRoute permission="view units">
+                  <UnitDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="units/:uuid/edit"
+              element={
+                <PermissionRoute permission="edit units">
+                  <UnitForm />
+                </PermissionRoute>
+              }
+            />
 
             {/* Clients Routes */}
-            <Route path="clients" element={<ClientsList />} />
-            <Route path="clients/new" element={<ClientForm />} />
-            <Route path="clients/:uuid" element={<ClientDetails />} />
-            <Route path="clients/edit/:uuid" element={<ClientForm />} />
+            <Route
+              path="clients"
+              element={
+                <PermissionRoute permission="view clients">
+                  <ClientsList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="clients/new"
+              element={
+                <PermissionRoute permission="create clients">
+                  <ClientForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="clients/:uuid"
+              element={
+                <PermissionRoute permission="view clients">
+                  <ClientDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="clients/edit/:uuid"
+              element={
+                <PermissionRoute permission="edit clients">
+                  <ClientForm />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Payments Routes */}
+            <Route
+              path="payments"
+              element={
+                <PermissionRoute permission="view payments">
+                  <PaymentsList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="payments/new"
+              element={
+                <PermissionRoute permission="create payments">
+                  <PaymentForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="payments/:uuid"
+              element={
+                <PermissionRoute permission="view payments">
+                  <PaymentDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="payments/:uuid/edit"
+              element={
+                <PermissionRoute permission="edit payments">
+                  <PaymentForm isEdit={true} />
+                </PermissionRoute>
+              }
+            />
 
             {/* Admin Routes */}
-            <Route path="admin/users" element={<div>Users Management (Coming Soon)</div>} />
-            <Route path="admin/roles" element={<div>Roles Management (Coming Soon)</div>} />
-            <Route path="admin/activities" element={<div>Activity Logs (Coming Soon)</div>} />
+            <Route
+              path="admin/users"
+              element={
+                <PermissionRoute roles={['Super Admin', 'Admin']}>
+                  <UsersList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="admin/roles"
+              element={
+                <PermissionRoute roles={['Super Admin', 'Admin']}>
+                  <RolesList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="admin/activities"
+              element={
+                <PermissionRoute roles={['Super Admin', 'Admin']}>
+                  <ActivityLogs />
+                </PermissionRoute>
+              }
+            />
           </Route>
 
           {/* 404 Not Found */}

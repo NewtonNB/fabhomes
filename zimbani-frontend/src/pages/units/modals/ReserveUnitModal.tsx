@@ -50,14 +50,14 @@ const ReserveUnitModal: React.FC<ReserveUnitModalProps> = ({
     setValidationErrors({});
 
     try {
-      await unitService.reserve(unitUuid, {
-        client_id: Number(formData.client_id),
+      await unitService.reserveUnit(unitUuid, {
+        client_id: String(formData.client_id),
         reservation_date: formData.reservation_date,
         deposit_amount: Number(formData.deposit_amount),
         payment_method: formData.payment_method,
         expiry_date: formData.expiry_date || undefined,
         notes: formData.notes || undefined
-      });
+      } as any);
 
       if (onSuccess) {
         onSuccess();

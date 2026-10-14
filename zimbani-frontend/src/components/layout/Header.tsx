@@ -1,30 +1,31 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { MdMenu } from 'react-icons/md'
 import { useAuth } from '../../contexts/AuthContext'
 import './Header.css'
 
-const Header = () => {
+interface HeaderProps {
+  onToggleSidebar?: () => void
+}
+
+const Header = ({ onToggleSidebar }: HeaderProps) => {
   const { isAuthenticated, user, isLoading, logout } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
-    console.log('Logout button clicked')
-    try {
-      await logout()
-      console.log('Logout successful, navigating to login')
-      navigate('/login')
-    } catch (error) {
-      console.error('Logout error:', error)
-    }
+    logout()
+    navigate('/login')
   }
 
   if (isLoading) {
     return (
       <header className="header">
         <div className="header-container">
-          <Link to="/" className="logo">
-            <h1>ZIMBANI</h1>
-            <span className="logo-subtitle">FAB HOMES UGANDA</span>
-          </Link>
+          <div className="header-left">
+            <Link to="/" className="logo">
+              <h1>ZIMBANI</h1>
+              <span className="logo-subtitle">FAB HOMES UGANDA</span>
+            </Link>
+          </div>
           <div>Loading...</div>
         </div>
       </header>
@@ -34,25 +35,36 @@ const Header = () => {
   return (
     <header className="header">
       <div className="header-container">
-        <Link to="/" className="logo">
-          <h1>ZIMBANI</h1>
-          <span className="logo-subtitle">FAB HOMES UGANDA</span>
-        </Link>
+        <div className="header-left">
+          {isAuthenticated && onToggleSidebar && (
+            <button 
+              type="button" 
+              className="btn-menu-toggle" 
+              onClick={onToggleSidebar}
+              aria-label="Toggle navigation menu"
+            >
+              <MdMenu />
+            </button>
+          )}
+          <Link to="/" className="logo">
+            <h1>ZIMBANI</h1>
+            <span className="logo-subtitle">FAB HOMES UGANDA</span>
+          </Link>
+        </div>
         
         <nav className="nav">
           {isAuthenticated ? (
             <>
-              <Link to="/dashboard" className="nav-link">Dashboard</Link>
-              <Link to="/profile" className="nav-link">Profile</Link>
+              <Link to="/dashboard" className="nav-link nav-link-dashboard">Dashboard</Link>
+              <Link to="/profile" className="nav-link nav-link-profile">Profile</Link>
               <div className="user-menu">
-                <span className="user-info">
+                <span className="user-info" title={user?.email}>
                   {user?.name || user?.email}
                 </span>
                 <button 
                   onClick={handleLogout}
                   className="btn-logout"
                   title="Logout"
-                  style={{ pointerEvents: 'auto', cursor: 'pointer' }}
                 >
                   Logout
                 </button>

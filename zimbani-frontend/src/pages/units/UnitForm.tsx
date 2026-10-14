@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { unitService } from '../../services/unit.service';
 import { siteService } from '../../services/site.service';
-import { Unit, CreateUnitData, UpdateUnitData } from '../../types/unit.types';
+import { CreateUnitData, UpdateUnitData } from '../../types/unit.types';
 import { Site } from '../../types/site.types';
 import './UnitForm.css';
 
@@ -64,7 +64,7 @@ const UnitForm: React.FC = () => {
 
   const fetchSites = async () => {
     try {
-      const response = await siteService.getAll({ per_page: 1000 });
+      const response = await siteService.getSites({ per_page: 1000 });
       setSites(response.data);
     } catch (err) {
       console.error('Error fetching sites:', err);
@@ -74,43 +74,43 @@ const UnitForm: React.FC = () => {
   const fetchUnit = async (unitUuid: string) => {
     try {
       setLoadingData(true);
-      const unit = await unitService.getByUuid(unitUuid);
+      const unit = (await unitService.getUnit(unitUuid)) as any;
       
       setFormData({
         unit_number: unit.unit_number,
-        unit_name: unit.unit_name,
+        unit_name: unit.unit_name || unit.name || '',
         site_id: unit.site_id,
         unit_type: unit.unit_type,
-        block: unit.block,
-        floor: unit.floor,
-        facing: unit.facing,
-        floor_area: unit.floor_area,
-        area_unit: unit.area_unit,
+        block: unit.block || unit.block_number,
+        floor: unit.floor || unit.floor_number,
+        facing: unit.facing || unit.facing_direction,
+        floor_area: unit.floor_area || unit.area,
+        area_unit: unit.area_unit || 'sqm',
         plot_size: unit.plot_size,
         bedrooms: unit.bedrooms,
         bathrooms: unit.bathrooms,
-        parking_spaces: unit.parking_spaces,
+        parking_spaces: unit.parking_spaces || unit.parking_slots,
         balcony_area: unit.balcony_area,
         terrace_area: unit.terrace_area,
         base_price: unit.base_price,
         current_price: unit.current_price,
         minimum_price: unit.minimum_price,
         maximum_price: unit.maximum_price,
-        price_per_unit_area: unit.price_per_unit_area,
-        discount_percentage: unit.discount_percentage,
+        price_per_unit_area: unit.price_per_unit_area || unit.price_per_sqm,
+        discount_percentage: unit.discount_percentage || unit.discount,
         special_offer: unit.special_offer,
         status: unit.status,
         completion_percentage: unit.completion_percentage,
         construction_start_date: unit.construction_start_date,
-        construction_end_date: unit.construction_end_date,
-        expected_handover_date: unit.expected_handover_date,
+        construction_end_date: unit.construction_end_date || unit.expected_completion_date,
+        expected_handover_date: unit.expected_handover_date || unit.handover_date,
         warranty_end_date: unit.warranty_end_date,
         interior_features: unit.interior_features,
         exterior_features: unit.exterior_features,
         shared_amenities: unit.shared_amenities,
         description: unit.description,
         special_conditions: unit.special_conditions,
-        internal_notes: unit.internal_notes
+        internal_notes: unit.internal_notes || unit.notes
       });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch unit details');
@@ -132,7 +132,7 @@ const UnitForm: React.FC = () => {
       processedValue = value === '' ? undefined : value;
     }
     
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       [name]: processedValue
     }));
@@ -143,7 +143,7 @@ const UnitForm: React.FC = () => {
       const area = name === 'floor_area' ? Number(value) : formData.floor_area;
       
       if (price && area && area > 0) {
-        setFormData(prev => ({
+        setFormData((prev: any) => ({
           ...prev,
           price_per_unit_area: Math.round(price / area)
         }));
@@ -152,7 +152,7 @@ const UnitForm: React.FC = () => {
 
     // Clear validation error for this field
     if (validationErrors[name]) {
-      setValidationErrors(prev => {
+      setValidationErrors((prev: any) => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
@@ -168,9 +168,9 @@ const UnitForm: React.FC = () => {
 
     try {
       if (isEditMode && uuid) {
-        await unitService.update(uuid, formData as UpdateUnitData);
+        await unitService.updateUnit(uuid, formData as any);
       } else {
-        await unitService.create(formData as CreateUnitData);
+        await unitService.createUnit(formData as any);
       }
       navigate('/units');
     } catch (err: any) {
@@ -270,7 +270,7 @@ const UnitForm: React.FC = () => {
                 <option value="">Select Site</option>
                 {sites.map(site => (
                   <option key={site.id} value={site.id}>
-                    {site.site_name}
+                    {site.name || (site as any).site_name}
                   </option>
                 ))}
               </select>

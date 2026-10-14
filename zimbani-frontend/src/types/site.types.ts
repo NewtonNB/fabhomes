@@ -3,6 +3,8 @@ export interface Site {
   uuid: string
   name: string
   code: string
+  site_code?: string
+  site_name?: string
   project_id: string
   site_type: 'construction' | 'warehouse' | 'office' | 'showroom' | 'other'
   status: 'planning' | 'active' | 'completed' | 'on_hold' | 'closed'
@@ -37,6 +39,16 @@ export interface Site {
   access_restrictions?: string
   notes?: string
   metadata?: Record<string, any>
+  location?: string
+  gps_coordinates?: string
+  site_size?: number
+  size_unit?: string
+  total_units?: number
+  total_site_value?: number
+  boundaries?: string
+  access_roads?: string
+  utilities_available?: string
+  zoning_info?: string
   created_at: string
   updated_at: string
   deleted_at?: string
@@ -150,3 +162,6 @@ export interface UpdateInspectionData {
   next_inspection_date?: string
   inspection_notes?: string
 }
+
+export type CreateSiteData = SiteFormData | any
+export type UpdateSiteData = Partial<SiteFormData> | any

@@ -11,9 +11,12 @@ import {
   MdBusiness,
   MdPerson,
   MdContactEmergency,
+  MdReceipt,
 } from 'react-icons/md';
 import { clientService } from '../../services/client.service';
+import { paymentService } from '../../services/payment.service';
 import { Client, ClientUnit } from '../../types/client.types';
+import { Payment } from '../../types/payment.types';
 import './ClientDetails.css';
 
 const ClientDetails: React.FC = () => {
@@ -22,6 +25,7 @@ const ClientDetails: React.FC = () => {
 
   const [client, setClient] = useState<Client | null>(null);
   const [units, setUnits] = useState<ClientUnit[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -50,6 +54,15 @@ const ClientDetails: React.FC = () => {
       } catch (err) {
         console.log('No units found for client');
         setUnits([]);
+      }
+
+      // Load client payments
+      try {
+        const paymentsResponse = await paymentService.getPayments({ client_id: clientUuid, per_page: 50 });
+        setPayments(paymentsResponse.data || []);
+      } catch (err) {
+        console.log('No payments found for client');
+        setPayments([]);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load client');
@@ -327,6 +340,72 @@ const ClientDetails: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Payment History */}
+      <div className="details-section">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h2 style={{ margin: 0 }}><MdReceipt size={24} /> Payment History ({payments.length})</h2>
+          <button
+            className="btn-action edit"
+            onClick={() => navigate(`/payments/new?client_id=${client.uuid}`)}
+          >
+            + Record Payment
+          </button>
+        </div>
+
+        {payments.length === 0 ? (
+          <p style={{ color: '#6b7280', margin: 0 }}>No payment records found for this client.</p>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #e5e7eb', color: '#4b5563' }}>
+                  <th style={{ padding: '8px 12px' }}>Payment #</th>
+                  <th style={{ padding: '8px 12px' }}>Date</th>
+                  <th style={{ padding: '8px 12px' }}>Type</th>
+                  <th style={{ padding: '8px 12px' }}>Method</th>
+                  <th style={{ padding: '8px 12px' }}>Amount</th>
+                  <th style={{ padding: '8px 12px' }}>Status</th>
+                  <th style={{ padding: '8px 12px' }}>Receipt</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payments.map((p) => (
+                  <tr key={p.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontWeight: 600, color: '#059669' }}>
+                      {p.payment_number}
+                    </td>
+                    <td style={{ padding: '10px 12px' }}>{p.payment_date}</td>
+                    <td style={{ padding: '10px 12px', textTransform: 'capitalize' }}>
+                      {p.payment_type.replace('_', ' ')}
+                    </td>
+                    <td style={{ padding: '10px 12px', textTransform: 'capitalize' }}>
+                      {p.payment_method.replace('_', ' ')}
+                    </td>
+                    <td style={{ padding: '10px 12px', fontWeight: 700 }}>
+                      UGX {Number(p.total_amount).toLocaleString()}
+                    </td>
+                    <td style={{ padding: '10px 12px' }}>
+                      <span className={`badge badge-${p.status === 'verified' ? 'success' : p.status === 'confirmed' ? 'info' : 'warning'}`}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px 12px' }}>
+                      <button
+                        className="btn-action edit"
+                        style={{ padding: '4px 8px', fontSize: '12px' }}
+                        onClick={() => navigate(`/payments/${p.uuid}`)}
+                      >
+                        View Receipt
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Additional Information */}
       {(client.notes || (client.tags && client.tags.length > 0)) && (

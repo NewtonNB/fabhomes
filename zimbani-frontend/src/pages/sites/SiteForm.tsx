@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { siteService } from '../../services/site.service';
 import { projectService } from '../../services/project.service';
-import { Site, CreateSiteData, UpdateSiteData } from '../../types/site.types';
+import { CreateSiteData, UpdateSiteData } from '../../types/site.types';
 import { Project } from '../../types/project.types';
 import './SiteForm.css';
 
@@ -45,21 +45,21 @@ const SiteForm: React.FC = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await projectService.getAll({ per_page: 1000 });
+      const response = await projectService.getProjects({ per_page: 1000 } as any);
       setProjects(response.data);
     } catch (err) {
       console.error('Error fetching projects:', err);
     }
   };
 
-  const fetchSite = async (siteId: number) => {
+  const fetchSite = async (siteId: number | string) => {
     try {
       setLoadingData(true);
-      const site = await siteService.getById(siteId);
+      const site = await siteService.getSite(String(siteId));
       
       setFormData({
-        site_code: site.site_code,
-        site_name: site.site_name,
+        site_code: site.site_code || site.code,
+        site_name: site.site_name || site.name,
         project_id: site.project_id,
         location: site.location,
         site_size: site.site_size,
@@ -92,14 +92,14 @@ const SiteForm: React.FC = () => {
       processedValue = value === '' ? undefined : Number(value);
     }
     
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       [name]: processedValue
     }));
 
     // Clear validation error for this field
     if (validationErrors[name]) {
-      setValidationErrors(prev => {
+      setValidationErrors((prev: any) => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
@@ -115,9 +115,9 @@ const SiteForm: React.FC = () => {
 
     try {
       if (isEditMode && id) {
-        await siteService.update(Number(id), formData as UpdateSiteData);
+        await siteService.updateSite(String(id), formData as UpdateSiteData);
       } else {
-        await siteService.create(formData as CreateSiteData);
+        await siteService.createSite(formData as CreateSiteData);
       }
       navigate('/sites');
     } catch (err: any) {
@@ -217,7 +217,7 @@ const SiteForm: React.FC = () => {
                 <option value="">Select Project</option>
                 {projects.map(project => (
                   <option key={project.id} value={project.id}>
-                    {project.project_name}
+                    {(project as any).project_name || project.name}
                   </option>
                 ))}
               </select>

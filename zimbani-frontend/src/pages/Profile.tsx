@@ -153,12 +153,8 @@ const Profile = () => {
   }
 
   const handleLogout = async () => {
-    try {
-      await logout()
-      navigate('/login')
-    } catch (err) {
-      console.error('Logout error:', err)
-    }
+    logout() // Don't await - logout is now instant
+    navigate('/login')
   }
 
   if (!user) {

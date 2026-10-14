@@ -1,6 +1,8 @@
 export interface Unit {
   id: string
+  uuid: string
   unit_number: string
+  unit_name?: string
   name?: string
   site_id: string
   project_id: string
@@ -9,7 +11,10 @@ export interface Unit {
   status: 'planned' | 'under_construction' | 'completed' | 'available' | 'reserved' | 'sold' | 'occupied' | 'maintenance' | 'unavailable'
   floor_number?: number
   block_number?: string
+  block?: string
   area?: number
+  floor_area?: number
+  area_unit?: string
   bedrooms?: number
   bathrooms?: number
   has_balcony?: boolean
@@ -200,6 +205,10 @@ export interface SellUnitData {
 export interface UpdateProgressData {
   completion_percentage: number
   progress_notes?: string
+  progress_description?: string
+  update_date?: string
+  inspector_name?: string
+  [key: string]: any
 }
 
 export interface UpdateInspectionData {
@@ -207,9 +216,20 @@ export interface UpdateInspectionData {
   next_inspection_date?: string
   inspection_notes?: string
   is_defect_free?: boolean
+  inspection_date?: string
+  inspector_name?: string
+  inspection_type?: string
+  [key: string]: any
 }
 
 export interface UpdatePaymentData {
-  amount_paid: number
+  amount_paid?: number
+  amount?: number
   payment_notes?: string
+  payment_date?: string
+  payment_method?: string
+  [key: string]: any
 }
+
+export type CreateUnitData = UnitFormData | any
+export type UpdateUnitData = Partial<UnitFormData> | any
