@@ -10,7 +10,8 @@ import {
   MdPersonAdd, 
   MdSecurity, 
   MdHistory,
-  MdArrowForward
+  MdArrowForward,
+  MdDescription
 } from 'react-icons/md'
 import { useAuth } from '../contexts/AuthContext'
 import projectService from '../services/project.service'
@@ -176,6 +177,9 @@ const Dashboard: React.FC = () => {
           </Link>
           <Link to="/payments/new" className="launchpad-btn">
             <MdReceipt className="btn-icon" /> Record Payment
+          </Link>
+          <Link to="/documents" className="launchpad-btn">
+            <MdDescription className="btn-icon" /> Documents
           </Link>
           <Link to="/admin/activities" className="launchpad-btn">
             <MdSecurity className="btn-icon" /> Audit Trail
