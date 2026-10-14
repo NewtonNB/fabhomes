@@ -126,6 +126,11 @@ class Payment extends Model
         return $this->belongsTo(User::class, 'confirmed_by');
     }
 
+    public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
+    }
+
     // Scopes
 
     public function scopeConfirmed($query)

@@ -1,0 +1,199 @@
+.document-upload-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+
+.document-upload-modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.document-upload-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.document-upload-modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.document-upload-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #64748b;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.document-upload-modal-close:hover {
+  color: #0f172a;
+}
+
+.document-upload-form {
+  padding: 1.5rem;
+}
+
+.doc-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.doc-form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+  margin-bottom: 0.5rem;
+}
+
+.doc-form-group input[type="text"],
+.doc-form-group input[type="date"],
+.doc-form-group select,
+.doc-form-group textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #0f172a;
+  background-color: #f8fafc;
+  transition: border-color 0.15s ease-in-out;
+  box-sizing: border-box;
+}
+
+.doc-form-group input:focus,
+.doc-form-group select:focus,
+.doc-form-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background-color: #ffffff;
+}
+
+.dropzone-area {
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  background-color: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropzone-area:hover,
+.dropzone-area.drag-over {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+.dropzone-icon {
+  font-size: 2.5rem;
+  color: #3b82f6;
+  margin-bottom: 0.5rem;
+}
+
+.dropzone-text {
+  font-size: 0.875rem;
+  color: #475569;
+  margin-bottom: 0.25rem;
+}
+
+.dropzone-hint {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.selected-file-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.selected-file-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.selected-file-size {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-left: 0.5rem;
+}
+
+.document-upload-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.doc-btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  border: 1px solid transparent;
+}
+
+.doc-btn-secondary {
+  background-color: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.doc-btn-secondary:hover {
+  background-color: #e2e8f0;
+}
+
+.doc-btn-primary {
+  background-color: #2563eb;
+  color: white;
+}
+
+.doc-btn-primary:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.doc-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.doc-error-message {
+  background-color: #fee2e2;
+  border: 1px solid #f87171;
+  color: #991b1b;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}

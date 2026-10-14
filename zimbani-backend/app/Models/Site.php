@@ -177,6 +177,14 @@ class Site extends Model
     }
 
     /**
+     * Get the documents for the site.
+     */
+    public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
+    }
+
+    /**
      * Helper Methods
      */
 

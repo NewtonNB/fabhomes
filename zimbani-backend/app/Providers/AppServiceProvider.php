@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Site;
 use App\Models\Unit;
 use App\Models\Payment;
+use App\Models\Document;
 use App\Policies\UserPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\PermissionPolicy;
@@ -16,6 +17,7 @@ use App\Policies\ProjectPolicy;
 use App\Policies\SitePolicy;
 use App\Policies\UnitPolicy;
 use App\Policies\PaymentPolicy;
+use App\Policies\DocumentPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Role;
@@ -37,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
         Site::class => SitePolicy::class,
         Unit::class => UnitPolicy::class,
         Payment::class => PaymentPolicy::class,
+        Document::class => DocumentPolicy::class,
     ];
 
     /**

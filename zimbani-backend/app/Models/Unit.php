@@ -169,6 +169,11 @@ class Unit extends Model
         return $this->belongsTo(User::class, 'client_id');
     }
 
+    public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
+    }
+
     /**
      * Helper Methods
      */

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\SiteController;
 use App\Http\Controllers\Api\UnitController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\DocumentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -97,6 +98,11 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/payments/{payment}/refund', [PaymentController::class, 'refund']);
     Route::post('/payments/{payment}/cancel', [PaymentController::class, 'cancel']);
 
+    // Document Management routes
+    Route::apiResource('documents', DocumentController::class);
+    Route::get('/documents/{document}/download', [DocumentController::class, 'download']);
+    Route::post('/documents/{document}/verify', [DocumentController::class, 'verify']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -142,5 +148,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         
         // Payment statistics
         Route::get('/payments/statistics', [PaymentController::class, 'statistics']);
+        
+        // Document statistics
+        Route::get('/documents/statistics', [DocumentController::class, 'statistics']);
     });
 });

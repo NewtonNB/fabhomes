@@ -45,6 +45,9 @@ import PaymentsList from './pages/payments/PaymentsList'
 import PaymentForm from './pages/payments/PaymentForm'
 import PaymentDetails from './pages/payments/PaymentDetails'
 
+// Document Pages
+import DocumentsPage from './pages/documents/DocumentsPage'
+
 // Admin Pages
 import UsersList from './pages/admin/UsersList'
 import RolesList from './pages/admin/RolesList'
@@ -275,6 +278,16 @@ function App() {
               element={
                 <PermissionRoute permission="edit payments">
                   <PaymentForm isEdit={true} />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Documents Routes */}
+            <Route
+              path="documents"
+              element={
+                <PermissionRoute permission="view documents">
+                  <DocumentsPage />
                 </PermissionRoute>
               }
             />

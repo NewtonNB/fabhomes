@@ -126,9 +126,9 @@ class Project extends Model
     /**
      * Get the documents for the project.
      */
-    public function documents(): HasMany
+    public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
-        return $this->hasMany(Document::class);
+        return $this->morphMany(Document::class, 'documentable');
     }
 
     /**

@@ -11,6 +11,7 @@ import {
   MdHistory,
   MdPersonOutline,
   MdReceipt,
+  MdDescription,
   MdClose
 } from 'react-icons/md'
 import './Sidebar.css'
@@ -103,6 +104,12 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       label: 'Payments',
       icon: <MdReceipt />,
       permission: 'view payments',
+    },
+    {
+      path: '/documents',
+      label: 'Documents',
+      icon: <MdDescription />,
+      permission: 'view documents',
     },
   ]
 

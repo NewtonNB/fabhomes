@@ -1,0 +1,198 @@
+.doc-table-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.doc-table th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.doc-table td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.doc-table tr:hover {
+  background-color: #f8fafc;
+}
+
+.doc-file-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.doc-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #eff6ff;
+  color: #3b82f6;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.doc-icon-wrapper.pdf {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.doc-icon-wrapper.image {
+  background-color: #f0fdf4;
+  color: #16a34a;
+}
+
+.doc-icon-wrapper.doc {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.doc-icon-wrapper.sheet {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+.doc-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.doc-title {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.doc-sub {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.doc-badge {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.doc-badge.contract {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+.doc-badge.id_proof,
+.doc-badge.kyc {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.doc-badge.receipt,
+.doc-badge.invoice {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.doc-badge.floor_plan,
+.doc-badge.permit {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.doc-badge.other {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.verified-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #059669;
+  background-color: #ecfdf5;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.unverified-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #d97706;
+  background-color: #fffbeb;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.doc-actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.doc-action-btn {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.875rem;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.15s ease;
+}
+
+.doc-action-btn:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.doc-action-btn.delete:hover {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.doc-action-btn.verify {
+  border-color: #a7f3d0;
+  color: #059669;
+}
+
+.doc-action-btn.verify:hover {
+  background-color: #d1fae5;
+}
+
+.doc-empty-state {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: #64748b;
+}
+
+.doc-empty-icon {
+  font-size: 3rem;
+  color: #cbd5e1;
+  margin-bottom: 0.75rem;
+}

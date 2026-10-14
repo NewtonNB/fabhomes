@@ -123,6 +123,11 @@ class Client extends Model
         return $this->hasMany(Unit::class);
     }
 
+    public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
+    }
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
