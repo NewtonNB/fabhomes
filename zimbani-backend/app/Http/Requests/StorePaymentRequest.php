@@ -14,8 +14,8 @@ class StorePaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'unit_id' => 'required|exists:units,uuid',
-            'client_id' => 'required|exists:clients,uuid',
+            'unit_id' => 'required|exists:units,id',
+            'client_id' => 'required|exists:clients,id',
             'payment_type' => 'required|in:deposit,installment,full_payment,balance,booking_fee,penalty,refund',
             'payment_method' => 'required|in:cash,bank_transfer,check,mobile_money,card,other',
             'amount' => 'required|numeric|min:0|max:999999999999.99',
@@ -37,15 +37,15 @@ class StorePaymentRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        // Convert UUIDs to IDs
-        if ($this->has('unit_id')) {
+        // Convert UUIDs to IDs if not already numeric
+        if ($this->has('unit_id') && !is_numeric($this->unit_id)) {
             $unit = \App\Models\Unit::where('uuid', $this->unit_id)->first();
             if ($unit) {
                 $this->merge(['unit_id' => $unit->id]);
             }
         }
 
-        if ($this->has('client_id')) {
+        if ($this->has('client_id') && !is_numeric($this->client_id)) {
             $client = \App\Models\Client::where('uuid', $this->client_id)->first();
             if ($client) {
                 $this->merge(['client_id' => $client->id]);
