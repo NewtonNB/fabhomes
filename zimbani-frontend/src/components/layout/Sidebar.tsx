@@ -12,6 +12,7 @@ import {
   MdPersonOutline,
   MdReceipt,
   MdDescription,
+  MdAssignment,
   MdClose
 } from 'react-icons/md'
 import './Sidebar.css'
@@ -92,6 +93,12 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       label: 'Units',
       icon: <MdHome />,
       permission: 'view units',
+    },
+    {
+      path: '/tasks',
+      label: 'Tasks & Milestones',
+      icon: <MdAssignment />,
+      permission: 'view tasks',
     },
     {
       path: '/clients',

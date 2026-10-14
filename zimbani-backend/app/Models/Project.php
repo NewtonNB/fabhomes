@@ -46,6 +46,7 @@ class Project extends Model
         'total_units',
         'total_area',
         'area_unit',
+        'completion_percentage',
         'metadata',
     ];
 
@@ -60,6 +61,7 @@ class Project extends Model
         'actual_completion_date' => 'date',
         'budget' => 'decimal:2',
         'total_spent' => 'decimal:2',
+        'completion_percentage' => 'decimal:2',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
         'total_area' => 'decimal:2',
@@ -116,11 +118,19 @@ class Project extends Model
     }
 
     /**
+     * Get the milestones for the project.
+     */
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(ConstructionMilestone::class, 'project_id')->orderBy('milestone_order');
+    }
+
+    /**
      * Get the tasks for the project.
      */
     public function tasks(): HasMany
     {
-        return $this->hasMany(Task::class);
+        return $this->hasMany(Task::class, 'project_id');
     }
 
     /**

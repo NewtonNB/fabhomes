@@ -175,6 +175,14 @@ class Unit extends Model
     }
 
     /**
+     * Get the tasks for the unit.
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'unit_id');
+    }
+
+    /**
      * Helper Methods
      */
 

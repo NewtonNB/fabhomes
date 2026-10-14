@@ -153,6 +153,14 @@ class Site extends Model
     }
 
     /**
+     * Get the tasks for the site.
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'site_id');
+    }
+
+    /**
      * Get the materials inventory at the site.
      */
     public function materials(): HasMany

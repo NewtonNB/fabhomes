@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\UnitController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\DocumentController;
+use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\MilestoneController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -103,6 +105,17 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::get('/documents/{document}/download', [DocumentController::class, 'download']);
     Route::post('/documents/{document}/verify', [DocumentController::class, 'verify']);
 
+    // Task Management routes
+    Route::apiResource('tasks', TaskController::class);
+    Route::post('/tasks/{uuid}/restore', [TaskController::class, 'restore']);
+    Route::put('/tasks/{task}/status', [TaskController::class, 'updateStatus']);
+
+    // Milestone Management routes (including API Spec Section 9.3)
+    Route::apiResource('milestones', MilestoneController::class);
+    Route::get('/projects/{project}/milestones', [MilestoneController::class, 'projectMilestones']);
+    Route::post('/projects/{project}/milestones', [MilestoneController::class, 'store']);
+    Route::put('/construction/milestones/{milestone}', [MilestoneController::class, 'update']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -151,5 +164,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         
         // Document statistics
         Route::get('/documents/statistics', [DocumentController::class, 'statistics']);
+
+        // Task statistics
+        Route::get('/tasks/statistics', [TaskController::class, 'statistics']);
     });
 });

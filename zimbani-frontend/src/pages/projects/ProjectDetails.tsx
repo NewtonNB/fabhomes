@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import projectService from '../../services/project.service'
 import { Project } from '../../types/project.types'
 import { Site } from '../../types/site.types'
+import { MilestoneTracker } from '../../components/milestones/MilestoneTracker'
 import './ProjectDetails.css'
 
 const ProjectDetails = () => {
@@ -379,6 +380,17 @@ const ProjectDetails = () => {
             <p className="description-text">{project.description}</p>
           </div>
         )}
+
+        {/* Construction Milestones & Task Progress */}
+        <div className="details-card full-width" style={{ padding: '1.5rem' }}>
+          <MilestoneTracker
+            projectId={project.uuid || String(project.id)}
+            projectProgress={(project as any).completion_percentage ?? project.progress_percentage ?? 0}
+            onProgressUpdated={(newProg) => {
+              setProject((prev) => prev ? { ...prev, progress_percentage: newProg, completion_percentage: newProg } as any : prev)
+            }}
+          />
+        </div>
 
         {/* Associated Sites */}
         <div className="details-card full-width">

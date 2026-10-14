@@ -48,6 +48,11 @@ import PaymentDetails from './pages/payments/PaymentDetails'
 // Document Pages
 import DocumentsPage from './pages/documents/DocumentsPage'
 
+// Task Pages
+import TasksList from './pages/tasks/TasksList'
+import TaskForm from './pages/tasks/TaskForm'
+import TaskDetails from './pages/tasks/TaskDetails'
+
 // Admin Pages
 import UsersList from './pages/admin/UsersList'
 import RolesList from './pages/admin/RolesList'
@@ -288,6 +293,40 @@ function App() {
               element={
                 <PermissionRoute permission="view documents">
                   <DocumentsPage />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Tasks & Milestones Routes */}
+            <Route
+              path="tasks"
+              element={
+                <PermissionRoute permission="view tasks">
+                  <TasksList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="tasks/new"
+              element={
+                <PermissionRoute permission="create tasks">
+                  <TaskForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="tasks/:id"
+              element={
+                <PermissionRoute permission="view tasks">
+                  <TaskDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="tasks/:id/edit"
+              element={
+                <PermissionRoute permission="edit tasks">
+                  <TaskForm />
                 </PermissionRoute>
               }
             />

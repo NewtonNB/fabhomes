@@ -11,7 +11,8 @@ import {
   MdSecurity, 
   MdHistory,
   MdArrowForward,
-  MdDescription
+  MdDescription,
+  MdAssignment
 } from 'react-icons/md'
 import { useAuth } from '../contexts/AuthContext'
 import projectService from '../services/project.service'
@@ -180,6 +181,9 @@ const Dashboard: React.FC = () => {
           </Link>
           <Link to="/documents" className="launchpad-btn">
             <MdDescription className="btn-icon" /> Documents
+          </Link>
+          <Link to="/tasks" className="launchpad-btn">
+            <MdAssignment className="btn-icon" /> Tasks & Milestones
           </Link>
           <Link to="/admin/activities" className="launchpad-btn">
             <MdSecurity className="btn-icon" /> Audit Trail
