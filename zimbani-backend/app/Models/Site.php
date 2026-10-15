@@ -137,11 +137,27 @@ class Site extends Model
     }
 
     /**
-     * Get the equipment at the site.
+     * Get the equipment currently located at the site.
      */
     public function equipment(): HasMany
     {
-        return $this->hasMany(Equipment::class);
+        return $this->hasMany(Equipment::class, 'current_site_id');
+    }
+
+    /**
+     * Get equipment dispatches to this site.
+     */
+    public function equipmentDispatches(): HasMany
+    {
+        return $this->hasMany(EquipmentDispatch::class, 'to_site_id');
+    }
+
+    /**
+     * Get equipment utilization logs for this site.
+     */
+    public function equipmentUtilizationLogs(): HasMany
+    {
+        return $this->hasMany(EquipmentUtilizationLog::class, 'site_id');
     }
 
     /**

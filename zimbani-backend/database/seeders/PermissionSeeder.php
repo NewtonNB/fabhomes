@@ -147,6 +147,19 @@ class PermissionSeeder extends Seeder
                 'materials.view-inventory',
             ],
 
+            // Equipment & Machinery Module
+            'equipment' => [
+                'equipment.view',
+                'equipment.view-any',
+                'equipment.create',
+                'equipment.update',
+                'equipment.delete',
+                'equipment.dispatch',
+                'equipment.maintain',
+                'equipment.log-utilization',
+                'equipment.assign-operator',
+            ],
+
             // Financial Module - Payments
             'payments' => [
                 'payments.view',
@@ -261,7 +274,7 @@ class PermissionSeeder extends Seeder
             $this->command->info("Creating permissions for module: {$module}");
             
             foreach ($permissions as $permission) {
-                Permission::create([
+                Permission::firstOrCreate([
                     'name' => $permission,
                     'guard_name' => 'web',
                 ]);
@@ -323,6 +336,10 @@ class PermissionSeeder extends Seeder
             
             // Contracts
             'contracts.view', 'contracts.view-any', 'contracts.create', 'contracts.update', 'contracts.approve',
+
+            // Equipment - Full access
+            'equipment.view', 'equipment.view-any', 'equipment.create', 'equipment.update', 'equipment.delete',
+            'equipment.dispatch', 'equipment.maintain', 'equipment.log-utilization', 'equipment.assign-operator',
         ]);
 
         // Site Manager - Site operations and worker management
@@ -333,6 +350,7 @@ class PermissionSeeder extends Seeder
             'workers.view', 'workers.view-any', 'workers.create', 'workers.update', 'workers.assign-to-site', 'workers.view-attendance',
             'attendance.view', 'attendance.view-any', 'attendance.create', 'attendance.update', 'attendance.approve',
             'materials.view', 'materials.view-any', 'materials.request', 'materials.track-usage', 'materials.view-inventory',
+            'equipment.view', 'equipment.view-any', 'equipment.dispatch', 'equipment.maintain', 'equipment.log-utilization', 'equipment.assign-operator',
             'expenses.view', 'expenses.create',
             'documents.view', 'documents.view-any', 'documents.create',
             'reports.view-progress', 'reports.view-attendance', 'reports.view-inventory',
@@ -347,6 +365,7 @@ class PermissionSeeder extends Seeder
             'workers.view', 'workers.view-any', 'workers.clock-in', 'workers.clock-out', 'workers.view-attendance',
             'attendance.view', 'attendance.view-any', 'attendance.create', 'attendance.update',
             'materials.view', 'materials.request', 'materials.track-usage',
+            'equipment.view', 'equipment.view-any', 'equipment.log-utilization',
             'documents.view', 'documents.create',
             'reports.view-progress', 'reports.view-attendance',
             'notifications.view',

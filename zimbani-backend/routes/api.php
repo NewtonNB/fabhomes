@@ -16,6 +16,10 @@ use App\Http\Controllers\Api\MilestoneController;
 use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\MaterialRequisitionController;
 use App\Http\Controllers\Api\MaterialUsageController;
+use App\Http\Controllers\Api\EquipmentController;
+use App\Http\Controllers\Api\EquipmentDispatchController;
+use App\Http\Controllers\Api\EquipmentMaintenanceController;
+use App\Http\Controllers\Api\EquipmentUtilizationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -132,6 +136,16 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     // Material Usage routes
     Route::apiResource('material-usages', MaterialUsageController::class);
 
+    // Equipment & Machinery Tracking routes
+    Route::apiResource('equipment', EquipmentController::class);
+    Route::apiResource('equipment-dispatches', EquipmentDispatchController::class)->parameters(['equipment-dispatches' => 'dispatch']);
+    Route::post('/equipment-dispatches/{dispatch}/activate', [EquipmentDispatchController::class, 'activate']);
+    Route::post('/equipment-dispatches/{dispatch}/return', [EquipmentDispatchController::class, 'return']);
+    Route::apiResource('equipment-maintenance', EquipmentMaintenanceController::class)->parameters(['equipment-maintenance' => 'maintenance']);
+    Route::post('/equipment-maintenance/{maintenance}/start', [EquipmentMaintenanceController::class, 'start']);
+    Route::post('/equipment-maintenance/{maintenance}/complete', [EquipmentMaintenanceController::class, 'complete']);
+    Route::apiResource('equipment-utilization', EquipmentUtilizationController::class)->parameters(['equipment-utilization' => 'utilization']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -186,5 +200,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
 
         // Material statistics
         Route::get('/materials/statistics', [MaterialController::class, 'statistics']);
+
+        // Equipment statistics
+        Route::get('/equipment/statistics', [EquipmentController::class, 'statistics']);
     });
 });

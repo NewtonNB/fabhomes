@@ -150,6 +150,22 @@ class Project extends Model
     }
 
     /**
+     * Get equipment dispatches for the project.
+     */
+    public function equipmentDispatches(): HasMany
+    {
+        return $this->hasMany(EquipmentDispatch::class, 'project_id');
+    }
+
+    /**
+     * Get equipment utilization logs for the project.
+     */
+    public function equipmentUtilizationLogs(): HasMany
+    {
+        return $this->hasMany(EquipmentUtilizationLog::class, 'project_id');
+    }
+
+    /**
      * Get the documents for the project.
      */
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany

@@ -334,6 +334,16 @@ const SiteDetails: React.FC = () => {
               <div className="action-description">Manage site inventory & requisitions</div>
             </div>
           </button>
+          <button 
+            className="action-button"
+            onClick={() => navigate(`/equipment?site_id=${site.id}`)}
+          >
+            <span className="action-icon">🚜</span>
+            <div>
+              <div className="action-title">Equipment & Machinery</div>
+              <div className="action-description">View fleet & operating hours on site</div>
+            </div>
+          </button>
         </div>
       </div>
     </div>

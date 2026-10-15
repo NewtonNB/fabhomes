@@ -57,6 +57,10 @@ import TaskDetails from './pages/tasks/TaskDetails'
 import MaterialsList from './pages/materials/MaterialsList'
 import MaterialForm from './pages/materials/MaterialForm'
 
+// Equipment & Machinery Pages
+import EquipmentList from './pages/equipment/EquipmentList'
+import EquipmentForm from './pages/equipment/EquipmentForm'
+
 // Admin Pages
 import UsersList from './pages/admin/UsersList'
 import RolesList from './pages/admin/RolesList'
@@ -357,6 +361,32 @@ function App() {
               element={
                 <PermissionRoute permission="edit materials">
                   <MaterialForm />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Equipment & Machinery Routes */}
+            <Route
+              path="equipment"
+              element={
+                <PermissionRoute permission="equipment.view">
+                  <EquipmentList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="equipment/new"
+              element={
+                <PermissionRoute permission="equipment.create">
+                  <EquipmentForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="equipment/:id/edit"
+              element={
+                <PermissionRoute permission="equipment.update">
+                  <EquipmentForm />
                 </PermissionRoute>
               }
             />

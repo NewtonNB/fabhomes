@@ -9,9 +9,9 @@
 
 ## 🎯 Current Status
 
-**Phase:** 6 - Business Modules (Project Management)  
-**Week:** 1 of 4  
-**Day:** 5 of 5 (🔄 READY TO START)
+**Phase:** 6 - Business Modules (Site Execution & Quality Control)  
+**Week:** 3 of 4  
+**Day:** 4 of 5 (🔄 READY TO START)
 
 ---
 
@@ -1956,19 +1956,56 @@ All 4 project management modules have full CRUD interfaces with comprehensive fe
 
 ---
 
+### Phase 6 Week 3 Day 3: Equipment & Machinery Tracking ✅ (Oct 15, 2026)
+
+**1. Database Schema & Architecture (`docs/DATABASE-DESIGN.md` Section 5.10):**
+- ✅ Migration `2026_10_15_140000_create_equipment_and_machinery_tables.php` executed cleanly on MySQL (`zimbani_dev`):
+  - `equipment`: Fleet catalog (`equipment_code` `EQP-YYYYMMDD-XXXX`, `name`, `type` [`earthmoving`, `lifting`, `concrete`, `transport`, `compaction`, `generators`, `power_tools`, `other`], `model_number`, `serial_number`, `registration_number`, `ownership_type` [`owned`, `rented`, `leased`], `hourly_rate`, `daily_rate`, `currency`, `current_site_id`, `assigned_operator_id`, `status` [`available`, `dispatched`, `in_use`, `under_maintenance`, `decommissioned`], `condition` [`excellent`, `good`, `fair`, `needs_repair`], `total_hours_operated`, `last_service_date`, `next_service_due_date`, `purchase_date`, `purchase_price`, `supplier_or_vendor`, `notes`)
+  - `equipment_dispatches`: Machinery movement & custody (`dispatch_number` `DSP-YYYYMMDD-XXXX`, `equipment_id`, `from_site_id`, `to_site_id`, `project_id`, `operator_id`, `dispatched_by`, `received_by`, `dispatched_at`, `expected_return_date`, `actual_return_date`, `status` [`pending`, `in_transit`, `active_on_site`, `returned`, `cancelled`], `purpose`, `transport_cost`, `notes`)
+  - `equipment_maintenance_logs`: Service & inspection logs (`maintenance_number` `MNT-YYYYMMDD-XXXX`, `equipment_id`, `maintenance_type` [`routine_service`, `preventative`, `breakdown_repair`, `safety_inspection`, `oil_change`, `tire_replacement`], `status` [`scheduled`, `in_progress`, `completed`, `cancelled`], `scheduled_date`, `completed_date`, `hours_at_maintenance`, `cost`, `currency`, `service_provider`, `performed_by`, `description`, `parts_replaced`, `next_service_due_date`, `notes`)
+  - `equipment_utilization_logs`: Operating hours & fuel logging (`log_number` `UTL-YYYYMMDD-XXXX`, `equipment_id`, `site_id`, `project_id`, `task_id`, `operator_id`, `date`, `start_meter_reading`, `end_meter_reading`, `hours_operated`, `hourly_rate`, `fuel_litres_used`, `total_cost`, `purpose`, `logged_by`, `notes`)
+- ✅ Permissions seeded via `PermissionSeeder`: 9 equipment permissions (`equipment.view`, `equipment.view-any`, `equipment.create`, `equipment.update`, `equipment.delete`, `equipment.dispatch`, `equipment.maintain`, `equipment.log-utilization`, `equipment.assign-operator`) mapped across Super Admin, Company Admin, Site Manager, and Supervisor.
+
+**2. Backend Models, Policies & Lifecycle Automation:**
+- ✅ `Equipment` Model: UUID route key binding, auto `EQP-YYYYMMDD-XXXX` sequence generator, status query scopes (`available`, `inUse`, `underMaintenance`, `needsService`), and polymorphic documents relation.
+- ✅ `EquipmentDispatch` Model: Auto `DSP-YYYYMMDD-XXXX` generator, `markActiveOnSite($receivedBy)` (sets `equipment.status = 'in_use'`, sets `equipment.current_site_id = to_site_id`), and `markReturned($returnDate, $notes)` (resets `equipment.status = 'available'`).
+- ✅ `EquipmentMaintenanceLog` Model: Auto `MNT-YYYYMMDD-XXXX` generator, `startMaintenance()` (sets `equipment.status = 'under_maintenance'`), and `completeMaintenance($nextDueDate, $hours)` (resets `equipment.status = 'available'`, updates `last_service_date` and `next_service_due_date`).
+- ✅ `EquipmentUtilizationLog` Model: Auto `UTL-YYYYMMDD-XXXX` generator, automatic cost calculation (`hours_operated * hourly_rate`), and event-driven booted lifecycle hook automatically incrementing `equipment.total_hours_operated` (and decrementing on soft-delete).
+- ✅ Reverse Eloquent Relationships: Added to `Site.php` (`equipment()`, `equipmentDispatches()`, `equipmentUtilizationLogs()`) and `Project.php` (`equipmentDispatches()`, `equipmentUtilizationLogs()`).
+- ✅ Form Requests & Validation: `StoreEquipmentRequest`, `UpdateEquipmentRequest`, `StoreEquipmentDispatchRequest`, `UpdateEquipmentDispatchRequest`, `StoreMaintenanceLogRequest`, `UpdateMaintenanceLogRequest`, and `StoreUtilizationLogRequest` (supporting flexible UUID resolution for equipment, sites, projects, and users).
+- ✅ API Resources: `EquipmentResource` (with service overdue detection, cost metrics, and nested relations), `EquipmentDispatchResource`, `EquipmentMaintenanceLogResource`, and `EquipmentUtilizationLogResource`.
+- ✅ Authorization Policies: `EquipmentPolicy`, `DispatchPolicy`, `MaintenancePolicy`, and `UtilizationPolicy` mapped in `AppServiceProvider`.
+- ✅ Controllers & Routes: `EquipmentController` (CRUD, status, statistics), `EquipmentDispatchController` (CRUD, `/activate`, `/return`), `EquipmentMaintenanceController` (CRUD, `/start`, `/complete`), and `EquipmentUtilizationController` (CRUD, audit logging). 25 routes registered and active.
+
+**3. Frontend React 19 UI & Workflow Components:**
+- ✅ `equipment.types.ts`: TypeScript contracts for equipment, dispatches, maintenance logs, utilization logs, machinery types, statuses, conditions, and KPI statistics.
+- ✅ `equipment.service.ts`: API service with 20 methods covering full equipment fleet, dispatches, maintenance lifecycle, operating hours, and admin statistics.
+- ✅ `EquipmentList.tsx` & `EquipmentList.css`: Enterprise Equipment Console with 4 tabs (**Fleet Registry**, **Dispatches & Site Allocations**, **Maintenance Schedules**, **Utilization & Operating Hours**), top KPI cards (Total Fleet, Available, In Use on Sites, Under Maintenance, Service Overdue, and Lifetime Operating Hours), search and category filters, and 5 interactive modals:
+  - **Dispatch Modal**: Allocate machinery to sites with operator assignment and transport cost
+  - **Return Modal**: Handover and condition inspection upon return to yard
+  - **Schedule Maintenance Modal**: Schedule routine or preventative maintenance with workshop and next service targets
+  - **Complete Maintenance Modal**: Record completion, final cost, parts replaced, and auto-update service calendar
+  - **Log Hours Modal**: Record hour meters (auto-calculates hours operated), fuel consumed, and task linkage
+- ✅ `EquipmentForm.tsx` & `EquipmentForm.css`: Dedicated form for registering and updating machinery specifications, ownership, cost rates, operator assignments, and maintenance intervals.
+- ✅ Navigation & Shortcuts: Registered `/equipment`, `/equipment/new`, `/equipment/:id/edit` in `App.tsx`, added to `Sidebar.tsx` with `<MdPrecisionManufacturing />`, and integrated into `SiteDetails.tsx` Related Actions.
+- ✅ Zero TypeScript Compiler Errors: Verified via `npm run build` (tsc + Vite bundle clean).
+- ✅ End-to-End Lifecycle Verification: Verified full dispatch -> active on-site -> hour logging -> maintenance -> return lifecycle with clean database transaction.
+
+---
+
 ## 🎯 Next Development Focus
 
 **Current Phase: Phase 6 Week 3 - Operations & Site Execution**
 1. ✅ **Task & Workflow Management**: Task assignment, milestones, dependencies, due date tracking (COMPLETED)
 2. ✅ **Material & Inventory Tracking**: Site-specific requisitions, approvals, and usage logs (COMPLETED)
-3. **Equipment Tracking**: Machinery dispatch, operator assignment, and maintenance schedules
-4. **Site Quality Control & Inspections**: Defect logging, punch lists, supervisor sign-offs
+3. ✅ **Equipment Tracking**: Machinery dispatch, operator assignment, and maintenance schedules (COMPLETED)
+4. **Site Quality Control & Inspections**: Defect logging, punch lists, supervisor sign-offs (READY TO START)
 
 ---
 
 **Last Updated:** October 15, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Pending Phase 6 Week 3 Day 2 push
+**Latest Commit:** Pending Phase 6 Week 3 Day 3 push
 
 

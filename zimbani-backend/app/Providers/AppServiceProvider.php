@@ -28,6 +28,14 @@ use App\Policies\MilestonePolicy;
 use App\Policies\MaterialPolicy;
 use App\Policies\RequisitionPolicy;
 use App\Policies\UsagePolicy;
+use App\Models\Equipment;
+use App\Models\EquipmentDispatch;
+use App\Models\EquipmentMaintenanceLog;
+use App\Models\EquipmentUtilizationLog;
+use App\Policies\EquipmentPolicy;
+use App\Policies\DispatchPolicy;
+use App\Policies\MaintenancePolicy;
+use App\Policies\UtilizationPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Role;
@@ -55,6 +63,10 @@ class AppServiceProvider extends ServiceProvider
         Material::class => MaterialPolicy::class,
         MaterialRequisition::class => RequisitionPolicy::class,
         MaterialUsage::class => UsagePolicy::class,
+        Equipment::class => EquipmentPolicy::class,
+        EquipmentDispatch::class => DispatchPolicy::class,
+        EquipmentMaintenanceLog::class => MaintenancePolicy::class,
+        EquipmentUtilizationLog::class => UtilizationPolicy::class,
     ];
 
     /**
