@@ -225,6 +225,30 @@ class Site extends Model
     }
 
     /**
+     * Get daily site supervisor logs for the site.
+     */
+    public function siteDailyLogs(): HasMany
+    {
+        return $this->hasMany(SiteDailyLog::class, 'site_id');
+    }
+
+    /**
+     * Get safety incident reports for the site.
+     */
+    public function safetyIncidents(): HasMany
+    {
+        return $this->hasMany(SafetyIncident::class, 'site_id');
+    }
+
+    /**
+     * Get safety toolbox talks for the site.
+     */
+    public function safetyToolboxTalks(): HasMany
+    {
+        return $this->hasMany(SafetyToolboxTalk::class, 'site_id');
+    }
+
+    /**
      * Get the documents for the site.
      */
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany

@@ -174,6 +174,30 @@ class Project extends Model
     }
 
     /**
+     * Get site daily logs for the project.
+     */
+    public function siteDailyLogs(): HasMany
+    {
+        return $this->hasMany(SiteDailyLog::class, 'project_id');
+    }
+
+    /**
+     * Get safety incident reports for the project.
+     */
+    public function safetyIncidents(): HasMany
+    {
+        return $this->hasMany(SafetyIncident::class, 'project_id');
+    }
+
+    /**
+     * Get safety toolbox talks for the project.
+     */
+    public function safetyToolboxTalks(): HasMany
+    {
+        return $this->hasMany(SafetyToolboxTalk::class, 'project_id');
+    }
+
+    /**
      * Get equipment utilization logs for the project.
      */
     public function equipmentUtilizationLogs(): HasMany

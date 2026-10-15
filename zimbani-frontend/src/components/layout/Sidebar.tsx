@@ -16,6 +16,7 @@ import {
   MdInventory2,
   MdPrecisionManufacturing,
   MdFactCheck,
+  MdHealthAndSafety,
   MdClose
 } from 'react-icons/md'
 import './Sidebar.css'
@@ -120,6 +121,12 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       label: 'Quality & Inspections',
       icon: <MdFactCheck />,
       permission: 'view inspections',
+    },
+    {
+      path: '/daily-logs',
+      label: 'Daily Logs & Safety',
+      icon: <MdHealthAndSafety />,
+      permission: 'view daily-logs',
     },
     {
       path: '/clients',

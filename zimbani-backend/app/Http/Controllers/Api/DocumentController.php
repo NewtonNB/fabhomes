@@ -36,6 +36,13 @@ class DocumentController extends Controller
                 'project' => \App\Models\Project::class,
                 'site' => \App\Models\Site::class,
                 'payment' => \App\Models\Payment::class,
+                'task' => \App\Models\Task::class,
+                'equipment' => \App\Models\Equipment::class,
+                'site_inspection', 'site_inspections', 'inspection' => \App\Models\SiteInspection::class,
+                'punch_list_item', 'punch_list_items', 'defect' => \App\Models\PunchListItem::class,
+                'site_daily_log', 'site_daily_logs', 'daily_log', 'daily_logs' => \App\Models\SiteDailyLog::class,
+                'safety_incident', 'safety_incidents', 'incident', 'incidents' => \App\Models\SafetyIncident::class,
+                'safety_toolbox_talk', 'safety_toolbox_talks', 'toolbox_talk' => \App\Models\SafetyToolboxTalk::class,
                 default => null,
             };
 

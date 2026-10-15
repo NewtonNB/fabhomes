@@ -2028,20 +2028,62 @@ All 4 project management modules have full CRUD interfaces with comprehensive fe
 
 ---
 
+### Phase 6 Week 3 Day 5: Site Safety & Daily Logs / Reporting ✅ (Oct 15, 2026)
+
+**1. Database Schema & Architecture (`docs/DATABASE-DESIGN.md` Section 5.12):**
+- ✅ Migration `2026_10_15_180000_create_site_daily_logs_and_safety_tables.php` executed cleanly on MySQL (`zimbani_dev`):
+  - `site_daily_logs`: Daily supervisor site log (`log_number` `LOG-YYYYMMDD-XXXX`, `site_id`, `project_id`, `log_date`, `weather_condition` [`clear`, `sunny`, `partly_cloudy`, `cloudy`, `light_rain`, `heavy_rain`, `stormy`, `high_winds`], `temperature_celsius`, `work_delayed_by_weather`, `delay_hours`, `labor_headcount`, `subcontractor_headcount`, `work_performed_summary`, `delays_or_impediments`, `materials_received_notes`, `equipment_on_site_notes`, `visitors_log`, `supervisor_id`, `status` [`draft`, `submitted`, `approved`], `submitted_at`, `approved_at`, `approved_by`, `notes`, timestamps, softDeletes).
+  - `safety_incidents`: Incident and near-miss tracking (`incident_number` `INC-YYYYMMDD-XXXX`, `site_id`, `project_id`, `site_daily_log_id`, `incident_type` [`near_miss`, `first_aid`, `medical_treatment`, `lost_time_injury`, `property_damage`, `environmental`, `security`, `other`], `severity` [`low`, `medium`, `high`, `critical`], `incident_date`, `incident_time`, `location_details`, `title`, `description`, `immediate_actions_taken`, `root_cause_analysis`, `preventative_measures`, `injured_person_name`, `injured_person_type` [`worker`, `subcontractor`, `visitor`, `public`, `none`], `reported_by`, `investigated_by`, `investigated_at`, `status` [`reported`, `investigating`, `action_required`, `closed`], `closed_at`, `closed_by`, timestamps, softDeletes).
+  - `safety_toolbox_talks`: Daily site safety briefings (`talk_number` `TLK-YYYYMMDD-XXXX`, `site_id`, `project_id`, `site_daily_log_id`, `conducted_by`, `topic`, `category` [`ppe`, `working_at_height`, `electrical_safety`, `excavation`, `heavy_equipment`, `fire_safety`, `housekeeping`, `heat_stress`, `hazardous_materials`, `other`], `conducted_at`, `duration_minutes`, `attendees_count`, `attendees_names` JSON, `key_discussion_points`, `hazards_identified`, `supervisor_notes`, timestamps, softDeletes).
+- ✅ Permissions seeded via `PermissionSeeder`: 13 new permissions across modules `daily-logs` (`daily-logs.view`, `daily-logs.view-any`, `daily-logs.create`, `daily-logs.update`, `daily-logs.delete`, `daily-logs.approve`) and `safety` (`safety.view`, `safety.view-any`, `safety.create`, `safety.update`, `safety.delete`, `safety.investigate`, `safety.close`). Total permissions: 187 across 26 modules.
+
+**2. Backend Models, Policies & Lifecycle Automation:**
+- ✅ `SiteDailyLog` Model: UUID route key binding, auto `LOG-YYYYMMDD-XXXX` sequence generator, `submit()` method, `approve($approverId, $notes)` method, scopes (`submitted`, `approved`, `delayedByWeather`), relations to Site, Project, Supervisor, ApprovedByUser, SafetyIncidents, ToolboxTalks, and polymorphic Documents.
+- ✅ `SafetyIncident` Model: UUID route key binding, auto `INC-YYYYMMDD-XXXX` sequence generator, `startInvestigation($investigatorId, $immediateActions)` method, `closeIncident($closerId, $rootCause, $preventative)` method, scopes (`open`, `critical`, `lostTime`), relations to Site, Project, SiteDailyLog, ReportedByUser, InvestigatedByUser, ClosedByUser, and polymorphic Documents.
+- ✅ `SafetyToolboxTalk` Model: UUID route key binding, auto `TLK-YYYYMMDD-XXXX` sequence generator, cast for `attendees_names` JSON array, relations to Site, Project, SiteDailyLog, ConductedByUser, and polymorphic Documents.
+- ✅ Reverse Eloquent Relationships: Added to `Site.php` (`dailyLogs()`, `safetyIncidents()`, `toolboxTalks()`) and `Project.php` (`dailyLogs()`, `safetyIncidents()`, `toolboxTalks()`).
+- ✅ Polymorphic Documents Integration: Expanded `StoreDocumentRequest` and `DocumentController` to support `site_daily_logs`, `safety_incidents`, `safety_toolbox_talks`, `site_inspections`, `punch_list_items`, `tasks`, and `equipment` with seamless polymorphic uploads and photo attachments.
+- ✅ Form Requests & Validation: `StoreSiteDailyLogRequest`, `UpdateSiteDailyLogRequest`, `ApproveDailyLogRequest`, `StoreSafetyIncidentRequest`, `UpdateSafetyIncidentRequest`, `InvestigateIncidentRequest`, `CloseIncidentRequest`, `StoreToolboxTalkRequest`, and `UpdateToolboxTalkRequest`.
+- ✅ API Resources: `SiteDailyLogResource` (with total headcount calculation, delay badges, and nested relations), `SafetyIncidentResource` (with incident status, severity badges, and investigation metadata), and `SafetyToolboxTalkResource`.
+- ✅ Authorization Policies: `SiteDailyLogPolicy`, `SafetyIncidentPolicy`, and `SafetyToolboxTalkPolicy` mapped in `AppServiceProvider`.
+- ✅ Controllers & Routes: `SiteDailyLogController` (CRUD, submit, approve, statistics), `SafetyIncidentController` (CRUD, investigate, close, statistics with days-without-lost-time computation), and `SafetyToolboxTalkController` (CRUD). 21 routes registered and tested.
+- ✅ Backend Lifecycle Test: Verified scratch lifecycle `test_daily_logs_lifecycle.php` cleanly (daily log draft -> submission -> approval -> incident logging -> investigation launch -> close-out with RCA & preventative actions -> toolbox talk logging).
+
+**3. Frontend React 19 UI & Workflow Components:**
+- ✅ `daily-log.types.ts`: TypeScript contracts for daily logs, safety incidents, toolbox talks, weather conditions, incident types/severities/statuses, KPIs, and input payloads.
+- ✅ `daily-log.service.ts`: API service with 21 methods matching all daily logs, safety incidents, and toolbox talks endpoints.
+- ✅ `DailyLogsList.tsx` & `DailyLogsList.css`: Daily Logs & Safety Operations Console with 3 tabbed consoles:
+  - **Site Daily Logs**: Search, filter by Site, Project, Status, Delayed-only, with KPIs (Days Without Incident streak, Avg Daily Workforce, Weather Delays, Safety Incidents, Approved Logs), Submit/Approve workflow modals, and responsive data tables.
+  - **Safety Incidents & Near Misses**: Filter by Site, Type, Severity, Open-only, search, with Launch Investigation and Close-out modals (RCA + preventative actions).
+  - **Toolbox Talks & Briefings**: Filter by Site, Category, with detailed attendees and discussion points.
+- ✅ `DailyLogForm.tsx` & `DailyLogForm.css`: Form for submitting daily supervisor logs with weather selector, temperature, delay calculator, direct & subcontractor labor headcounts (auto-computing total workforce), work performed summary, material delivery notes, equipment usage notes, and visitors log.
+- ✅ `DailyLogDetails.tsx` & `DailyLogDetails.css`: Full audit console with weather badge and delay warning banner, labor breakdown KPIs, embedded safety incidents table with instant investigation/closure actions, toolbox talks table, and polymorphic document & photo uploads via `DocumentUploadModal` and `DocumentsTable`.
+- ✅ Navigation & Shortcuts: Registered `/daily-logs`, `/daily-logs/new`, `/daily-logs/:id`, `/daily-logs/:id/edit` in `App.tsx`, added "Daily Logs & Safety" menu item to `Sidebar.tsx` with `<MdHealthAndSafety />`, and added Related Action button in `SiteDetails.tsx`.
+- ✅ Zero TypeScript Compiler Errors: Verified via `npm run build` (tsc + Vite bundle clean).
+
+---
+
 ## 🎯 Next Development Focus
 
-**Current Phase: Phase 6 Week 3 - Operations & Site Execution**
-1. ✅ **Task & Workflow Management**: Task assignment, milestones, dependencies, due date tracking (COMPLETED)
-2. ✅ **Material & Inventory Tracking**: Site-specific requisitions, approvals, and usage logs (COMPLETED)
-3. ✅ **Equipment Tracking**: Machinery dispatch, operator assignment, and maintenance schedules (COMPLETED)
-4. ✅ **Site Quality Control & Inspections**: Defect logging, punch lists, supervisor sign-offs (COMPLETED)
-5. **Site Safety & Daily Logs / Reporting**: Toolbox talks, incident reporting, weather & labor logs, daily supervisor reports (READY TO START)
+**Phase 6: Site Operations & Construction Execution is now 100% COMPLETE!**
+1. ✅ **Week 3 Day 1**: Tasks & Milestones Management (COMPLETED)
+2. ✅ **Week 3 Day 2**: Material & Inventory Tracking (COMPLETED)
+3. ✅ **Week 3 Day 3**: Equipment & Machinery Tracking (COMPLETED)
+4. ✅ **Week 3 Day 4**: Site Quality Control & Inspections (COMPLETED)
+5. ✅ **Week 3 Day 5**: Site Safety & Daily Logs / Reporting (COMPLETED)
+
+**Next Phase: Phase 7 - Financial Management & Cost Control**
+- Budgeting, Cost Codes & Job Costing
+- Subcontractor Contracts & Payment Certificates
+- Progress Billing, Invoicing & Valuations
+- Expense Claims, Petty Cash & Direct Site Purchasing
+- Financial Auditing, Profitability Reporting & Cash Flow Forecasting
 
 ---
 
 **Last Updated:** October 15, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Pending Phase 6 Week 3 Day 4 push
+**Latest Commit:** Pending Phase 6 Week 3 Day 5 push
 
 

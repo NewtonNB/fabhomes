@@ -18,7 +18,7 @@ class StoreDocumentRequest extends FormRequest
             'description' => 'nullable|string|max:2000',
             'document_type' => 'required|string|in:contract,id_proof,receipt,floor_plan,permit,survey,inspection_report,kyc,title_deed,invoice,other',
             'file' => 'required|file|max:20480', // 20 MB max
-            'documentable_type' => 'nullable|string|in:client,unit,project,site,payment,Client,Unit,Project,Site,Payment',
+            'documentable_type' => 'nullable|string',
             'documentable_id' => 'nullable|string',
             'expiry_date' => 'nullable|date',
             'metadata' => 'nullable|array',
@@ -43,6 +43,13 @@ class StoreDocumentRequest extends FormRequest
             'project' => \App\Models\Project::class,
             'site' => \App\Models\Site::class,
             'payment' => \App\Models\Payment::class,
+            'task' => \App\Models\Task::class,
+            'equipment' => \App\Models\Equipment::class,
+            'site_inspection', 'site_inspections', 'inspection' => \App\Models\SiteInspection::class,
+            'punch_list_item', 'punch_list_items', 'defect' => \App\Models\PunchListItem::class,
+            'site_daily_log', 'site_daily_logs', 'daily_log', 'daily_logs' => \App\Models\SiteDailyLog::class,
+            'safety_incident', 'safety_incidents', 'incident', 'incidents' => \App\Models\SafetyIncident::class,
+            'safety_toolbox_talk', 'safety_toolbox_talks', 'toolbox_talk' => \App\Models\SafetyToolboxTalk::class,
             default => null,
         };
 

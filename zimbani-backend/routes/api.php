@@ -22,6 +22,9 @@ use App\Http\Controllers\Api\EquipmentMaintenanceController;
 use App\Http\Controllers\Api\EquipmentUtilizationController;
 use App\Http\Controllers\Api\SiteInspectionController;
 use App\Http\Controllers\Api\PunchListItemController;
+use App\Http\Controllers\Api\SiteDailyLogController;
+use App\Http\Controllers\Api\SafetyIncidentController;
+use App\Http\Controllers\Api\SafetyToolboxTalkController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -158,6 +161,19 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/punch-lists/{punchItem}/rectify', [PunchListItemController::class, 'rectify']);
     Route::post('/punch-lists/{punchItem}/verify', [PunchListItemController::class, 'verify']);
 
+    // Site Daily Logs & Supervisor Reporting routes
+    Route::apiResource('site-daily-logs', SiteDailyLogController::class)->parameters(['site-daily-logs' => 'dailyLog']);
+    Route::post('/site-daily-logs/{dailyLog}/submit', [SiteDailyLogController::class, 'submit']);
+    Route::post('/site-daily-logs/{dailyLog}/approve', [SiteDailyLogController::class, 'approve']);
+
+    // Safety Incidents & Near Misses routes
+    Route::apiResource('safety-incidents', SafetyIncidentController::class)->parameters(['safety-incidents' => 'incident']);
+    Route::post('/safety-incidents/{incident}/investigate', [SafetyIncidentController::class, 'investigate']);
+    Route::post('/safety-incidents/{incident}/close', [SafetyIncidentController::class, 'close']);
+
+    // Safety Toolbox Talks & Briefings routes
+    Route::apiResource('safety-toolbox-talks', SafetyToolboxTalkController::class)->parameters(['safety-toolbox-talks' => 'talk']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -219,5 +235,9 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         // Quality Control & Inspection statistics
         Route::get('/inspections/statistics', [SiteInspectionController::class, 'statistics']);
         Route::get('/punch-lists/statistics', [PunchListItemController::class, 'statistics']);
+
+        // Site Daily Logs & Safety statistics
+        Route::get('/daily-logs/statistics', [SiteDailyLogController::class, 'statistics']);
+        Route::get('/safety/statistics', [SafetyIncidentController::class, 'statistics']);
     });
 });

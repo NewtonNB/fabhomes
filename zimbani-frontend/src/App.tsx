@@ -66,6 +66,11 @@ import InspectionsList from './pages/inspections/InspectionsList'
 import InspectionForm from './pages/inspections/InspectionForm'
 import InspectionDetails from './pages/inspections/InspectionDetails'
 
+// Site Safety & Daily Logs Pages
+import DailyLogsList from './pages/daily-logs/DailyLogsList'
+import DailyLogForm from './pages/daily-logs/DailyLogForm'
+import DailyLogDetails from './pages/daily-logs/DailyLogDetails'
+
 // Admin Pages
 import UsersList from './pages/admin/UsersList'
 import RolesList from './pages/admin/RolesList'
@@ -426,6 +431,40 @@ function App() {
               element={
                 <PermissionRoute permission="inspections.update">
                   <InspectionForm />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Site Daily Logs & Safety Routes */}
+            <Route
+              path="daily-logs"
+              element={
+                <PermissionRoute permission="daily-logs.view">
+                  <DailyLogsList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="daily-logs/new"
+              element={
+                <PermissionRoute permission="daily-logs.create">
+                  <DailyLogForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="daily-logs/:id"
+              element={
+                <PermissionRoute permission="daily-logs.view">
+                  <DailyLogDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="daily-logs/:id/edit"
+              element={
+                <PermissionRoute permission="daily-logs.update">
+                  <DailyLogForm />
                 </PermissionRoute>
               }
             />

@@ -180,6 +180,27 @@ class PermissionSeeder extends Seeder
                 'defects.verify',
             ],
 
+            // Site Daily Logs & Supervisor Reporting Module
+            'daily-logs' => [
+                'daily-logs.view',
+                'daily-logs.view-any',
+                'daily-logs.create',
+                'daily-logs.update',
+                'daily-logs.delete',
+                'daily-logs.approve',
+            ],
+
+            // Site Safety, Incidents & Toolbox Talks Module
+            'safety' => [
+                'safety.view',
+                'safety.view-any',
+                'safety.create',
+                'safety.update',
+                'safety.delete',
+                'safety.investigate',
+                'safety.close',
+            ],
+
             // Financial Module - Payments
             'payments' => [
                 'payments.view',
@@ -364,6 +385,10 @@ class PermissionSeeder extends Seeder
             // Quality Control & Inspections - Full access
             'inspections.view', 'inspections.view-any', 'inspections.create', 'inspections.update', 'inspections.delete', 'inspections.sign-off',
             'defects.view', 'defects.view-any', 'defects.create', 'defects.update', 'defects.delete', 'defects.verify',
+
+            // Daily Logs & Safety - Full access
+            'daily-logs.view', 'daily-logs.view-any', 'daily-logs.create', 'daily-logs.update', 'daily-logs.delete', 'daily-logs.approve',
+            'safety.view', 'safety.view-any', 'safety.create', 'safety.update', 'safety.delete', 'safety.investigate', 'safety.close',
         ]);
 
         // Site Manager - Site operations and worker management
@@ -377,6 +402,8 @@ class PermissionSeeder extends Seeder
             'equipment.view', 'equipment.view-any', 'equipment.dispatch', 'equipment.maintain', 'equipment.log-utilization', 'equipment.assign-operator',
             'inspections.view', 'inspections.view-any', 'inspections.create', 'inspections.update', 'inspections.delete', 'inspections.sign-off',
             'defects.view', 'defects.view-any', 'defects.create', 'defects.update', 'defects.verify',
+            'daily-logs.view', 'daily-logs.view-any', 'daily-logs.create', 'daily-logs.update', 'daily-logs.delete', 'daily-logs.approve',
+            'safety.view', 'safety.view-any', 'safety.create', 'safety.update', 'safety.investigate', 'safety.close',
             'expenses.view', 'expenses.create',
             'documents.view', 'documents.view-any', 'documents.create',
             'reports.view-progress', 'reports.view-attendance', 'reports.view-inventory',
@@ -394,6 +421,8 @@ class PermissionSeeder extends Seeder
             'equipment.view', 'equipment.view-any', 'equipment.log-utilization',
             'inspections.view', 'inspections.view-any', 'inspections.create', 'inspections.update', 'inspections.sign-off',
             'defects.view', 'defects.view-any', 'defects.create', 'defects.update', 'defects.verify',
+            'daily-logs.view', 'daily-logs.view-any', 'daily-logs.create', 'daily-logs.update',
+            'safety.view', 'safety.view-any', 'safety.create', 'safety.update', 'safety.investigate',
             'documents.view', 'documents.create',
             'reports.view-progress', 'reports.view-attendance',
             'notifications.view',
@@ -408,6 +437,8 @@ class PermissionSeeder extends Seeder
             'materials.view',
             'inspections.view',
             'defects.view', 'defects.update',
+            'daily-logs.view',
+            'safety.view', 'safety.create',
             'documents.view',
             'notifications.view',
         ]);

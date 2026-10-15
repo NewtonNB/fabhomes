@@ -354,6 +354,16 @@ const SiteDetails: React.FC = () => {
               <div className="action-description">Checklists, punch lists & defect tracking</div>
             </div>
           </button>
+          <button 
+            className="action-button"
+            onClick={() => navigate(`/daily-logs?site_id=${site.id}`)}
+          >
+            <span className="action-icon">🦺</span>
+            <div>
+              <div className="action-title">Daily Logs & Safety</div>
+              <div className="action-description">Supervisor logs, safety incidents & toolbox talks</div>
+            </div>
+          </button>
         </div>
       </div>
     </div>
