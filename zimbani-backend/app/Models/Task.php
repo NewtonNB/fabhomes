@@ -182,6 +182,22 @@ class Task extends Model
     }
 
     /**
+     * Site inspections conducted for this task.
+     */
+    public function siteInspections(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SiteInspection::class, 'task_id');
+    }
+
+    /**
+     * Punch list items associated with this task.
+     */
+    public function punchListItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PunchListItem::class, 'task_id');
+    }
+
+    /**
      * Scopes
      */
     public function scopeForProject($query, $projectId)

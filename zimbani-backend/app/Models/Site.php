@@ -211,9 +211,17 @@ class Site extends Model
     /**
      * Get the inspections conducted at the site.
      */
-    public function inspections(): HasMany
+    public function siteInspections(): HasMany
     {
-        return $this->hasMany(Inspection::class);
+        return $this->hasMany(SiteInspection::class, 'site_id');
+    }
+
+    /**
+     * Get punch list and defect items for the site.
+     */
+    public function punchListItems(): HasMany
+    {
+        return $this->hasMany(PunchListItem::class, 'site_id');
     }
 
     /**

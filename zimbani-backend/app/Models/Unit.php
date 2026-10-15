@@ -183,6 +183,22 @@ class Unit extends Model
     }
 
     /**
+     * Get the site inspections for the unit.
+     */
+    public function siteInspections(): HasMany
+    {
+        return $this->hasMany(SiteInspection::class, 'unit_id');
+    }
+
+    /**
+     * Get the punch list items for the unit.
+     */
+    public function punchListItems(): HasMany
+    {
+        return $this->hasMany(PunchListItem::class, 'unit_id');
+    }
+
+    /**
      * Helper Methods
      */
 

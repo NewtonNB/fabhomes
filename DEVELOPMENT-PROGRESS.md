@@ -11,7 +11,8 @@
 
 **Phase:** 6 - Business Modules (Site Execution & Quality Control)  
 **Week:** 3 of 4  
-**Day:** 4 of 5 (🔄 READY TO START)
+**Day:** 4 of 5 (✅ COMPLETED)  
+**Next:** Day 5 of 5 (Site Safety & Daily Logs / Reporting)
 
 ---
 
@@ -1993,19 +1994,54 @@ All 4 project management modules have full CRUD interfaces with comprehensive fe
 
 ---
 
+### Phase 6 Week 3 Day 4: Site Quality Control & Inspections ✅ (Oct 15, 2026)
+
+**1. Database Schema & Architecture (`docs/DATABASE-DESIGN.md` Section 5.11):**
+- ✅ Migration `2026_10_15_160000_create_site_inspections_and_quality_control_tables.php` executed cleanly on MySQL (`zimbani_dev`):
+  - `site_inspections`: Quality check runs and sign-offs (`inspection_number` `INS-YYYYMMDD-XXXX`, `title`, `inspection_type` [`foundation`, `structural_framing`, `masonry`, `plumbing_rough_in`, `electrical_rough_in`, `concrete_pre_pour`, `waterproofing`, `finishing`, `handover_audit`, `safety_environmental`, `other`], `site_id`, `project_id`, `unit_id`, `task_id`, `milestone_id`, `inspector_id`, `scheduled_date`, `inspected_at`, `status` [`scheduled`, `in_progress`, `passed`, `failed`, `passed_with_conditions`, `cancelled`], `score`, `checklist_items` JSON, `summary_notes`, `conditions`, `supervisor_id`, `signed_off_at`, `sign_off_notes`, `created_by`, timestamps, softDeletes).
+  - `punch_list_items`: Defect tracking and rectification workflow (`item_number` `PNC-YYYYMMDD-XXXX`, `site_inspection_id`, `site_id`, `project_id`, `unit_id`, `task_id`, `title`, `description`, `location_details`, `category` [`structural`, `architectural`, `plumbing`, `electrical`, `finishing`, `safety`, `other`], `severity` [`low`, `medium`, `high`, `critical`], `status` [`open`, `in_progress`, `rectified`, `verified_closed`, `waived`], `due_date`, `rectified_at`, `rectification_notes`, `assigned_to`, `subcontractor_name`, `reported_by`, `verified_by`, `verified_at`, `verification_notes`, timestamps, softDeletes).
+- ✅ Permissions seeded via `PermissionSeeder`: 12 new permissions across modules `inspections` (`inspections.view`, `inspections.view-any`, `inspections.create`, `inspections.update`, `inspections.delete`, `inspections.sign-off`) and `defects` (`defects.view`, `defects.view-any`, `defects.create`, `defects.update`, `defects.delete`, `defects.verify`). Total permissions: 174 across 24 modules.
+
+**2. Backend Models, Policies & Lifecycle Automation:**
+- ✅ `SiteInspection` Model: UUID route key binding, auto `INS-YYYYMMDD-XXXX` sequence generator, `completeInspection($status, $score, $checklist, $summary, $conditions)` method, `signOff($supervisorId, $notes)` method, scopes (`passed`, `failed`, `needsSignOff`), relations to Site, Project, Unit, Task, Milestone, Inspector, Supervisor, PunchListItems, and polymorphic Documents.
+- ✅ `PunchListItem` Model: UUID route key binding, auto `PNC-YYYYMMDD-XXXX` sequence generator, `markRectified($notes)` method, `verifyAndClose($verifierId, $notes)` method, `waive($notes)` method, scopes (`open`, `critical`, `overdue`), relations to SiteInspection, Site, Project, Unit, Task, AssignedUser, ReportedByUser, VerifiedByUser, and polymorphic Documents.
+- ✅ Reverse Eloquent Relationships: Added to `Site.php` (`siteInspections()`, `punchListItems()`), `Project.php` (`siteInspections()`, `punchListItems()`), `Unit.php` (`siteInspections()`, `punchListItems()`), and `Task.php` (`siteInspections()`, `punchListItems()`).
+- ✅ Form Requests & Validation: `StoreSiteInspectionRequest`, `UpdateSiteInspectionRequest`, `CompleteInspectionRequest`, `SignOffInspectionRequest`, `StorePunchListItemRequest`, `UpdatePunchListItemRequest`, `RectifyPunchListItemRequest`, and `VerifyPunchListItemRequest` (supporting flexible UUID resolution for all foreign keys).
+- ✅ API Resources: `SiteInspectionResource` (with score calculation, overdue detection, open defects count, and nested relations) and `PunchListItemResource` (with severity, status badges, and related users).
+- ✅ Authorization Policies: `SiteInspectionPolicy` and `PunchListItemPolicy` mapped in `AppServiceProvider`.
+- ✅ Controllers & Routes: `SiteInspectionController` (CRUD, `/complete`, `/sign-off`, statistics) and `PunchListItemController` (CRUD, `/rectify`, `/verify`, statistics). 18 routes registered and tested.
+- ✅ Backend Lifecycle Test: Verified scratch lifecycle `test_inspection_lifecycle.php` cleanly (inspection scheduling -> checklist execution with conditions -> supervisor sign-off -> defect creation -> defect rectification -> supervisor closure).
+
+**3. Frontend React 19 UI & Workflow Components:**
+- ✅ `inspection.types.ts`: TypeScript contracts for inspections, punch list defects, checklist items, inspection categories, severities, statuses, statistics, and input payloads.
+- ✅ `inspection.service.ts`: API service with 16 methods matching all inspection and punch list endpoints.
+- ✅ `InspectionsList.tsx` & `InspectionsList.css`: Quality Control Dashboard with 3 tabs:
+  - **Inspections & Checklists**: Filter by Site, Project, Type, Status, with actions to View details, Run Assessment, Supervisor Sign-off, Edit, Delete.
+  - **Punch List & Defects**: Filter by Site, Category, Severity, Status, Open Only, Overdue Only, with actions to Rectify, Verify & Close / Waive, Delete.
+  - **Sign-off Queue**: Direct supervisor pending review and approval queue.
+  - Top KPI cards: Total Inspections, Passed, Open Defects (with Critical count), Rectified/Closed, and Needs Sign-off.
+  - 5 interactive modals: Complete Assessment modal with interactive checklist runner, Supervisor Sign-off modal, Quick Log Defect modal, Rectify Defect modal, and Supervisor Verification modal.
+- ✅ `InspectionForm.tsx` & `InspectionForm.css`: Form for scheduling and updating inspections with auto-populating checklist templates for all 10 inspection types (Foundation, Concrete Pre-Pour, Structural Framing, Masonry, Plumbing, Electrical, Waterproofing, Finishing, Handover Audit, Safety) and an interactive checklist builder.
+- ✅ `InspectionDetails.tsx` & `InspectionDetails.css`: Full inspection audit view with score badges, supervisor sign-off status banner, checklist items table, attached punch list defects table, polymorphic document and photo uploads via `DocumentUploadModal` and `DocumentsTable`, and action buttons.
+- ✅ Navigation & Shortcuts: Registered `/inspections`, `/inspections/new`, `/inspections/:id`, `/inspections/:id/edit` in `App.tsx`, added "Quality & Inspections" menu item to `Sidebar.tsx` with `<MdFactCheck />`, and added Quick Action button in `SiteDetails.tsx`.
+- ✅ Zero TypeScript Compiler Errors: Verified via `npm run build` (tsc + Vite bundle clean).
+
+---
+
 ## 🎯 Next Development Focus
 
 **Current Phase: Phase 6 Week 3 - Operations & Site Execution**
 1. ✅ **Task & Workflow Management**: Task assignment, milestones, dependencies, due date tracking (COMPLETED)
 2. ✅ **Material & Inventory Tracking**: Site-specific requisitions, approvals, and usage logs (COMPLETED)
 3. ✅ **Equipment Tracking**: Machinery dispatch, operator assignment, and maintenance schedules (COMPLETED)
-4. **Site Quality Control & Inspections**: Defect logging, punch lists, supervisor sign-offs (READY TO START)
+4. ✅ **Site Quality Control & Inspections**: Defect logging, punch lists, supervisor sign-offs (COMPLETED)
+5. **Site Safety & Daily Logs / Reporting**: Toolbox talks, incident reporting, weather & labor logs, daily supervisor reports (READY TO START)
 
 ---
 
 **Last Updated:** October 15, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Pending Phase 6 Week 3 Day 3 push
+**Latest Commit:** Pending Phase 6 Week 3 Day 4 push
 
 

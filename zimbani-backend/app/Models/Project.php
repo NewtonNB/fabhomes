@@ -158,6 +158,22 @@ class Project extends Model
     }
 
     /**
+     * Get site inspections for the project.
+     */
+    public function siteInspections(): HasMany
+    {
+        return $this->hasMany(SiteInspection::class, 'project_id');
+    }
+
+    /**
+     * Get punch list items for the project.
+     */
+    public function punchListItems(): HasMany
+    {
+        return $this->hasMany(PunchListItem::class, 'project_id');
+    }
+
+    /**
      * Get equipment utilization logs for the project.
      */
     public function equipmentUtilizationLogs(): HasMany

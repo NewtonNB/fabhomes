@@ -20,6 +20,8 @@ use App\Http\Controllers\Api\EquipmentController;
 use App\Http\Controllers\Api\EquipmentDispatchController;
 use App\Http\Controllers\Api\EquipmentMaintenanceController;
 use App\Http\Controllers\Api\EquipmentUtilizationController;
+use App\Http\Controllers\Api\SiteInspectionController;
+use App\Http\Controllers\Api\PunchListItemController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -146,6 +148,16 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/equipment-maintenance/{maintenance}/complete', [EquipmentMaintenanceController::class, 'complete']);
     Route::apiResource('equipment-utilization', EquipmentUtilizationController::class)->parameters(['equipment-utilization' => 'utilization']);
 
+    // Quality Control & Site Inspection routes
+    Route::apiResource('site-inspections', SiteInspectionController::class)->parameters(['site-inspections' => 'inspection']);
+    Route::post('/site-inspections/{inspection}/complete', [SiteInspectionController::class, 'complete']);
+    Route::post('/site-inspections/{inspection}/sign-off', [SiteInspectionController::class, 'signOff']);
+
+    // Punch List & Defect Management routes
+    Route::apiResource('punch-lists', PunchListItemController::class)->parameters(['punch-lists' => 'punchItem']);
+    Route::post('/punch-lists/{punchItem}/rectify', [PunchListItemController::class, 'rectify']);
+    Route::post('/punch-lists/{punchItem}/verify', [PunchListItemController::class, 'verify']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -203,5 +215,9 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
 
         // Equipment statistics
         Route::get('/equipment/statistics', [EquipmentController::class, 'statistics']);
+
+        // Quality Control & Inspection statistics
+        Route::get('/inspections/statistics', [SiteInspectionController::class, 'statistics']);
+        Route::get('/punch-lists/statistics', [PunchListItemController::class, 'statistics']);
     });
 });

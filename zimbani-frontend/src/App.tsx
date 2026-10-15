@@ -61,6 +61,11 @@ import MaterialForm from './pages/materials/MaterialForm'
 import EquipmentList from './pages/equipment/EquipmentList'
 import EquipmentForm from './pages/equipment/EquipmentForm'
 
+// Site Quality Control & Inspection Pages
+import InspectionsList from './pages/inspections/InspectionsList'
+import InspectionForm from './pages/inspections/InspectionForm'
+import InspectionDetails from './pages/inspections/InspectionDetails'
+
 // Admin Pages
 import UsersList from './pages/admin/UsersList'
 import RolesList from './pages/admin/RolesList'
@@ -387,6 +392,40 @@ function App() {
               element={
                 <PermissionRoute permission="equipment.update">
                   <EquipmentForm />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Site Quality Control & Inspections Routes */}
+            <Route
+              path="inspections"
+              element={
+                <PermissionRoute permission="inspections.view">
+                  <InspectionsList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="inspections/new"
+              element={
+                <PermissionRoute permission="inspections.create">
+                  <InspectionForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="inspections/:id"
+              element={
+                <PermissionRoute permission="inspections.view">
+                  <InspectionDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="inspections/:id/edit"
+              element={
+                <PermissionRoute permission="inspections.update">
+                  <InspectionForm />
                 </PermissionRoute>
               }
             />
