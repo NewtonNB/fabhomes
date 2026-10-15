@@ -165,7 +165,23 @@ class Site extends Model
      */
     public function materials(): HasMany
     {
-        return $this->hasMany(Material::class);
+        return $this->hasMany(Material::class, 'site_id');
+    }
+
+    /**
+     * Get material requisitions for the site.
+     */
+    public function materialRequisitions(): HasMany
+    {
+        return $this->hasMany(MaterialRequisition::class, 'site_id');
+    }
+
+    /**
+     * Get material usage logs for the site.
+     */
+    public function materialUsages(): HasMany
+    {
+        return $this->hasMany(MaterialUsage::class, 'site_id');
     }
 
     /**

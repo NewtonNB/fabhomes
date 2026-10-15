@@ -134,6 +134,22 @@ class Project extends Model
     }
 
     /**
+     * Get material requisitions for the project.
+     */
+    public function materialRequisitions(): HasMany
+    {
+        return $this->hasMany(MaterialRequisition::class, 'project_id');
+    }
+
+    /**
+     * Get material usage logs for the project.
+     */
+    public function materialUsages(): HasMany
+    {
+        return $this->hasMany(MaterialUsage::class, 'project_id');
+    }
+
+    /**
      * Get the documents for the project.
      */
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany

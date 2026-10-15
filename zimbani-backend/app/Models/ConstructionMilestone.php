@@ -177,4 +177,12 @@ class ConstructionMilestone extends Model
     {
         return $this->morphMany(Document::class, 'documentable');
     }
+
+    /**
+     * Material usages logged against this milestone.
+     */
+    public function materialUsages(): HasMany
+    {
+        return $this->hasMany(MaterialUsage::class, 'milestone_id');
+    }
 }

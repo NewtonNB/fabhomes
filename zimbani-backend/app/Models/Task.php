@@ -174,6 +174,14 @@ class Task extends Model
     }
 
     /**
+     * Material usages logged against this task.
+     */
+    public function materialUsages(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(MaterialUsage::class, 'task_id');
+    }
+
+    /**
      * Scopes
      */
     public function scopeForProject($query, $projectId)

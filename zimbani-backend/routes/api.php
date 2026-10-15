@@ -13,6 +13,9 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\MilestoneController;
+use App\Http\Controllers\Api\MaterialController;
+use App\Http\Controllers\Api\MaterialRequisitionController;
+use App\Http\Controllers\Api\MaterialUsageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -116,6 +119,19 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/projects/{project}/milestones', [MilestoneController::class, 'store']);
     Route::put('/construction/milestones/{milestone}', [MilestoneController::class, 'update']);
 
+    // Material & Inventory Tracking routes
+    Route::apiResource('materials', MaterialController::class);
+    Route::post('/materials/{material}/adjust-stock', [MaterialController::class, 'adjustStock']);
+
+    // Material Requisition routes
+    Route::apiResource('material-requisitions', MaterialRequisitionController::class)->parameters(['material-requisitions' => 'requisition']);
+    Route::post('/material-requisitions/{requisition}/approve', [MaterialRequisitionController::class, 'approve']);
+    Route::post('/material-requisitions/{requisition}/reject', [MaterialRequisitionController::class, 'reject']);
+    Route::post('/material-requisitions/{requisition}/deliver', [MaterialRequisitionController::class, 'deliver']);
+
+    // Material Usage routes
+    Route::apiResource('material-usages', MaterialUsageController::class);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -167,5 +183,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
 
         // Task statistics
         Route::get('/tasks/statistics', [TaskController::class, 'statistics']);
+
+        // Material statistics
+        Route::get('/materials/statistics', [MaterialController::class, 'statistics']);
     });
 });

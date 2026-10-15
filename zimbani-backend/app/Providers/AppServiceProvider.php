@@ -11,6 +11,9 @@ use App\Models\Payment;
 use App\Models\Document;
 use App\Models\Task;
 use App\Models\ConstructionMilestone;
+use App\Models\Material;
+use App\Models\MaterialRequisition;
+use App\Models\MaterialUsage;
 use App\Policies\UserPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\PermissionPolicy;
@@ -22,6 +25,9 @@ use App\Policies\PaymentPolicy;
 use App\Policies\DocumentPolicy;
 use App\Policies\TaskPolicy;
 use App\Policies\MilestonePolicy;
+use App\Policies\MaterialPolicy;
+use App\Policies\RequisitionPolicy;
+use App\Policies\UsagePolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Role;
@@ -46,6 +52,9 @@ class AppServiceProvider extends ServiceProvider
         Document::class => DocumentPolicy::class,
         Task::class => TaskPolicy::class,
         ConstructionMilestone::class => MilestonePolicy::class,
+        Material::class => MaterialPolicy::class,
+        MaterialRequisition::class => RequisitionPolicy::class,
+        MaterialUsage::class => UsagePolicy::class,
     ];
 
     /**

@@ -13,6 +13,7 @@ import {
   MdReceipt,
   MdDescription,
   MdAssignment,
+  MdInventory2,
   MdClose
 } from 'react-icons/md'
 import './Sidebar.css'
@@ -99,6 +100,12 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       label: 'Tasks & Milestones',
       icon: <MdAssignment />,
       permission: 'view tasks',
+    },
+    {
+      path: '/materials',
+      label: 'Materials & Inventory',
+      icon: <MdInventory2 />,
+      permission: 'view materials',
     },
     {
       path: '/clients',

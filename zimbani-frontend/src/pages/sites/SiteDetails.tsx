@@ -324,6 +324,16 @@ const SiteDetails: React.FC = () => {
               <div className="action-description">Go to parent project</div>
             </div>
           </button>
+          <button 
+            className="action-button"
+            onClick={() => navigate(`/materials?site_id=${site.id}`)}
+          >
+            <span className="action-icon">📦</span>
+            <div>
+              <div className="action-title">Materials & Stock</div>
+              <div className="action-description">Manage site inventory & requisitions</div>
+            </div>
+          </button>
         </div>
       </div>
     </div>

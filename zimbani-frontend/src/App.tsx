@@ -53,6 +53,10 @@ import TasksList from './pages/tasks/TasksList'
 import TaskForm from './pages/tasks/TaskForm'
 import TaskDetails from './pages/tasks/TaskDetails'
 
+// Material & Inventory Pages
+import MaterialsList from './pages/materials/MaterialsList'
+import MaterialForm from './pages/materials/MaterialForm'
+
 // Admin Pages
 import UsersList from './pages/admin/UsersList'
 import RolesList from './pages/admin/RolesList'
@@ -327,6 +331,32 @@ function App() {
               element={
                 <PermissionRoute permission="edit tasks">
                   <TaskForm />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Materials & Inventory Routes */}
+            <Route
+              path="materials"
+              element={
+                <PermissionRoute permission="view materials">
+                  <MaterialsList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="materials/new"
+              element={
+                <PermissionRoute permission="create materials">
+                  <MaterialForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="materials/:id/edit"
+              element={
+                <PermissionRoute permission="edit materials">
+                  <MaterialForm />
                 </PermissionRoute>
               }
             />
