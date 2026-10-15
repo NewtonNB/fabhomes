@@ -76,6 +76,10 @@ import SavingsAccountsList from './pages/savings-accounts/SavingsAccountsList'
 import SavingsAccountForm from './pages/savings-accounts/SavingsAccountForm'
 import SavingsAccountDetails from './pages/savings-accounts/SavingsAccountDetails'
 
+// Financial Transactions & Ledger Pages
+import TransactionsList from './pages/transactions/TransactionsList'
+import TransactionDetails from './pages/transactions/TransactionDetails'
+
 // Admin Pages
 import UsersList from './pages/admin/UsersList'
 import RolesList from './pages/admin/RolesList'
@@ -340,6 +344,24 @@ function App() {
               element={
                 <PermissionRoute permission="accounts.update">
                   <SavingsAccountForm />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Financial Transactions & Ledger Routes */}
+            <Route
+              path="transactions"
+              element={
+                <PermissionRoute permission="transactions.view">
+                  <TransactionsList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="transactions/:id"
+              element={
+                <PermissionRoute permission="transactions.view">
+                  <TransactionDetails />
                 </PermissionRoute>
               }
             />

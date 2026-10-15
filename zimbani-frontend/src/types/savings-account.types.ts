@@ -43,6 +43,7 @@ export interface SavingsAccountRefUser {
 export interface SavingsAccount {
   id: number
   uuid: string
+  client_id?: number
   account_number: string
   account_type: AccountType
   scheme_name?: string | null

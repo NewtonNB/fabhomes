@@ -272,17 +272,28 @@ class SavingsAccountController extends Controller
         $amount = (float) $request->amount;
         $current = (float) $savingsAccount->current_balance;
 
-        $newBalance = match ($type) {
-            'credit' => $current + $amount,
-            'debit' => max(0.0, $current - $amount),
-            'set_exact' => $amount,
+        $delta = match ($type) {
+            'credit' => $amount,
+            'debit' => -1 * min($current, $amount),
+            'set_exact' => $amount - $current,
         };
 
-        $savingsAccount->adjustBalance($newBalance, $request->reason, auth()->id());
+        if ($delta != 0) {
+            \App\Models\Transaction::record([
+                'account_id' => $savingsAccount->id,
+                'client_id' => $savingsAccount->client_id,
+                'transaction_type' => 'adjustment',
+                'amount' => $delta,
+                'currency' => $savingsAccount->currency,
+                'description' => $request->reason ?? 'Manual balance adjustment',
+                'narration' => $request->notes,
+                'created_by' => auth()->id(),
+            ]);
+        }
 
         return response()->json([
-            'message' => 'Account balance successfully adjusted',
-            'data' => new SavingsAccountResource($savingsAccount->fresh(['client'])),
+            'message' => 'Account balance successfully adjusted and recorded in ledger',
+            'data' => new SavingsAccountResource($savingsAccount->fresh(['client', 'payments'])),
         ]);
     }
 

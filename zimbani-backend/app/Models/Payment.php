@@ -137,6 +137,11 @@ class Payment extends Model
         return $this->morphMany(Document::class, 'documentable');
     }
 
+    public function transactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Transaction::class, 'payment_id')->latest('transaction_date');
+    }
+
     // Scopes
 
     public function scopeConfirmed($query)

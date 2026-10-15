@@ -138,6 +138,11 @@ class Client extends Model
         return $this->hasMany(SavingsAccount::class, 'client_id')->where('account_type', 'construction_saving');
     }
 
+    public function transactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Transaction::class, 'client_id')->latest('transaction_date');
+    }
+
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');

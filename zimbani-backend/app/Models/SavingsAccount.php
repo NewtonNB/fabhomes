@@ -255,6 +255,11 @@ class SavingsAccount extends Model
         return $this->hasMany(Payment::class, 'savings_account_id');
     }
 
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'account_id')->latest('transaction_date');
+    }
+
     public function documents(): MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');

@@ -9,6 +9,7 @@ use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
 use App\Models\Unit;
 use App\Models\Client;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -215,10 +216,28 @@ class PaymentController extends Controller
 
         $payment->confirm(auth()->id());
 
+        // If payment is linked to a savings account, post to the immutable ledger
+        if ($payment->savings_account_id && !$payment->transactions()->exists()) {
+            Transaction::record([
+                'account_id' => $payment->savings_account_id,
+                'client_id' => $payment->client_id,
+                'payment_id' => $payment->id,
+                'transaction_type' => 'payment',
+                'amount' => (float) $payment->total_amount,
+                'currency' => $payment->currency ?? 'UGX',
+                'description' => "Client payment {$payment->payment_number} confirmed (" . ucwords(str_replace('_', ' ', $payment->payment_type)) . ")",
+                'narration' => $payment->notes,
+                'reference_number' => $payment->reference_number ?? $payment->payment_number,
+                'transaction_date' => $payment->payment_date ?? now(),
+                'value_date' => $payment->payment_date ? $payment->payment_date->toDateString() : now()->toDateString(),
+                'created_by' => auth()->id(),
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Payment confirmed successfully',
-            'data' => new PaymentResource($payment->load(['unit', 'client', 'processedBy', 'confirmedBy'])),
+            'data' => new PaymentResource($payment->load(['unit', 'client', 'processedBy', 'confirmedBy', 'savingsAccount'])),
         ]);
     }
 
@@ -292,6 +311,14 @@ class PaymentController extends Controller
                 'success' => false,
                 'message' => 'Payment cannot be refunded in its current status',
             ], 422);
+        }
+
+        // If payment was credited to a savings account, reverse the transaction in ledger
+        if ($payment->savings_account_id) {
+            $postedTxn = $payment->transactions()->where('status', 'posted')->first();
+            if ($postedTxn) {
+                $postedTxn->reverse(auth()->id(), $request->refund_reason);
+            }
         }
 
         // Store refund information

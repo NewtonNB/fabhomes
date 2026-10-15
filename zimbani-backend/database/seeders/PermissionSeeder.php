@@ -228,6 +228,16 @@ class PermissionSeeder extends Seeder
                 'payments.export',
             ],
 
+            // Financial Module - Transactions & Immutable Ledger
+            'transactions' => [
+                'transactions.view',
+                'transactions.view-any',
+                'transactions.create',
+                'transactions.reverse',
+                'transactions.reconcile',
+                'transactions.export',
+            ],
+
             // Financial Module - Invoices
             'invoices' => [
                 'invoices.view',
@@ -407,6 +417,10 @@ class PermissionSeeder extends Seeder
             // Savings Accounts - Full access
             'accounts.view', 'accounts.view-any', 'accounts.create', 'accounts.update', 'accounts.delete',
             'accounts.activate', 'accounts.suspend', 'accounts.close', 'accounts.adjust-balance', 'accounts.statement',
+
+            // Transactions & Ledger - Full access
+            'transactions.view', 'transactions.view-any', 'transactions.create', 'transactions.reverse',
+            'transactions.reconcile', 'transactions.export',
         ]);
 
         // Site Manager - Site operations and worker management
@@ -423,6 +437,7 @@ class PermissionSeeder extends Seeder
             'daily-logs.view', 'daily-logs.view-any', 'daily-logs.create', 'daily-logs.update', 'daily-logs.delete', 'daily-logs.approve',
             'safety.view', 'safety.view-any', 'safety.create', 'safety.update', 'safety.investigate', 'safety.close',
             'accounts.view', 'accounts.view-any', 'accounts.statement',
+            'transactions.view', 'transactions.view-any',
             'expenses.view', 'expenses.create',
             'documents.view', 'documents.view-any', 'documents.create',
             'reports.view-progress', 'reports.view-attendance', 'reports.view-inventory',
@@ -467,6 +482,8 @@ class PermissionSeeder extends Seeder
         $financeOfficer->givePermissionTo([
             'accounts.view', 'accounts.view-any', 'accounts.create', 'accounts.update', 'accounts.delete',
             'accounts.activate', 'accounts.suspend', 'accounts.close', 'accounts.adjust-balance', 'accounts.statement',
+            'transactions.view', 'transactions.view-any', 'transactions.create', 'transactions.reverse',
+            'transactions.reconcile', 'transactions.export',
             'payments.view', 'payments.view-any', 'payments.create', 'payments.update', 'payments.approve',
             'payments.process', 'payments.refund', 'payments.export',
             'invoices.view', 'invoices.view-any', 'invoices.create', 'invoices.update', 'invoices.send',
@@ -486,6 +503,7 @@ class PermissionSeeder extends Seeder
         $client->givePermissionTo([
             'accounts.view',
             'accounts.statement',
+            'transactions.view',
             'projects.view',
             'plots.view',
             'sites.view', 'sites.view-progress',

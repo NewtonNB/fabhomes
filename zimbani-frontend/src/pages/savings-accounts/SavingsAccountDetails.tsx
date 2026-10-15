@@ -279,6 +279,14 @@ export const SavingsAccountDetails: React.FC = () => {
             </button>
           )}
 
+          <Link
+            to={`/transactions?account_id=${account.id}`}
+            className="btn btn-secondary"
+            style={{ backgroundColor: '#f0fdfa', color: '#0d9488', borderColor: '#ccfbf1' }}
+          >
+            <MdReceipt /> View Ledger
+          </Link>
+
           <Link to={`/savings-accounts/${account.uuid}/edit`} className="btn btn-secondary">
             <MdEdit /> Edit
           </Link>

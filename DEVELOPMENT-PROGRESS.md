@@ -11,8 +11,8 @@
 
 **Phase:** 7 - Financial Management & Cost Control  
 **Week:** 1 of 4  
-**Day:** 1 of 5 (✅ COMPLETED)  
-**Next:** Day 2 of 5 (Financial Transactions & Immutable Ledger)
+**Day:** 2 of 5 (✅ COMPLETED)  
+**Next:** Day 3 of 5 (Subcontractor Contracts & Payment Certificates)
 
 ---
 
@@ -2107,16 +2107,65 @@ All 4 project management modules have full CRUD interfaces with comprehensive fe
 
 ---
 
+---
+
+### Phase 7 Week 1 Day 2: Financial Transactions & Immutable Ledger ✅ (Oct 15, 2026)
+
+**1. Database Schema & Architecture (`docs/DATABASE-DESIGN.md` Section 5.4 & `docs/FINANCIAL-ARCHITECTURE.md`):**
+- ✅ Migration `2026_10_15_125951_create_transactions_table.php` executed cleanly on MySQL (`zimbani_dev`):
+  - `transactions`: Single-entry immutable financial ledger (`transaction_number` `TXN-YYYYMMDD-XXXX`, `account_id` [savings_accounts], `client_id`, `payment_id`, `related_transaction_id` [for offsetting reversals], `transaction_type` [`payment`, `adjustment`, `reversal`, `refund`, `transfer`, `withdrawal`], `amount` [signed: + for inflow, - for outflow], `currency` default UGX, `balance_before`, `balance_after`, `description`, `narration`, `reference_number`, `transaction_date`, `value_date`, `status` [`posted`, `reversed`, `pending`, `failed`], `reversed_at`, `reversed_by`, `reversal_reason`, `created_by`, timestamps, softDeletes).
+  - High-performance composite indexes on `(account_id, transaction_date)`, `(client_id, transaction_date)`, `transaction_type`, `status`, `value_date`, and `reference_number`.
+- ✅ Permissions seeded via `PermissionSeeder`: 6 new permissions under module `transactions` (`transactions.view`, `transactions.view-any`, `transactions.create`, `transactions.reverse`, `transactions.reconcile`, `transactions.export`). Total permissions: 203 across 28 modules.
+  - Assigned to Super Admin, Company Admin, Finance Officer, Site Manager, and Client roles.
+
+**2. Backend Models, Policies & Reconciliation Logic:**
+- ✅ `Transaction` Model: Hybrid key adherence (bigint auto-increment `id` + unique `uuid`), auto `TXN-YYYYMMDD-XXXX` sequence generator, `is_credit`, `is_debit`, `is_reversed` accessors, and `canBeReversed()` validation guard.
+- ✅ Atomicity & Lock-for-Update Engine:
+  - `Transaction::record($data)`: Atomically locks target savings account (`lockForUpdate`), captures `balance_before`, applies delta, sets `balance_after`, triggers auto-completion if target reached, and inserts immutable ledger entry.
+  - `$transaction->reverse($reversedBy, $reason)`: Implements offsetting reversal pattern. Sets original transaction status to `reversed`, updates savings account balance atomically, re-opens account to `active` if target was previously reached, creates linked offsetting reversal transaction with negative amount and audit reason.
+  - Duplicate reversal protection: Prevents reversing an already reversed transaction.
+- ✅ Reverse Eloquent Relationships: Added to `SavingsAccount.php` (`transactions()`), `Client.php` (`transactions()`), and `Payment.php` (`transactions()`).
+- ✅ Dual-Entry Payment & Savings Reconciliation:
+  - Updated `PaymentController@confirm`: Automatically posts ledger transaction upon payment confirmation.
+  - Updated `PaymentController@refund`: Automatically triggers reversal of savings account transaction upon refund.
+  - Updated `SavingsAccountController@adjustBalance`: All manual balance adjustments automatically route through `Transaction::record()`.
+- ✅ Automated Reconciliation Endpoint:
+  - `GET /api/v1/transactions/reconciliation`: Compares `savings_accounts.current_balance` against the mathematical sum of all active and offsetting ledger entries (`WHERE t.status IN ('posted', 'reversed')`), outputting health status, matched count, and any discrepancy rows.
+- ✅ Form Requests & Authorization: `StoreTransactionRequest`, `ReverseTransactionRequest`, and `TransactionPolicy` registered in `AppServiceProvider`.
+- ✅ API Resources & Endpoints: `TransactionResource` and `TransactionController` (index with filters, store, show, reverse, reconciliation, statistics).
+- ✅ Automated Verification: Tested through scratch verification script `test_transaction_lifecycle.php` (deposit &rarr; target completion &rarr; reconciliation check &rarr; reversal &rarr; idempotency immutability guard &rarr; post-reversal zero difference check). All tests passed!
+
+**3. Frontend React 19 UI & Workflow Console:**
+- ✅ `transaction.types.ts`: TypeScript contracts for transactions, filters, posting input, reversals, statistics, and automated reconciliation reports.
+- ✅ `transaction.service.ts`: API service with 6 methods matching all ledger and reconciliation endpoints.
+- ✅ `TransactionsList.tsx` & `TransactionsList.css`: Console featuring:
+  - Top financial KPI cards: Total Inflow (Credits), Total Outflow (Debits), Net Balance Movement, and Total Audit Reversals.
+  - One-click Automated Reconciliation Engine with visual banner: Displays green "Ledger Perfectly Balanced" status or red discrepancy table with discrepancy amount.
+  - Multi-parameter filtering: Search by TXN # / reference / client / description, type filter, credit/debit cashflow toggle, status filter, and date range pickers.
+  - Interactive Reversal Modal with mandatory justification reason.
+  - Manual Ledger Entry Posting modal with client and account dropdowns.
+- ✅ `TransactionDetails.tsx` & `TransactionDetails.css`: Financial voucher view featuring:
+  - Visual 3-stage Balance Progression Flow (`Balance Before` &rarr; `Transaction Amount (+/-)` &rarr; `Balance After`).
+  - Linked Client Account Owner and Savings Scheme cards.
+  - Linked Originating Payment card (with receipt link).
+  - Reversal Audit section linking original and offsetting reversal records.
+  - Polymorphic document attachments table via `DocumentUploadModal` and `DocumentsTable`.
+- ✅ Navigation & Shortcuts: Registered routes in `App.tsx`, added `Financial Ledger` menu item in `Sidebar.tsx` with `<MdReceiptLong />`, and added direct "View Ledger" link in `SavingsAccountDetails.tsx`.
+- ✅ Zero TypeScript Compiler Errors: Verified via `npm run build` (tsc + Vite bundle clean).
+
+---
+
 ## 🎯 Next Development Focus
 
 **Phase 7: Financial Management & Cost Control**
 1. ✅ **Day 1**: Client Savings Accounts & Scheme Enrolment (COMPLETED)
-2. 🔄 **Day 2**: Financial Transactions & Immutable Ledger (NEXT)
-   - `transactions` table with running balance before & after tracking
-   - Automated `TXN-YYYYMMDD-XXXX` sequence generator
-   - Dual-entry reconciliation between payments, savings, expenses, and ledger
-   - Financial reversal workflow with audit justifications
-3. ⏳ **Day 3**: Subcontractor Contracts & Payment Certificates
+2. ✅ **Day 2**: Financial Transactions & Immutable Ledger (COMPLETED)
+3. 🔄 **Day 3**: Subcontractor Contracts & Payment Certificates (NEXT)
+   - Subcontractor contracts (`subcontractor_contracts` table, `CNT-YYYYMMDD-XXXX`)
+   - Scope of works, contract sums, retention percentage, and payment terms
+   - Payment certificates / valuations (`payment_certificates` table, `CERT-YYYYMMDD-XXXX`)
+   - Gross amount, previous payments, retention deductions, and net payable
+   - Approval and sign-off workflow (Site Manager &rarr; Finance Officer &rarr; Company Admin)
 4. ⏳ **Day 4**: Expense Claims, Petty Cash & Direct Site Purchasing
 5. ⏳ **Day 5**: Financial Auditing, Profitability Reporting & Cash Flow Forecasting
 
@@ -2125,7 +2174,8 @@ All 4 project management modules have full CRUD interfaces with comprehensive fe
 **Last Updated:** October 15, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Pending Phase 7 Day 1 push
+**Latest Commit:** Pending Phase 7 Day 2 push
+
 
 
 

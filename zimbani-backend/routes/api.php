@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\SiteDailyLogController;
 use App\Http\Controllers\Api\SafetyIncidentController;
 use App\Http\Controllers\Api\SafetyToolboxTalkController;
 use App\Http\Controllers\Api\SavingsAccountController;
+use App\Http\Controllers\Api\TransactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -183,6 +184,13 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/savings-accounts/{savingsAccount}/adjust-balance', [SavingsAccountController::class, 'adjustBalance']);
     Route::get('/savings-accounts/{savingsAccount}/statement', [SavingsAccountController::class, 'statement']);
 
+    // Financial Transactions & Immutable Ledger
+    Route::get('/transactions', [TransactionController::class, 'index']);
+    Route::post('/transactions', [TransactionController::class, 'store']);
+    Route::get('/transactions/reconciliation', [TransactionController::class, 'reconciliation']);
+    Route::get('/transactions/{transaction}', [TransactionController::class, 'show']);
+    Route::post('/transactions/{transaction}/reverse', [TransactionController::class, 'reverse']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -251,5 +259,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
 
         // Savings Accounts Portfolio statistics
         Route::get('/savings-accounts/statistics', [SavingsAccountController::class, 'statistics']);
+
+        // Financial Ledger & Transactions statistics
+        Route::get('/transactions/statistics', [TransactionController::class, 'statistics']);
     });
 });
