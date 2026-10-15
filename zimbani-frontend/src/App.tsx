@@ -71,6 +71,11 @@ import DailyLogsList from './pages/daily-logs/DailyLogsList'
 import DailyLogForm from './pages/daily-logs/DailyLogForm'
 import DailyLogDetails from './pages/daily-logs/DailyLogDetails'
 
+// Savings Accounts Pages
+import SavingsAccountsList from './pages/savings-accounts/SavingsAccountsList'
+import SavingsAccountForm from './pages/savings-accounts/SavingsAccountForm'
+import SavingsAccountDetails from './pages/savings-accounts/SavingsAccountDetails'
+
 // Admin Pages
 import UsersList from './pages/admin/UsersList'
 import RolesList from './pages/admin/RolesList'
@@ -301,6 +306,40 @@ function App() {
               element={
                 <PermissionRoute permission="edit payments">
                   <PaymentForm isEdit={true} />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Savings Accounts Routes */}
+            <Route
+              path="savings-accounts"
+              element={
+                <PermissionRoute permission="accounts.view">
+                  <SavingsAccountsList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="savings-accounts/new"
+              element={
+                <PermissionRoute permission="accounts.create">
+                  <SavingsAccountForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="savings-accounts/:id"
+              element={
+                <PermissionRoute permission="accounts.view">
+                  <SavingsAccountDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="savings-accounts/:id/edit"
+              element={
+                <PermissionRoute permission="accounts.update">
+                  <SavingsAccountForm />
                 </PermissionRoute>
               }
             />

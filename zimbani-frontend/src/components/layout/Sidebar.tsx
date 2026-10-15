@@ -17,6 +17,7 @@ import {
   MdPrecisionManufacturing,
   MdFactCheck,
   MdHealthAndSafety,
+  MdAccountBalance,
   MdClose
 } from 'react-icons/md'
 import './Sidebar.css'
@@ -133,6 +134,12 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       label: 'Clients',
       icon: <MdPersonOutline />,
       permission: 'view clients',
+    },
+    {
+      path: '/savings-accounts',
+      label: 'Savings Accounts',
+      icon: <MdAccountBalance />,
+      permission: 'view accounts',
     },
     {
       path: '/payments',

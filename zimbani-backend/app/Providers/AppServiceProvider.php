@@ -82,6 +82,7 @@ class AppServiceProvider extends ServiceProvider
         SiteDailyLog::class => SiteDailyLogPolicy::class,
         SafetyIncident::class => SafetyIncidentPolicy::class,
         SafetyToolboxTalk::class => SafetyToolboxTalkPolicy::class,
+        \App\Models\SavingsAccount::class => \App\Policies\SavingsAccountPolicy::class,
     ];
 
     /**

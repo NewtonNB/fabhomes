@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\PunchListItemController;
 use App\Http\Controllers\Api\SiteDailyLogController;
 use App\Http\Controllers\Api\SafetyIncidentController;
 use App\Http\Controllers\Api\SafetyToolboxTalkController;
+use App\Http\Controllers\Api\SavingsAccountController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -174,6 +175,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     // Safety Toolbox Talks & Briefings routes
     Route::apiResource('safety-toolbox-talks', SafetyToolboxTalkController::class)->parameters(['safety-toolbox-talks' => 'talk']);
 
+    // Client Savings Accounts & Scheme Enrolment routes
+    Route::apiResource('savings-accounts', SavingsAccountController::class)->parameters(['savings-accounts' => 'savingsAccount']);
+    Route::post('/savings-accounts/{savingsAccount}/activate', [SavingsAccountController::class, 'activate']);
+    Route::post('/savings-accounts/{savingsAccount}/suspend', [SavingsAccountController::class, 'suspend']);
+    Route::post('/savings-accounts/{savingsAccount}/close', [SavingsAccountController::class, 'close']);
+    Route::post('/savings-accounts/{savingsAccount}/adjust-balance', [SavingsAccountController::class, 'adjustBalance']);
+    Route::get('/savings-accounts/{savingsAccount}/statement', [SavingsAccountController::class, 'statement']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -239,5 +248,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         // Site Daily Logs & Safety statistics
         Route::get('/daily-logs/statistics', [SiteDailyLogController::class, 'statistics']);
         Route::get('/safety/statistics', [SafetyIncidentController::class, 'statistics']);
+
+        // Savings Accounts Portfolio statistics
+        Route::get('/savings-accounts/statistics', [SavingsAccountController::class, 'statistics']);
     });
 });

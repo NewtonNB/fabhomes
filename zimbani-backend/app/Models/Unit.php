@@ -174,6 +174,11 @@ class Unit extends Model
         return $this->morphMany(Document::class, 'documentable');
     }
 
+    public function savingsAccounts(): HasMany
+    {
+        return $this->hasMany(SavingsAccount::class, 'plot_id');
+    }
+
     /**
      * Get the tasks for the unit.
      */

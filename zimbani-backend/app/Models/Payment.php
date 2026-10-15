@@ -18,6 +18,7 @@ class Payment extends Model
         'reference_number',
         'unit_id',
         'client_id',
+        'savings_account_id',
         'processed_by',
         'payment_type',
         'payment_method',
@@ -114,6 +115,11 @@ class Payment extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function savingsAccount(): BelongsTo
+    {
+        return $this->belongsTo(SavingsAccount::class, 'savings_account_id');
     }
 
     public function processedBy(): BelongsTo

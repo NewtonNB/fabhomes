@@ -12,6 +12,7 @@ import {
   MdPerson,
   MdContactEmergency,
   MdReceipt,
+  MdAccountBalance,
 } from 'react-icons/md';
 import { clientService } from '../../services/client.service';
 import { paymentService } from '../../services/payment.service';
@@ -165,6 +166,15 @@ const ClientDetails: React.FC = () => {
               </button>
             </>
           )}
+          <button
+            className="btn-action"
+            style={{ backgroundColor: '#0284c7', color: '#ffffff' }}
+            onClick={() => navigate(`/savings-accounts?client_id=${client.id}`)}
+            disabled={actionLoading}
+          >
+            <MdAccountBalance size={20} />
+            Savings Accounts
+          </button>
           <button
             className="btn-action edit"
             onClick={() => navigate(`/clients/edit/${uuid}`)}

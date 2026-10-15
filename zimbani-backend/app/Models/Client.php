@@ -123,6 +123,21 @@ class Client extends Model
         return $this->hasMany(Unit::class);
     }
 
+    public function savingsAccounts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SavingsAccount::class, 'client_id');
+    }
+
+    public function landSavingAccounts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SavingsAccount::class, 'client_id')->where('account_type', 'land_saving');
+    }
+
+    public function constructionSavingAccounts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SavingsAccount::class, 'client_id')->where('account_type', 'construction_saving');
+    }
+
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');

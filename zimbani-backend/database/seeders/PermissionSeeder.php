@@ -201,6 +201,20 @@ class PermissionSeeder extends Seeder
                 'safety.close',
             ],
 
+            // Financial Module - Savings Accounts
+            'accounts' => [
+                'accounts.view',
+                'accounts.view-any',
+                'accounts.create',
+                'accounts.update',
+                'accounts.delete',
+                'accounts.activate',
+                'accounts.suspend',
+                'accounts.close',
+                'accounts.adjust-balance',
+                'accounts.statement',
+            ],
+
             // Financial Module - Payments
             'payments' => [
                 'payments.view',
@@ -389,6 +403,10 @@ class PermissionSeeder extends Seeder
             // Daily Logs & Safety - Full access
             'daily-logs.view', 'daily-logs.view-any', 'daily-logs.create', 'daily-logs.update', 'daily-logs.delete', 'daily-logs.approve',
             'safety.view', 'safety.view-any', 'safety.create', 'safety.update', 'safety.delete', 'safety.investigate', 'safety.close',
+
+            // Savings Accounts - Full access
+            'accounts.view', 'accounts.view-any', 'accounts.create', 'accounts.update', 'accounts.delete',
+            'accounts.activate', 'accounts.suspend', 'accounts.close', 'accounts.adjust-balance', 'accounts.statement',
         ]);
 
         // Site Manager - Site operations and worker management
@@ -404,6 +422,7 @@ class PermissionSeeder extends Seeder
             'defects.view', 'defects.view-any', 'defects.create', 'defects.update', 'defects.verify',
             'daily-logs.view', 'daily-logs.view-any', 'daily-logs.create', 'daily-logs.update', 'daily-logs.delete', 'daily-logs.approve',
             'safety.view', 'safety.view-any', 'safety.create', 'safety.update', 'safety.investigate', 'safety.close',
+            'accounts.view', 'accounts.view-any', 'accounts.statement',
             'expenses.view', 'expenses.create',
             'documents.view', 'documents.view-any', 'documents.create',
             'reports.view-progress', 'reports.view-attendance', 'reports.view-inventory',
@@ -446,6 +465,8 @@ class PermissionSeeder extends Seeder
         // Finance Officer - Financial operations
         $financeOfficer = Role::findByName('Finance Officer', 'web');
         $financeOfficer->givePermissionTo([
+            'accounts.view', 'accounts.view-any', 'accounts.create', 'accounts.update', 'accounts.delete',
+            'accounts.activate', 'accounts.suspend', 'accounts.close', 'accounts.adjust-balance', 'accounts.statement',
             'payments.view', 'payments.view-any', 'payments.create', 'payments.update', 'payments.approve',
             'payments.process', 'payments.refund', 'payments.export',
             'invoices.view', 'invoices.view-any', 'invoices.create', 'invoices.update', 'invoices.send',
@@ -460,9 +481,11 @@ class PermissionSeeder extends Seeder
             'audit-logs.view', 'audit-logs.view-any',
         ]);
 
-        // Client - Read-only access to their projects
+        // Client - Read-only access to their projects & savings accounts
         $client = Role::findByName('Client', 'web');
         $client->givePermissionTo([
+            'accounts.view',
+            'accounts.statement',
             'projects.view',
             'plots.view',
             'sites.view', 'sites.view-progress',

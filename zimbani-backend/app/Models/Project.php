@@ -214,6 +214,14 @@ class Project extends Model
     }
 
     /**
+     * Get savings accounts linked to this construction project.
+     */
+    public function savingsAccounts(): HasMany
+    {
+        return $this->hasMany(SavingsAccount::class, 'project_id');
+    }
+
+    /**
      * Scope a query to only include active projects.
      */
     public function scopeActive($query)

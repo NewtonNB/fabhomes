@@ -50,6 +50,7 @@ class StoreDocumentRequest extends FormRequest
             'site_daily_log', 'site_daily_logs', 'daily_log', 'daily_logs' => \App\Models\SiteDailyLog::class,
             'safety_incident', 'safety_incidents', 'incident', 'incidents' => \App\Models\SafetyIncident::class,
             'safety_toolbox_talk', 'safety_toolbox_talks', 'toolbox_talk' => \App\Models\SafetyToolboxTalk::class,
+            'savings_account', 'savings_accounts', 'account', 'accounts' => \App\Models\SavingsAccount::class,
             default => null,
         };
 
