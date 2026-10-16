@@ -11,8 +11,8 @@
 
 **Phase:** 7 - Financial Management & Cost Control  
 **Week:** 1 of 4  
-**Day:** 2 of 5 (✅ COMPLETED)  
-**Next:** Day 3 of 5 (Subcontractor Contracts & Payment Certificates)
+**Day:** 4 of 5 (✅ COMPLETED)  
+**Next:** Day 5 of 5 (Financial Auditing, Profitability Reporting & Cash Flow Forecasting)
 
 ---
 
@@ -2233,25 +2233,86 @@ All 4 project management modules have full CRUD interfaces with comprehensive fe
 
 ---
 
+### Phase 7 Week 1 Day 4: Expense Claims, Petty Cash & Direct Site Purchasing ✅ (Oct 16, 2026)
+
+**1. Database Migrations & Hybrid Keys:**
+- ✅ Migration `2026_10_16_100000_create_petty_cash_and_expenses_tables.php` executed cleanly on MySQL:
+  - `petty_cash_accounts`: `id` (bigint PK), `uuid` (char 36 unique), `account_number` (`PC-YYYYMMDD-XXXX`), `name`, `project_id`, `site_id`, `custodian_id`, `float_limit` (UGX), `current_balance`, `currency` (UGX), `status` (`active`, `suspended`, `closed`), `notes`, `created_by`, `updated_by`, timestamps, softDeletes, indexes.
+  - `expense_claims`: `id`, `uuid`, `claim_number` (`EXP-YYYYMMDD-XXXX`), `claimant_id`, `petty_cash_account_id` (nullable), `project_id`, `site_id`, `claim_type` (`emergency_materials`, `petty_cash_reimbursement`, `direct_site_purchase`, `travel_mileage`, `site_utilities`, `other`), `expense_category` (`materials`, `fuel_oil`, `tools_hardware`, `transport`, `labour_welfare`, `equipment_hire`, `statutory_permits`, `office_admin`, `other`), `title`, `expense_date`, `total_amount`, `currency`, `payment_method` (`petty_cash`, `bank_transfer`, `mobile_money`, `cash`, `company_card`), `vendor_name`, `vendor_tin`, `receipt_number`, `description`, `status` (`draft`, `submitted`, `verified_by_site_manager`, `approved_by_finance`, `authorized_by_admin`, `reimbursed`, `rejected`), multi-tier audit sign-off columns (`site_manager_id`, `site_manager_signed_at`, `site_manager_notes`, `finance_officer_id`, `finance_officer_approved_at`, `finance_officer_notes`, `admin_id`, `admin_authorized_at`, `admin_notes`, `paid_by`, `paid_at`, `payment_reference`, `rejection_reason`), timestamps, softDeletes, indexes.
+  - `expense_items`: `id`, `uuid`, `expense_claim_id`, `item_description`, `expense_category`, `quantity`, `unit_of_measure`, `unit_price`, `total_price`, `receipt_reference`, timestamps, indexes.
+  - `petty_cash_transactions`: `id`, `uuid`, `transaction_number` (`PCT-YYYYMMDD-XXXX`), `petty_cash_account_id`, `transaction_type` (`initial_allocation`, `replenishment`, `expense_disbursement`, `return_of_funds`), `amount`, `balance_before`, `balance_after`, `currency`, `expense_claim_id` (nullable), `reference_number`, `description`, `notes`, `created_by`, timestamps, softDeletes, indexes.
+- ✅ Granular permissions expanded: Added `petty-cash` (8 permissions) and `expenses` (11 permissions) to `PermissionSeeder.php`. Total permissions across 30 modules: 224 seeded into MySQL.
+
+**2. Backend Models, Policies & Controllers:**
+- ✅ `PettyCashAccount.php`: `topUp()`, `disburse()`, `returnFunds()` atomic float operations with database pessimistic locking (`lockForUpdate`).
+- ✅ `PettyCashTransaction.php`: Immutable single-entry float ledger tracking balance before, balance after, and linked expense claims.
+- ✅ `ExpenseClaim.php`: Multi-tier workflow state machine (`submit()`, `verifySiteManager()`, `approveFinance()`, `authorizeAdmin()`, `reimburse()`, `reject()`). Automatic deduction from float and single-entry ledger posting upon reimbursement if paid via petty cash.
+- ✅ `ExpenseItem.php`: Auto-calculated total price and parent claim total recalculation hooks.
+- ✅ Reverse relationships registered in `Project.php` (`pettyCashAccounts()`, `expenseClaims()`) and `Site.php` (`pettyCashAccounts()`, `expenseClaims()`).
+- ✅ Polymorphic document mappings updated in `StoreDocumentRequest.php` and `DocumentController.php` for `expense_claim` and `petty_cash_account`.
+- ✅ Policies & Authorization: `PettyCashAccountPolicy.php` and `ExpenseClaimPolicy.php` registered in `AppServiceProvider.php`.
+- ✅ Form Requests & API Resources:
+  - `StorePettyCashAccountRequest.php`, `TopUpPettyCashRequest.php`
+  - `StoreExpenseClaimRequest.php`, `UpdateExpenseClaimRequest.php`, `VerifyExpenseClaimRequest.php`, `ApproveExpenseClaimRequest.php`, `ReimburseExpenseClaimRequest.php`
+  - `PettyCashAccountResource.php`, `PettyCashTransactionResource.php`, `ExpenseClaimResource.php`
+- ✅ Controllers & Routes:
+  - `PettyCashAccountController.php` (CRUD, topUp, returnFunds, transactions, statistics).
+  - `ExpenseClaimController.php` (CRUD, submit, verifySite, approveFinance, authorizeAdmin, reimburse, reject, statistics).
+  - Routes registered in `routes/api.php` under auth and admin groups.
+- ✅ Verified 11-step complete backend lifecycle test script (`test_expenses_petty_cash_lifecycle.php`) passing 100%.
+
+**3. Frontend React 19 UI & Multi-Tier Workflow Console:**
+- ✅ `petty-cash.types.ts` & `expense.types.ts`: Strict TypeScript models, payloads, filter contracts, and KPI statistics.
+- ✅ `petty-cash.service.ts` & `expense.service.ts`: Full API service wrappers for accounts, replenishments, ledger transactions, claims, and approvals.
+- ✅ `PettyCashList.tsx` & `PettyCash.css`:
+  - KPI Summary Cards: Total Floats, Active Accounts, Total Float Limit, Current Cash on Hand, Disbursed This Month, and Low Balance Alert (&lt; 20% limit).
+  - Dynamic visual progress bar rendering live float health.
+  - Search and status filters with pagination.
+- ✅ `PettyCashForm.tsx`:
+  - Lookups for Project, Site, and Custodian.
+  - Float holding limits and initial allocation inputs.
+- ✅ `PettyCashDetails.tsx`:
+  - Hero float balance card with available capacity vs holding limit.
+  - Interactive Action Modals: Top-Up / Replenish Float modal and Return Surplus to Treasury modal.
+  - Single-entry immutable ledger table of all replenishments, returns, and disbursements.
+- ✅ `ExpenseClaimsList.tsx` & `Expenses.css`:
+  - KPI Cards: Total Claims, Total Value Claimed, Total Reimbursed, Pending in Multi-Tier Pipeline.
+  - Filter toolbar for status, expense category, and payment method (Petty cash float, Mobile money, Bank transfer, Cash, Card).
+  - Data table with category badges, claimant, payment method, and workflow status.
+- ✅ `ExpenseClaimForm.tsx`:
+  - Project, Site, and Petty Cash Float selector.
+  - Merchant details (Supplier name, TIN, receipt number).
+  - Dynamic Line Items Table: Add/remove item rows, live unit price and quantity multiplication, automatic grand total calculation.
+- ✅ `ExpenseClaimDetails.tsx`:
+  - Visual 6-Stage Multi-Tier Approval Stepper (`Draft` &rarr; `Submitted` &rarr; `Site Verified` &rarr; `Finance Approved` &rarr; `Admin Authorized` &rarr; `Reimbursed`).
+  - Itemized expense items breakdown table.
+  - Multi-Tier Sign-Off Audit Trail: Site Manager inspection, Finance audit, Admin authorization, and Cashier disbursement.
+  - Interactive Action Modals: Verify modal, Finance Approval modal, Admin Authorization modal, Reimburse modal (with automatic float deduction), and Rejection modal.
+- ✅ Navigation & Sidebar Integration: Added `/petty-cash` and `/expenses` routes in `App.tsx` and sidebar links in `Sidebar.tsx` with `<MdAccountBalanceWallet />` and `<MdPayments />`.
+- ✅ Zero TypeScript Compiler Errors: Verified via `npm run build` (clean tsc compilation + Vite bundle).
+
+---
+
 ## 🎯 Next Development Focus
 
 **Phase 7: Financial Management & Cost Control**
 1. ✅ **Day 1**: Client Savings Accounts & Scheme Enrolment (COMPLETED)
 2. ✅ **Day 2**: Financial Transactions & Immutable Ledger (COMPLETED)
 3. ✅ **Day 3**: Subcontractor Contracts & Payment Certificates (COMPLETED)
-4. 🔄 **Day 4**: Expense Claims, Petty Cash & Direct Site Purchasing (NEXT)
-   - Site petty cash floats & expense claims (`expense_claims`, `petty_cash_accounts`)
-   - Direct site purchasing & receipts capture
-   - Multi-tier disbursement approval (Site Manager &rarr; Finance Officer &rarr; Company Admin)
-   - Expense categorization & site budget tracking
-5. ⏳ **Day 5**: Financial Auditing, Profitability Reporting & Cash Flow Forecasting
+4. ✅ **Day 4**: Expense Claims, Petty Cash & Direct Site Purchasing (COMPLETED)
+5. 🔄 **Day 5**: Financial Auditing, Profitability Reporting & Cash Flow Forecasting (NEXT)
+   - Real-time project cost accounting & variance analysis (Budget vs Actual)
+   - Cash flow forecasting & commitment tracking
+   - Financial audit trail & compliance reporting
+   - Export to Excel/PDF & executive dashboards
 
 ---
 
 **Last Updated:** October 16, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Pending Phase 7 Day 3 push
+**Latest Commit:** Phase 7 Day 4 Complete
+
 
 
 

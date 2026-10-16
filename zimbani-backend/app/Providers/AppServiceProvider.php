@@ -86,6 +86,8 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Transaction::class => \App\Policies\TransactionPolicy::class,
         \App\Models\SubcontractorContract::class => \App\Policies\SubcontractorContractPolicy::class,
         \App\Models\PaymentCertificate::class => \App\Policies\PaymentCertificatePolicy::class,
+        \App\Models\PettyCashAccount::class => \App\Policies\PettyCashAccountPolicy::class,
+        \App\Models\ExpenseClaim::class => \App\Policies\ExpenseClaimPolicy::class,
     ];
 
     /**

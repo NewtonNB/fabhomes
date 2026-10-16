@@ -251,16 +251,31 @@ class PermissionSeeder extends Seeder
                 'invoices.export',
             ],
 
-            // Financial Module - Expenses
+            // Financial Module - Expenses & Direct Site Purchases
             'expenses' => [
                 'expenses.view',
                 'expenses.view-any',
                 'expenses.create',
                 'expenses.update',
                 'expenses.delete',
-                'expenses.approve',
+                'expenses.verify-site',
+                'expenses.approve-finance',
+                'expenses.authorize-admin',
                 'expenses.reimburse',
+                'expenses.pay',
                 'expenses.export',
+            ],
+
+            // Financial Module - Petty Cash Accounts & Site Floats
+            'petty-cash' => [
+                'petty-cash.view',
+                'petty-cash.view-any',
+                'petty-cash.create',
+                'petty-cash.update',
+                'petty-cash.delete',
+                'petty-cash.top-up',
+                'petty-cash.reconcile',
+                'petty-cash.export',
             ],
 
             // Financial Module - Budgets
@@ -402,8 +417,9 @@ class PermissionSeeder extends Seeder
             
             // Financial - Full access
             'payments.view', 'payments.view-any', 'payments.create', 'payments.approve', 'payments.process',
-            'invoices.view', 'invoices.view-any', 'invoices.create', 'invoices.approve', 'invoices.send',
-            'expenses.view', 'expenses.view-any', 'expenses.approve', 'expenses.reimburse',
+            'expenses.view', 'expenses.view-any', 'expenses.create', 'expenses.update', 'expenses.delete',
+            'expenses.verify-site', 'expenses.approve-finance', 'expenses.authorize-admin', 'expenses.reimburse', 'expenses.pay', 'expenses.export',
+            'petty-cash.view', 'petty-cash.view-any', 'petty-cash.create', 'petty-cash.update', 'petty-cash.delete', 'petty-cash.top-up', 'petty-cash.reconcile', 'petty-cash.export',
             'budgets.view', 'budgets.view-any', 'budgets.create', 'budgets.update', 'budgets.approve', 'budgets.allocate',
             
             // Reports - Full access
@@ -460,7 +476,8 @@ class PermissionSeeder extends Seeder
             'transactions.view', 'transactions.view-any',
             'contracts.view', 'contracts.view-any', 'contracts.create', 'contracts.update',
             'certificates.view', 'certificates.view-any', 'certificates.create', 'certificates.update', 'certificates.verify-site',
-            'expenses.view', 'expenses.create',
+            'expenses.view', 'expenses.view-any', 'expenses.create', 'expenses.update', 'expenses.verify-site',
+            'petty-cash.view', 'petty-cash.view-any', 'petty-cash.reconcile',
             'documents.view', 'documents.view-any', 'documents.create',
             'reports.view-progress', 'reports.view-attendance', 'reports.view-inventory',
             'notifications.view', 'notifications.create',
@@ -479,6 +496,8 @@ class PermissionSeeder extends Seeder
             'defects.view', 'defects.view-any', 'defects.create', 'defects.update', 'defects.verify',
             'daily-logs.view', 'daily-logs.view-any', 'daily-logs.create', 'daily-logs.update',
             'safety.view', 'safety.view-any', 'safety.create', 'safety.update', 'safety.investigate',
+            'expenses.view', 'expenses.create',
+            'petty-cash.view',
             'documents.view', 'documents.create',
             'reports.view-progress', 'reports.view-attendance',
             'notifications.view',
@@ -510,8 +529,9 @@ class PermissionSeeder extends Seeder
             'payments.process', 'payments.refund', 'payments.export',
             'invoices.view', 'invoices.view-any', 'invoices.create', 'invoices.update', 'invoices.send',
             'invoices.approve', 'invoices.mark-paid', 'invoices.export',
-            'expenses.view', 'expenses.view-any', 'expenses.create', 'expenses.update', 'expenses.approve',
-            'expenses.reimburse', 'expenses.export',
+            'expenses.view', 'expenses.view-any', 'expenses.create', 'expenses.update', 'expenses.delete',
+            'expenses.verify-site', 'expenses.approve-finance', 'expenses.authorize-admin', 'expenses.reimburse', 'expenses.pay', 'expenses.export',
+            'petty-cash.view', 'petty-cash.view-any', 'petty-cash.create', 'petty-cash.update', 'petty-cash.delete', 'petty-cash.top-up', 'petty-cash.reconcile', 'petty-cash.export',
             'budgets.view', 'budgets.view-any', 'budgets.create', 'budgets.update', 'budgets.allocate',
             'contracts.view', 'contracts.view-any', 'contracts.create', 'contracts.update', 'contracts.approve',
             'certificates.view', 'certificates.view-any', 'certificates.create', 'certificates.update',

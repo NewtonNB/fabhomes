@@ -265,6 +265,22 @@ class Site extends Model
     }
 
     /**
+     * Get petty cash float accounts for the site.
+     */
+    public function pettyCashAccounts(): HasMany
+    {
+        return $this->hasMany(PettyCashAccount::class, 'site_id');
+    }
+
+    /**
+     * Get expense claims for the site.
+     */
+    public function expenseClaims(): HasMany
+    {
+        return $this->hasMany(ExpenseClaim::class, 'site_id');
+    }
+
+    /**
      * Get the documents for the site.
      */
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany

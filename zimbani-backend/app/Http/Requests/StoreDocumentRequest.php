@@ -54,6 +54,8 @@ class StoreDocumentRequest extends FormRequest
             'transaction', 'transactions' => \App\Models\Transaction::class,
             'subcontractor_contract', 'subcontractor_contracts', 'contract', 'contracts' => \App\Models\SubcontractorContract::class,
             'payment_certificate', 'payment_certificates', 'certificate', 'certificates' => \App\Models\PaymentCertificate::class,
+            'expense_claim', 'expense_claims', 'expense', 'expenses' => \App\Models\ExpenseClaim::class,
+            'petty_cash_account', 'petty_cash_accounts', 'petty_cash' => \App\Models\PettyCashAccount::class,
             default => null,
         };
 

@@ -88,6 +88,14 @@ import CertificatesList from './pages/certificates/CertificatesList'
 import CertificateForm from './pages/certificates/CertificateForm'
 import CertificateDetails from './pages/certificates/CertificateDetails'
 
+// Petty Cash & Expense Claims Pages (Phase 7 Day 4)
+import { PettyCashList } from './pages/petty-cash/PettyCashList'
+import { PettyCashForm } from './pages/petty-cash/PettyCashForm'
+import { PettyCashDetails } from './pages/petty-cash/PettyCashDetails'
+import { ExpenseClaimsList } from './pages/expenses/ExpenseClaimsList'
+import { ExpenseClaimForm } from './pages/expenses/ExpenseClaimForm'
+import { ExpenseClaimDetails } from './pages/expenses/ExpenseClaimDetails'
+
 // Admin Pages
 import UsersList from './pages/admin/UsersList'
 import RolesList from './pages/admin/RolesList'
@@ -454,6 +462,74 @@ function App() {
               element={
                 <PermissionRoute permission="certificates.update">
                   <CertificateForm />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Petty Cash Accounts & Float Ledger Routes (Phase 7 Day 4) */}
+            <Route
+              path="petty-cash"
+              element={
+                <PermissionRoute permission="view petty cash">
+                  <PettyCashList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="petty-cash/new"
+              element={
+                <PermissionRoute permission="create petty cash">
+                  <PettyCashForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="petty-cash/:id"
+              element={
+                <PermissionRoute permission="view petty cash">
+                  <PettyCashDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="petty-cash/:id/edit"
+              element={
+                <PermissionRoute permission="edit petty cash">
+                  <PettyCashForm />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Expense Claims & Direct Purchasing Routes (Phase 7 Day 4) */}
+            <Route
+              path="expenses"
+              element={
+                <PermissionRoute permission="view expenses">
+                  <ExpenseClaimsList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="expenses/new"
+              element={
+                <PermissionRoute permission="create expenses">
+                  <ExpenseClaimForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="expenses/:id"
+              element={
+                <PermissionRoute permission="view expenses">
+                  <ExpenseClaimDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="expenses/:id/edit"
+              element={
+                <PermissionRoute permission="edit expenses">
+                  <ExpenseClaimForm />
                 </PermissionRoute>
               }
             />

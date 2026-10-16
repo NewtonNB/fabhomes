@@ -21,6 +21,8 @@ import {
   MdReceiptLong,
   MdHandshake,
   MdRequestQuote,
+  MdAccountBalanceWallet,
+  MdPayments,
   MdClose
 } from 'react-icons/md'
 import './Sidebar.css'
@@ -167,6 +169,18 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       label: 'Payment Certificates',
       icon: <MdRequestQuote />,
       permission: 'view certificates',
+    },
+    {
+      path: '/petty-cash',
+      label: 'Petty Cash & Floats',
+      icon: <MdAccountBalanceWallet />,
+      permission: 'view petty cash',
+    },
+    {
+      path: '/expenses',
+      label: 'Expense Claims',
+      icon: <MdPayments />,
+      permission: 'view expenses',
     },
     {
       path: '/documents',

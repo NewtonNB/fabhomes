@@ -1,0 +1,209 @@
+/* Expense Claims & Direct Purchasing CSS */
+
+.expenses-page {
+  padding: 1.5rem 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.expenses-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.expenses-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+}
+
+.expenses-header p {
+  color: #64748b;
+  margin: 0;
+  font-size: 0.925rem;
+}
+
+/* Dynamic Line Items Table */
+.line-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+.line-items-table th {
+  background-color: #f8fafc;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.line-items-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.btn-icon-danger {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 0.375rem;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s;
+}
+
+.btn-icon-danger:hover {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Multi-tier Approval Stepper */
+.workflow-stepper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  overflow-x: auto;
+  gap: 0.5rem;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 130px;
+  position: relative;
+  text-align: center;
+}
+
+.step-icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s;
+  z-index: 2;
+}
+
+.step-done {
+  background-color: #10b981;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px #d1fae5;
+}
+
+.step-active {
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px #dbeafe;
+}
+
+.step-pending {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  border: 2px dashed #cbd5e1;
+}
+
+.step-rejected {
+  background-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px #fee2e2;
+}
+
+.step-title {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.2rem;
+}
+
+.step-date {
+  font-size: 0.725rem;
+  color: #64748b;
+}
+
+.step-connector {
+  flex: 1;
+  height: 2px;
+  background-color: #e2e8f0;
+  margin: 0 0.5rem 1.75rem 0.5rem;
+  min-width: 30px;
+}
+
+.step-connector-done {
+  background-color: #10b981;
+}
+
+/* Category Badges */
+.badge-category {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.cat-materials {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+}
+
+.cat-fuel_oil {
+  background-color: #fff7ed;
+  color: #c2410c;
+}
+
+.cat-tools_hardware {
+  background-color: #f5f3ff;
+  color: #6d28d9;
+}
+
+.cat-transport {
+  background-color: #f0fdf4;
+  color: #15803d;
+}
+
+.cat-labour_welfare {
+  background-color: #fdf2f8;
+  color: #be185d;
+}
+
+.cat-equipment_hire {
+  background-color: #fffbeb;
+  color: #b45309;
+}
+
+.cat-statutory_permits {
+  background-color: #ecfeff;
+  color: #0e7490;
+}
+
+.cat-office_admin {
+  background-color: #f8fafc;
+  color: #475569;
+}
+
+.cat-other {
+  background-color: #f1f5f9;
+  color: #64748b;
+}

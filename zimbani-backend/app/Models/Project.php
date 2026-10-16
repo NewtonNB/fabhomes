@@ -238,6 +238,22 @@ class Project extends Model
     }
 
     /**
+     * Get petty cash float accounts for the project.
+     */
+    public function pettyCashAccounts(): HasMany
+    {
+        return $this->hasMany(PettyCashAccount::class, 'project_id');
+    }
+
+    /**
+     * Get expense claims for the project.
+     */
+    public function expenseClaims(): HasMany
+    {
+        return $this->hasMany(ExpenseClaim::class, 'project_id');
+    }
+
+    /**
      * Scope a query to only include active projects.
      */
     public function scopeActive($query)
