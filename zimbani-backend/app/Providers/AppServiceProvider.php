@@ -84,6 +84,8 @@ class AppServiceProvider extends ServiceProvider
         SafetyToolboxTalk::class => SafetyToolboxTalkPolicy::class,
         \App\Models\SavingsAccount::class => \App\Policies\SavingsAccountPolicy::class,
         \App\Models\Transaction::class => \App\Policies\TransactionPolicy::class,
+        \App\Models\SubcontractorContract::class => \App\Policies\SubcontractorContractPolicy::class,
+        \App\Models\PaymentCertificate::class => \App\Policies\PaymentCertificatePolicy::class,
     ];
 
     /**

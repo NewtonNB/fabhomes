@@ -2155,26 +2155,103 @@ All 4 project management modules have full CRUD interfaces with comprehensive fe
 
 ---
 
+### Phase 7 Week 1 Day 3: Subcontractor Contracts & Payment Certificates ✅ (Oct 16, 2026)
+
+**1. Database Schema & Architecture (`docs/DATABASE-DESIGN.md` Section 5.6 & `docs/FINANCIAL-ARCHITECTURE.md`):**
+- ✅ Migration `2026_10_16_090113_create_subcontractor_contracts_and_certificates_tables.php` executed cleanly on MySQL (`zimbani_dev`):
+  - `subcontractor_contracts`: Hybrid key architecture (`id` bigint unsigned + unique `uuid` char(36)), unique auto-generated sequence `contract_number` (`CNT-YYYYMMDD-XXXX`), `title`, `subcontractor_name`, `subcontractor_contact_person`, `subcontractor_phone`, `subcontractor_email`, `tax_identification_number`, foreign keys `project_id`, `site_id`, `trade_category` (`masonry`, `electrical`, `plumbing`, `roofing`, `painting`, `steelwork`, `carpentry`, `tiling`, `landscaping`, `earthworks`, `other`), `scope_of_work`, `contract_sum`, `currency` (UGX), `retention_percentage` (default 5.00%), `retention_amount`, `start_date`, `expected_completion_date`, `actual_completion_date`, `payment_terms`, `status` (`draft`, `active`, `suspended`, `completed`, `terminated`), `signed_at`, `signed_by`, `approved_at`, `approved_by`, `notes`, `created_by`, `updated_by`, timestamps, softDeletes, and composite indexes.
+  - `payment_certificates`: Hybrid key architecture (`id` + `uuid`), unique sequence `certificate_number` (`CERT-YYYYMMDD-XXXX`), foreign keys `contract_id`, `project_id`, `site_id`, `valuation_period_start`, `valuation_period_end`, `valuation_date`, `certificate_type` (`interim`, `practical_completion`, `final`, `retention_release`), `gross_amount`, `previous_gross_amount`, `current_gross_amount`, `materials_on_site_value`, `retention_rate`, `retention_deducted`, `withholding_tax_rate` (default 6.00% statutory URA WHT), `withholding_tax_amount`, `other_deductions`, `net_certified_amount`, `currency`, `description`, `measurement_sheet_summary`, `status` (`draft`, `submitted`, `verified_by_site_manager`, `approved_by_finance`, `authorized_by_admin`, `paid`, `rejected`), multi-tier audit sign-off columns (`site_manager_id`, `site_manager_signed_at`, `site_manager_notes`, `finance_officer_id`, `finance_officer_approved_at`, `finance_officer_notes`, `admin_id`, `admin_authorized_at`, `admin_notes`, `paid_at`, `paid_by`, `payment_reference`, `rejection_reason`), timestamps, softDeletes, and composite indexes.
+- ✅ Permissions seeded via `PermissionSeeder`: 10 new permissions under module `certificates` (`certificates.view`, `certificates.view-any`, `certificates.create`, `certificates.update`, `certificates.delete`, `certificates.verify-site`, `certificates.approve-finance`, `certificates.authorize-admin`, `certificates.pay`, `certificates.export`). Total permissions: 213 across 29 modules.
+  - Assigned to Super Admin, Company Admin, Finance Officer, Site Manager, and Supervisor roles.
+
+**2. Backend Models, Workflow Engine & Automatic Valuation Math:**
+- ✅ `SubcontractorContract` Model:
+  - Auto-generation of unique `CNT-YYYYMMDD-XXXX` sequence.
+  - Automatic calculation of `retention_amount = contract_sum * (retention_percentage / 100)` on creation and update.
+  - Real-time aggregated virtual accessors:
+    - `total_certified_gross`: Sum of `current_gross_amount` across verified/approved/authorized/paid certificates.
+    - `total_retention_held`: Sum of `retention_deducted` held in reserve.
+    - `total_net_payable`: Sum of `net_certified_amount`.
+    - `total_paid`: Total disbursed payouts where status is `paid`.
+    - `remaining_balance`: Contract sum minus total certified gross work.
+    - `percentage_completed`: Real-time physical completion percentage.
+  - State machine lifecycle methods: `activate()`, `approve()`, `suspend()`, `complete()`, `terminate()`.
+  - Polymorphic document attachments and reverse relationships in `Project.php` and `Site.php`.
+- ✅ `PaymentCertificate` Model:
+  - Auto-generation of unique `CERT-YYYYMMDD-XXXX` sequence.
+  - Automated valuation hooks (`calculateCertificateFinancials`):
+    - `current_gross_amount = max(0, gross_amount - previous_gross_amount)`
+    - `subtotal = current_gross_amount + materials_on_site_value`
+    - `retention_deducted = round(subtotal * (retention_rate / 100), 2)`
+    - `withholding_tax_amount = round(subtotal * (withholding_tax_rate / 100), 2)` (URA statutory 6% WHT)
+    - `net_certified_amount = max(0, subtotal - retention_deducted - withholding_tax_amount - other_deductions)`
+  - Multi-tier workflow methods: `submit()`, `verifySiteManager()`, `approveFinance()`, `authorizeAdmin()`, `markPaid()`, and `reject()`.
+- ✅ Policies & Authorization: `SubcontractorContractPolicy` and `PaymentCertificatePolicy` registered in `AppServiceProvider`.
+- ✅ Form Requests & API Resources:
+  - `StoreSubcontractorContractRequest` & `UpdateSubcontractorContractRequest`
+  - `StorePaymentCertificateRequest` & `UpdatePaymentCertificateRequest`
+  - `VerifyPaymentCertificateRequest`, `ApprovePaymentCertificateRequest`, `PayPaymentCertificateRequest`
+  - `SubcontractorContractResource` & `PaymentCertificateResource`
+- ✅ Controllers & Routes:
+  - `SubcontractorContractController`: Full CRUD, `activate`, `suspend`, `terminate`, and `statistics`.
+  - `PaymentCertificateController`: Full CRUD, `submit`, `verify-site`, `approve-finance`, `authorize-admin`, `pay`, `reject`, and `statistics`.
+  - All routes registered under `/api/v1/subcontractor-contracts` and `/api/v1/payment-certificates` in `routes/api.php`.
+- ✅ Automated Verification: Lifecycle scratch test `test_subcontractor_lifecycle.php` verified contract creation &rarr; activation &rarr; automated interim valuation calculation &rarr; submit &rarr; site manager physical verification &rarr; finance officer rate audit &rarr; admin authorization &rarr; EFT payment disbursement &rarr; contract virtual financial metrics aggregation. 100% passed!
+
+**3. Frontend React 19 UI & Multi-Tier Workflow Console:**
+- ✅ `contract.types.ts` & `certificate.types.ts`: Strict TypeScript interfaces for contracts, certificates, valuation schedules, multi-tier sign-off payloads, filters, and statistics.
+- ✅ `contract.service.ts` & `certificate.service.ts`: API service wrappers for all contract and certificate endpoints.
+- ✅ `ContractsList.tsx` & `ContractsList.css`:
+  - KPI Summary Cards: Total Contracts, Committed Portfolio Sum, Total Certified Gross, Total Paid Disbursed.
+  - Trade category and status filters with search input.
+  - Real-time progress bar rendering physical completion % and remaining balance.
+  - Interactive Action Modals: Suspend modal (with reason) and Terminate modal (with cause).
+- ✅ `ContractForm.tsx` & `ContractForm.css`:
+  - Project and site select lookups.
+  - Subcontractor profile inputs (TIN, contact person, phone, email).
+  - Scope of work narrative and trade categories.
+  - Real-time dynamic retention calculator widget showing budgeted retention fund pool vs net payable pool.
+- ✅ `ContractDetails.tsx` & `ContractDetails.css`:
+  - Financial metric cards (Contract Sum, Certified Gross, Retention Held, Net Payable, Total Paid, Remaining Balance).
+  - Scope and commercial terms breakdown.
+  - Subcontractor contact card with TIN.
+  - Linked Payment Certificates table with "+ Issue Valuation Certificate" direct shortcut.
+- ✅ `CertificatesList.tsx` & `CertificatesList.css`:
+  - Stage Pipeline Tabs (Draft, Awaiting Site Verification, Site Verified, Finance Approved, Admin Authorized, Paid, Rejected) with real-time counter badges.
+  - KPI Cards: Total Certified Gross, Retention Held (5%), Statutory WHT (6%), Net Certified Payable, Total Disbursed, and Pending Payout.
+  - Detailed valuation schedules table with status badges and quick view actions.
+- ✅ `CertificateForm.tsx` & `CertificateForm.css`:
+  - Contract selector that auto-loads project, site, and previous gross valuation.
+  - Live Interactive Valuation Sheet Preview: computes current gross, materials on site, subtotal, 5% retention, 6% URA withholding tax, and net payable in real-time.
+- ✅ `CertificateDetails.tsx` & `CertificateDetails.css`:
+  - Visual 6-Stage Multi-Tier Approval Stepper (`Drafted` &rarr; `Submitted` &rarr; `Site Verified` &rarr; `Finance Approved` &rarr; `Admin Authorized` &rarr; `Paid`).
+  - Valuation hero breakdown with deductions schedule.
+  - Multi-Tier Governance Audit Box displaying individual sign-off timestamps, officer names, and inspection/audit notes.
+  - Modal action workflows: Site Manager Verification modal, Finance Officer Approval modal, Admin Authorization modal, Payment Disbursement modal (with EFT/Bank reference), and Rejection modal (with reason).
+- ✅ Navigation & Sidebar Integration: Added `/contracts` and `/payment-certificates` routes in `App.tsx` and menu links in `Sidebar.tsx` with `<MdHandshake />` and `<MdRequestQuote />`.
+- ✅ Zero TypeScript Compiler Errors: Verified via `npm run build` (tsc + Vite bundle clean).
+
+---
+
 ## 🎯 Next Development Focus
 
 **Phase 7: Financial Management & Cost Control**
 1. ✅ **Day 1**: Client Savings Accounts & Scheme Enrolment (COMPLETED)
 2. ✅ **Day 2**: Financial Transactions & Immutable Ledger (COMPLETED)
-3. 🔄 **Day 3**: Subcontractor Contracts & Payment Certificates (NEXT)
-   - Subcontractor contracts (`subcontractor_contracts` table, `CNT-YYYYMMDD-XXXX`)
-   - Scope of works, contract sums, retention percentage, and payment terms
-   - Payment certificates / valuations (`payment_certificates` table, `CERT-YYYYMMDD-XXXX`)
-   - Gross amount, previous payments, retention deductions, and net payable
-   - Approval and sign-off workflow (Site Manager &rarr; Finance Officer &rarr; Company Admin)
-4. ⏳ **Day 4**: Expense Claims, Petty Cash & Direct Site Purchasing
+3. ✅ **Day 3**: Subcontractor Contracts & Payment Certificates (COMPLETED)
+4. 🔄 **Day 4**: Expense Claims, Petty Cash & Direct Site Purchasing (NEXT)
+   - Site petty cash floats & expense claims (`expense_claims`, `petty_cash_accounts`)
+   - Direct site purchasing & receipts capture
+   - Multi-tier disbursement approval (Site Manager &rarr; Finance Officer &rarr; Company Admin)
+   - Expense categorization & site budget tracking
 5. ⏳ **Day 5**: Financial Auditing, Profitability Reporting & Cash Flow Forecasting
 
 ---
 
-**Last Updated:** October 15, 2026  
+**Last Updated:** October 16, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Pending Phase 7 Day 2 push
+**Latest Commit:** Pending Phase 7 Day 3 push
 
 
 

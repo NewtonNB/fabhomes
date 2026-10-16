@@ -80,6 +80,14 @@ import SavingsAccountDetails from './pages/savings-accounts/SavingsAccountDetail
 import TransactionsList from './pages/transactions/TransactionsList'
 import TransactionDetails from './pages/transactions/TransactionDetails'
 
+// Subcontractor Contracts & Payment Certificates Pages
+import ContractsList from './pages/contracts/ContractsList'
+import ContractForm from './pages/contracts/ContractForm'
+import ContractDetails from './pages/contracts/ContractDetails'
+import CertificatesList from './pages/certificates/CertificatesList'
+import CertificateForm from './pages/certificates/CertificateForm'
+import CertificateDetails from './pages/certificates/CertificateDetails'
+
 // Admin Pages
 import UsersList from './pages/admin/UsersList'
 import RolesList from './pages/admin/RolesList'
@@ -362,6 +370,90 @@ function App() {
               element={
                 <PermissionRoute permission="transactions.view">
                   <TransactionDetails />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Subcontractor Contracts Routes */}
+            <Route
+              path="contracts"
+              element={
+                <PermissionRoute permission="view contracts">
+                  <ContractsList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="contracts/new"
+              element={
+                <PermissionRoute permission="create contracts">
+                  <ContractForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="contracts/:id"
+              element={
+                <PermissionRoute permission="view contracts">
+                  <ContractDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="contracts/:id/edit"
+              element={
+                <PermissionRoute permission="edit contracts">
+                  <ContractForm />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Payment Certificates & Valuations Routes */}
+            <Route
+              path="payment-certificates"
+              element={
+                <PermissionRoute permission="certificates.view">
+                  <CertificatesList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="certificates/new"
+              element={
+                <PermissionRoute permission="certificates.create">
+                  <CertificateForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="payment-certificates/new"
+              element={
+                <PermissionRoute permission="certificates.create">
+                  <CertificateForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="certificates/:id"
+              element={
+                <PermissionRoute permission="certificates.view">
+                  <CertificateDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="payment-certificates/:id"
+              element={
+                <PermissionRoute permission="certificates.view">
+                  <CertificateDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="certificates/:id/edit"
+              element={
+                <PermissionRoute permission="certificates.update">
+                  <CertificateForm />
                 </PermissionRoute>
               }
             />

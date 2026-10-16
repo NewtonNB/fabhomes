@@ -27,6 +27,8 @@ use App\Http\Controllers\Api\SafetyIncidentController;
 use App\Http\Controllers\Api\SafetyToolboxTalkController;
 use App\Http\Controllers\Api\SavingsAccountController;
 use App\Http\Controllers\Api\TransactionController;
+use App\Http\Controllers\Api\SubcontractorContractController;
+use App\Http\Controllers\Api\PaymentCertificateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -191,6 +193,22 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::get('/transactions/{transaction}', [TransactionController::class, 'show']);
     Route::post('/transactions/{transaction}/reverse', [TransactionController::class, 'reverse']);
 
+    // Subcontractor Contracts & Payment Certificates (Phase 7 Day 3)
+    Route::get('/subcontractor-contracts/statistics', [SubcontractorContractController::class, 'statistics']);
+    Route::apiResource('subcontractor-contracts', SubcontractorContractController::class)->parameters(['subcontractor-contracts' => 'subcontractorContract']);
+    Route::post('/subcontractor-contracts/{subcontractorContract}/activate', [SubcontractorContractController::class, 'activate']);
+    Route::post('/subcontractor-contracts/{subcontractorContract}/suspend', [SubcontractorContractController::class, 'suspend']);
+    Route::post('/subcontractor-contracts/{subcontractorContract}/terminate', [SubcontractorContractController::class, 'terminate']);
+
+    Route::get('/payment-certificates/statistics', [PaymentCertificateController::class, 'statistics']);
+    Route::apiResource('payment-certificates', PaymentCertificateController::class)->parameters(['payment-certificates' => 'paymentCertificate']);
+    Route::post('/payment-certificates/{paymentCertificate}/submit', [PaymentCertificateController::class, 'submit']);
+    Route::post('/payment-certificates/{paymentCertificate}/verify-site', [PaymentCertificateController::class, 'verifySite']);
+    Route::post('/payment-certificates/{paymentCertificate}/approve-finance', [PaymentCertificateController::class, 'approveFinance']);
+    Route::post('/payment-certificates/{paymentCertificate}/authorize-admin', [PaymentCertificateController::class, 'authorizeAdmin']);
+    Route::post('/payment-certificates/{paymentCertificate}/pay', [PaymentCertificateController::class, 'pay']);
+    Route::post('/payment-certificates/{paymentCertificate}/reject', [PaymentCertificateController::class, 'reject']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -262,5 +280,9 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
 
         // Financial Ledger & Transactions statistics
         Route::get('/transactions/statistics', [TransactionController::class, 'statistics']);
+
+        // Subcontractor & Payment Certificates statistics
+        Route::get('/subcontractor-contracts/statistics', [SubcontractorContractController::class, 'statistics']);
+        Route::get('/payment-certificates/statistics', [PaymentCertificateController::class, 'statistics']);
     });
 });

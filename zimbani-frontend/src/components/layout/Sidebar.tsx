@@ -19,6 +19,8 @@ import {
   MdHealthAndSafety,
   MdAccountBalance,
   MdReceiptLong,
+  MdHandshake,
+  MdRequestQuote,
   MdClose
 } from 'react-icons/md'
 import './Sidebar.css'
@@ -153,6 +155,18 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       label: 'Financial Ledger',
       icon: <MdReceiptLong />,
       permission: 'view transactions',
+    },
+    {
+      path: '/contracts',
+      label: 'Subcontractors',
+      icon: <MdHandshake />,
+      permission: 'view contracts',
+    },
+    {
+      path: '/payment-certificates',
+      label: 'Payment Certificates',
+      icon: <MdRequestQuote />,
+      permission: 'view certificates',
     },
     {
       path: '/documents',

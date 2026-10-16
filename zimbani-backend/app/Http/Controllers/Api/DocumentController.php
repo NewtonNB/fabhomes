@@ -45,6 +45,8 @@ class DocumentController extends Controller
                 'safety_toolbox_talk', 'safety_toolbox_talks', 'toolbox_talk' => \App\Models\SafetyToolboxTalk::class,
                 'savings_account', 'savings_accounts', 'account', 'accounts' => \App\Models\SavingsAccount::class,
                 'transaction', 'transactions' => \App\Models\Transaction::class,
+                'subcontractor_contract', 'subcontractor_contracts', 'contract', 'contracts' => \App\Models\SubcontractorContract::class,
+                'payment_certificate', 'payment_certificates', 'certificate', 'certificates' => \App\Models\PaymentCertificate::class,
                 default => null,
             };
 

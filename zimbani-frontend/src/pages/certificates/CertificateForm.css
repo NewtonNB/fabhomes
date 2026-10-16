@@ -1,0 +1,66 @@
+.cert-form-container {
+  padding: 1.5rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.valuation-calculator-box {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.valuation-calculator-box h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.15rem;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.calc-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  font-size: 0.9rem;
+}
+
+.calc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.calc-row.subtotal {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 0;
+  font-weight: 600;
+  color: #93c5fd;
+}
+
+.calc-row.net {
+  border-top: 2px solid #38bdf8;
+  border-bottom: none;
+  padding-top: 0.75rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #4ade80;
+}
+
+.calc-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.calc-val {
+  font-family: monospace;
+  font-size: 1rem;
+}

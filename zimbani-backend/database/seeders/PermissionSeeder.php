@@ -286,6 +286,20 @@ class PermissionSeeder extends Seeder
                 'contracts.terminate',
             ],
 
+            // Subcontractor Payment Certificates & Valuations Module
+            'certificates' => [
+                'certificates.view',
+                'certificates.view-any',
+                'certificates.create',
+                'certificates.update',
+                'certificates.delete',
+                'certificates.verify-site',
+                'certificates.approve-finance',
+                'certificates.authorize-admin',
+                'certificates.pay',
+                'certificates.export',
+            ],
+
             // Document Management Module
             'documents' => [
                 'documents.view',
@@ -399,8 +413,14 @@ class PermissionSeeder extends Seeder
             // Documents
             'documents.view', 'documents.view-any', 'documents.create', 'documents.update', 'documents.approve',
             
-            // Contracts
-            'contracts.view', 'contracts.view-any', 'contracts.create', 'contracts.update', 'contracts.approve',
+            // Contracts & Subcontractors - Full access
+            'contracts.view', 'contracts.view-any', 'contracts.create', 'contracts.update', 'contracts.delete',
+            'contracts.sign', 'contracts.approve', 'contracts.terminate',
+
+            // Payment Certificates & Valuations - Full access
+            'certificates.view', 'certificates.view-any', 'certificates.create', 'certificates.update',
+            'certificates.delete', 'certificates.verify-site', 'certificates.approve-finance',
+            'certificates.authorize-admin', 'certificates.pay', 'certificates.export',
 
             // Equipment - Full access
             'equipment.view', 'equipment.view-any', 'equipment.create', 'equipment.update', 'equipment.delete',
@@ -438,6 +458,8 @@ class PermissionSeeder extends Seeder
             'safety.view', 'safety.view-any', 'safety.create', 'safety.update', 'safety.investigate', 'safety.close',
             'accounts.view', 'accounts.view-any', 'accounts.statement',
             'transactions.view', 'transactions.view-any',
+            'contracts.view', 'contracts.view-any', 'contracts.create', 'contracts.update',
+            'certificates.view', 'certificates.view-any', 'certificates.create', 'certificates.update', 'certificates.verify-site',
             'expenses.view', 'expenses.create',
             'documents.view', 'documents.view-any', 'documents.create',
             'reports.view-progress', 'reports.view-attendance', 'reports.view-inventory',
@@ -491,6 +513,9 @@ class PermissionSeeder extends Seeder
             'expenses.view', 'expenses.view-any', 'expenses.create', 'expenses.update', 'expenses.approve',
             'expenses.reimburse', 'expenses.export',
             'budgets.view', 'budgets.view-any', 'budgets.create', 'budgets.update', 'budgets.allocate',
+            'contracts.view', 'contracts.view-any', 'contracts.create', 'contracts.update', 'contracts.approve',
+            'certificates.view', 'certificates.view-any', 'certificates.create', 'certificates.update',
+            'certificates.approve-finance', 'certificates.pay', 'certificates.export',
             'projects.view', 'projects.view-any', 'projects.view-financials',
             'companies.view-financials',
             'reports.view-financial', 'reports.export',

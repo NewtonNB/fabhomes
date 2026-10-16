@@ -249,6 +249,22 @@ class Site extends Model
     }
 
     /**
+     * Get subcontractor contracts for the site.
+     */
+    public function subcontractorContracts(): HasMany
+    {
+        return $this->hasMany(SubcontractorContract::class, 'site_id');
+    }
+
+    /**
+     * Get payment certificates for the site.
+     */
+    public function paymentCertificates(): HasMany
+    {
+        return $this->hasMany(PaymentCertificate::class, 'site_id');
+    }
+
+    /**
      * Get the documents for the site.
      */
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany

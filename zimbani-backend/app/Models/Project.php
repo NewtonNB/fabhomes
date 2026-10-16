@@ -222,6 +222,22 @@ class Project extends Model
     }
 
     /**
+     * Get subcontractor contracts for the project.
+     */
+    public function subcontractorContracts(): HasMany
+    {
+        return $this->hasMany(SubcontractorContract::class, 'project_id');
+    }
+
+    /**
+     * Get payment certificates for the project.
+     */
+    public function paymentCertificates(): HasMany
+    {
+        return $this->hasMany(PaymentCertificate::class, 'project_id');
+    }
+
+    /**
      * Scope a query to only include active projects.
      */
     public function scopeActive($query)
