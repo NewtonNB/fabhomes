@@ -33,6 +33,8 @@ use App\Http\Controllers\Api\PettyCashAccountController;
 use App\Http\Controllers\Api\ExpenseClaimController;
 use App\Http\Controllers\Api\ProjectBudgetController;
 use App\Http\Controllers\Api\FinancialReportController;
+use App\Http\Controllers\Api\MilestoneVerificationController;
+use App\Http\Controllers\Api\MilestonePaymentReleaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -242,6 +244,21 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::get('/financial-reports/compliance-audit', [FinancialReportController::class, 'complianceAudit']);
     Route::get('/financial-reports/export', [FinancialReportController::class, 'exportCsv']);
 
+    // Milestone Verifications & Physical Sign-Offs (Phase 8 Day 1)
+    Route::apiResource('milestone-verifications', MilestoneVerificationController::class)->parameters(['milestone-verifications' => 'milestoneVerification']);
+    Route::post('/milestone-verifications/{milestoneVerification}/submit', [MilestoneVerificationController::class, 'submit']);
+    Route::post('/milestone-verifications/{milestoneVerification}/sign-off-engineer', [MilestoneVerificationController::class, 'signOffSiteEngineer']);
+    Route::post('/milestone-verifications/{milestoneVerification}/sign-off-qs', [MilestoneVerificationController::class, 'signOffQuantitySurveyor']);
+    Route::post('/milestone-verifications/{milestoneVerification}/client-approve', [MilestoneVerificationController::class, 'clientApprove']);
+    Route::post('/milestone-verifications/{milestoneVerification}/reject', [MilestoneVerificationController::class, 'reject']);
+
+    // Milestone Payment Releases & Retention Fund Clearances (Phase 8 Day 1)
+    Route::get('/milestone-payment-releases/statistics', [MilestonePaymentReleaseController::class, 'statistics']);
+    Route::apiResource('milestone-payment-releases', MilestonePaymentReleaseController::class)->parameters(['milestone-payment-releases' => 'milestonePaymentRelease'])->only(['index', 'show']);
+    Route::post('/milestone-payment-releases/{milestonePaymentRelease}/authorize', [MilestonePaymentReleaseController::class, 'authorizeRelease']);
+    Route::post('/milestone-payment-releases/{milestonePaymentRelease}/disburse', [MilestonePaymentReleaseController::class, 'disburse']);
+    Route::post('/milestone-payment-releases/{milestonePaymentRelease}/release-retention', [MilestonePaymentReleaseController::class, 'releaseRetention']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -328,5 +345,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::get('/financial-reports/profitability', [FinancialReportController::class, 'profitability']);
         Route::get('/financial-reports/cash-flow-forecast', [FinancialReportController::class, 'cashFlowForecast']);
         Route::get('/financial-reports/compliance-audit', [FinancialReportController::class, 'complianceAudit']);
+
+        // Milestone Payment Releases (Phase 8 Day 1)
+        Route::get('/milestone-payment-releases/statistics', [MilestonePaymentReleaseController::class, 'statistics']);
     });
 });

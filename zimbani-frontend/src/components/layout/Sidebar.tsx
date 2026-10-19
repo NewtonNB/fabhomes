@@ -217,6 +217,12 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           permission: 'view transactions',
         },
         {
+          path: '/milestone-releases',
+          label: 'Milestone Releases',
+          icon: <MdFactCheck />,
+          permission: 'view payments',
+        },
+        {
           path: '/financial-reports',
           label: 'Financial Reports',
           icon: <MdAssessment />,

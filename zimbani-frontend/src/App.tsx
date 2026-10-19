@@ -99,6 +99,9 @@ import { ExpenseClaimDetails } from './pages/expenses/ExpenseClaimDetails'
 // Financial Reporting, Cost Accounting & Auditing (Phase 7 Day 5)
 import { FinancialReportsDashboard } from './pages/financial-reports/FinancialReportsDashboard'
 
+// Milestone Releases & Physical Verification Pages (Phase 8 Day 1)
+import { MilestoneReleasesList } from './pages/milestone-releases/MilestoneReleasesList'
+
 // Admin Pages
 import UsersList from './pages/admin/UsersList'
 import RolesList from './pages/admin/RolesList'
@@ -543,6 +546,16 @@ function App() {
               element={
                 <PermissionRoute roles={['Super Admin', 'Admin', 'Finance Manager', 'Finance Officer', 'Company Admin', 'Site Manager', 'Project Manager', 'Director']}>
                   <FinancialReportsDashboard />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Milestone-Based Payment Releases & Construction Verification (Phase 8 Day 1) */}
+            <Route
+              path="milestone-releases"
+              element={
+                <PermissionRoute roles={['Super Admin', 'Admin', 'Finance Manager', 'Finance Officer', 'Company Admin', 'Site Manager', 'Project Manager', 'Director', 'Site Engineer', 'Quantity Surveyor']}>
+                  <MilestoneReleasesList />
                 </PermissionRoute>
               }
             />

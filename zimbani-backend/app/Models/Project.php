@@ -270,6 +270,22 @@ class Project extends Model
     }
 
     /**
+     * Get milestone verifications for the project.
+     */
+    public function milestoneVerifications(): HasMany
+    {
+        return $this->hasMany(MilestoneVerification::class, 'project_id');
+    }
+
+    /**
+     * Get milestone payment releases for the project.
+     */
+    public function milestonePaymentReleases(): HasMany
+    {
+        return $this->hasMany(MilestonePaymentRelease::class, 'project_id');
+    }
+
+    /**
      * Scope a query to only include active projects.
      */
     public function scopeActive($query)

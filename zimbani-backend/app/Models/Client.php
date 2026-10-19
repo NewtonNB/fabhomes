@@ -143,6 +143,16 @@ class Client extends Model
         return $this->hasMany(Transaction::class, 'client_id')->latest('transaction_date');
     }
 
+    public function milestoneVerifications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(MilestoneVerification::class, 'client_id');
+    }
+
+    public function milestonePaymentReleases(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(MilestonePaymentRelease::class, 'client_id');
+    }
+
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');

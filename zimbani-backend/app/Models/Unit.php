@@ -179,6 +179,16 @@ class Unit extends Model
         return $this->hasMany(SavingsAccount::class, 'plot_id');
     }
 
+    public function milestoneVerifications(): HasMany
+    {
+        return $this->hasMany(MilestoneVerification::class, 'unit_id');
+    }
+
+    public function milestonePaymentReleases(): HasMany
+    {
+        return $this->hasMany(MilestonePaymentRelease::class, 'unit_id');
+    }
+
     /**
      * Get the tasks for the unit.
      */

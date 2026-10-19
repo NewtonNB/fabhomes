@@ -56,6 +56,8 @@ class StoreDocumentRequest extends FormRequest
             'payment_certificate', 'payment_certificates', 'certificate', 'certificates' => \App\Models\PaymentCertificate::class,
             'expense_claim', 'expense_claims', 'expense', 'expenses' => \App\Models\ExpenseClaim::class,
             'petty_cash_account', 'petty_cash_accounts', 'petty_cash' => \App\Models\PettyCashAccount::class,
+            'milestone_verification', 'milestone_verifications', 'verification' => \App\Models\MilestoneVerification::class,
+            'milestone_payment_release', 'milestone_payment_releases', 'milestone_release', 'release' => \App\Models\MilestonePaymentRelease::class,
             default => null,
         };
 

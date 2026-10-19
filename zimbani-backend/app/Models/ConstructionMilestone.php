@@ -185,4 +185,20 @@ class ConstructionMilestone extends Model
     {
         return $this->hasMany(MaterialUsage::class, 'milestone_id');
     }
+
+    /**
+     * Multi-signature physical verifications for this milestone.
+     */
+    public function verifications(): HasMany
+    {
+        return $this->hasMany(MilestoneVerification::class, 'milestone_id');
+    }
+
+    /**
+     * Milestone payment releases linked to this milestone.
+     */
+    public function paymentReleases(): HasMany
+    {
+        return $this->hasMany(MilestonePaymentRelease::class, 'milestone_id');
+    }
 }
