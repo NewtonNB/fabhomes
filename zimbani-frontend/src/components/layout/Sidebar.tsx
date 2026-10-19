@@ -5,7 +5,6 @@ import {
   MdFolder, 
   MdConstruction, 
   MdHome,
-  MdSettings,
   MdPeople,
   MdSecurity,
   MdHistory,
@@ -39,6 +38,11 @@ interface MenuItem {
   icon: React.ReactNode
   permission?: string
   children?: MenuItem[]
+}
+
+interface MenuSection {
+  title?: string
+  items: MenuItem[]
 }
 
 const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
@@ -80,155 +84,176 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
     return user.roles.some((userRole) => roles.includes(userRole))
   }
 
-  // Menu structure (Companies removed - single company setup)
-  const menuItems: MenuItem[] = [
+  // Menu structure grouped into distinct functional sections
+  const menuSections: MenuSection[] = [
     {
-      path: '/dashboard',
-      label: 'Dashboard',
-      icon: <MdDashboard />,
+      title: 'Overview',
+      items: [
+        {
+          path: '/dashboard',
+          label: 'Dashboard',
+          icon: <MdDashboard />,
+        },
+      ],
     },
     {
-      path: '/projects',
-      label: 'Projects',
-      icon: <MdFolder />,
-      permission: 'view projects',
+      title: 'Projects & Properties',
+      items: [
+        {
+          path: '/projects',
+          label: 'Projects',
+          icon: <MdFolder />,
+          permission: 'view projects',
+        },
+        {
+          path: '/sites',
+          label: 'Sites',
+          icon: <MdConstruction />,
+          permission: 'view sites',
+        },
+        {
+          path: '/units',
+          label: 'Units',
+          icon: <MdHome />,
+          permission: 'view units',
+        },
+      ],
     },
     {
-      path: '/sites',
-      label: 'Sites',
-      icon: <MdConstruction />,
-      permission: 'view sites',
+      title: 'Construction & Operations',
+      items: [
+        {
+          path: '/tasks',
+          label: 'Tasks & Milestones',
+          icon: <MdAssignment />,
+          permission: 'view tasks',
+        },
+        {
+          path: '/materials',
+          label: 'Materials & Inventory',
+          icon: <MdInventory2 />,
+          permission: 'view materials',
+        },
+        {
+          path: '/equipment',
+          label: 'Equipment & Machinery',
+          icon: <MdPrecisionManufacturing />,
+          permission: 'view equipment',
+        },
+        {
+          path: '/inspections',
+          label: 'Quality & Inspections',
+          icon: <MdFactCheck />,
+          permission: 'view inspections',
+        },
+        {
+          path: '/daily-logs',
+          label: 'Daily Logs & Safety',
+          icon: <MdHealthAndSafety />,
+          permission: 'view daily-logs',
+        },
+        {
+          path: '/documents',
+          label: 'Documents',
+          icon: <MdDescription />,
+          permission: 'view documents',
+        },
+      ],
     },
     {
-      path: '/units',
-      label: 'Units',
-      icon: <MdHome />,
-      permission: 'view units',
+      title: 'Clients & Sales',
+      items: [
+        {
+          path: '/clients',
+          label: 'Clients',
+          icon: <MdPersonOutline />,
+          permission: 'view clients',
+        },
+        {
+          path: '/savings-accounts',
+          label: 'Savings Accounts',
+          icon: <MdAccountBalance />,
+          permission: 'view accounts',
+        },
+        {
+          path: '/payments',
+          label: 'Payments',
+          icon: <MdReceipt />,
+          permission: 'view payments',
+        },
+      ],
     },
     {
-      path: '/tasks',
-      label: 'Tasks & Milestones',
-      icon: <MdAssignment />,
-      permission: 'view tasks',
-    },
-    {
-      path: '/materials',
-      label: 'Materials & Inventory',
-      icon: <MdInventory2 />,
-      permission: 'view materials',
-    },
-    {
-      path: '/equipment',
-      label: 'Equipment & Machinery',
-      icon: <MdPrecisionManufacturing />,
-      permission: 'view equipment',
-    },
-    {
-      path: '/inspections',
-      label: 'Quality & Inspections',
-      icon: <MdFactCheck />,
-      permission: 'view inspections',
-    },
-    {
-      path: '/daily-logs',
-      label: 'Daily Logs & Safety',
-      icon: <MdHealthAndSafety />,
-      permission: 'view daily-logs',
-    },
-    {
-      path: '/clients',
-      label: 'Clients',
-      icon: <MdPersonOutline />,
-      permission: 'view clients',
-    },
-    {
-      path: '/savings-accounts',
-      label: 'Savings Accounts',
-      icon: <MdAccountBalance />,
-      permission: 'view accounts',
-    },
-    {
-      path: '/payments',
-      label: 'Payments',
-      icon: <MdReceipt />,
-      permission: 'view payments',
-    },
-    {
-      path: '/transactions',
-      label: 'Financial Ledger',
-      icon: <MdReceiptLong />,
-      permission: 'view transactions',
-    },
-    {
-      path: '/contracts',
-      label: 'Subcontractors',
-      icon: <MdHandshake />,
-      permission: 'view contracts',
-    },
-    {
-      path: '/payment-certificates',
-      label: 'Payment Certificates',
-      icon: <MdRequestQuote />,
-      permission: 'view certificates',
-    },
-    {
-      path: '/petty-cash',
-      label: 'Petty Cash & Floats',
-      icon: <MdAccountBalanceWallet />,
-      permission: 'view petty cash',
-    },
-    {
-      path: '/expenses',
-      label: 'Expense Claims',
-      icon: <MdPayments />,
-      permission: 'view expenses',
-    },
-    {
-      path: '/financial-reports',
-      label: 'Financial Reports',
-      icon: <MdAssessment />,
-      permission: 'view transactions',
-    },
-    {
-      path: '/documents',
-      label: 'Documents',
-      icon: <MdDescription />,
-      permission: 'view documents',
+      title: 'Finance & Cost Control',
+      items: [
+        {
+          path: '/contracts',
+          label: 'Subcontractors',
+          icon: <MdHandshake />,
+          permission: 'view contracts',
+        },
+        {
+          path: '/payment-certificates',
+          label: 'Payment Certificates',
+          icon: <MdRequestQuote />,
+          permission: 'view certificates',
+        },
+        {
+          path: '/petty-cash',
+          label: 'Petty Cash & Floats',
+          icon: <MdAccountBalanceWallet />,
+          permission: 'view petty cash',
+        },
+        {
+          path: '/expenses',
+          label: 'Expense Claims',
+          icon: <MdPayments />,
+          permission: 'view expenses',
+        },
+        {
+          path: '/transactions',
+          label: 'Financial Ledger',
+          icon: <MdReceiptLong />,
+          permission: 'view transactions',
+        },
+        {
+          path: '/financial-reports',
+          label: 'Financial Reports',
+          icon: <MdAssessment />,
+          permission: 'view transactions',
+        },
+      ],
     },
   ]
 
   // Only show admin menu to Super Admin and Company Admin
-  const adminMenuItems: MenuItem[] = hasRole(['Super Admin', 'Company Admin'])
-    ? [
-        {
-          path: '/admin',
-          label: 'Administration',
-          icon: <MdSettings />,
-          children: [
-            {
-              path: '/admin/users',
-              label: 'Users',
-              icon: <MdPeople />,
-              permission: 'view users',
-            },
-            {
-              path: '/admin/roles',
-              label: 'Roles & Permissions',
-              icon: <MdSecurity />,
-              permission: 'view roles',
-            },
-            {
-              path: '/admin/activities',
-              label: 'Activity Logs',
-              icon: <MdHistory />,
-              permission: 'view activities',
-            },
-          ],
-        },
-      ]
-    : []
+  const adminSection: MenuSection | null = hasRole(['Super Admin', 'Company Admin'])
+    ? {
+        title: 'Administration',
+        items: [
+          {
+            path: '/admin/users',
+            label: 'Users',
+            icon: <MdPeople />,
+            permission: 'view users',
+          },
+          {
+            path: '/admin/roles',
+            label: 'Roles & Permissions',
+            icon: <MdSecurity />,
+            permission: 'view roles',
+          },
+          {
+            path: '/admin/activities',
+            label: 'Activity Logs',
+            icon: <MdHistory />,
+            permission: 'view activities',
+          },
+        ],
+      }
+    : null
 
-  const allMenuItems = [...menuItems, ...adminMenuItems]
+  const allSections: MenuSection[] = adminSection ? [...menuSections, adminSection] : menuSections
 
   const isActive = (path: string): boolean => {
     if (path === '/dashboard') {
@@ -299,7 +324,28 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
         )}
       </div>
       <nav className="sidebar-menu">
-        {allMenuItems.map((item) => renderMenuItem(item))}
+        {allSections.map((section, idx) => {
+          const isSuperAdmin = user?.roles?.includes('Super Admin')
+          const visibleItems = section.items.filter((item) => {
+            if (isSuperAdmin) return true
+            return hasPermission(item.permission)
+          })
+
+          if (visibleItems.length === 0) return null
+
+          return (
+            <div key={section.title || idx} className="sidebar-section">
+              {section.title && (
+                <div className="sidebar-section-title">
+                  <span>{section.title}</span>
+                </div>
+              )}
+              <div className="sidebar-section-items">
+                {visibleItems.map((item) => renderMenuItem(item))}
+              </div>
+            </div>
+          )
+        })}
       </nav>
       <div className="sidebar-footer">
         <div className="user-info-sidebar">
