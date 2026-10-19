@@ -239,8 +239,8 @@ export const ContractForm: React.FC = () => {
               required
             >
               <option value="">-- Select Project --</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.uuid || p.id}>
+              {projects.map((p, idx) => (
+                <option key={p.uuid || `project-${p.id || idx}`} value={p.uuid || p.id}>
                   {p.name} {p.code ? `(${p.code})` : ''}
                 </option>
               ))}
@@ -258,8 +258,8 @@ export const ContractForm: React.FC = () => {
               required
             >
               <option value="">-- Select Site --</option>
-              {sites.map((s) => (
-                <option key={s.id} value={s.uuid || s.id}>
+              {sites.map((s, idx) => (
+                <option key={s.uuid || `site-${s.id || idx}`} value={s.uuid || s.id}>
                   {s.name} {s.code ? `(${s.code})` : ''}
                 </option>
               ))}

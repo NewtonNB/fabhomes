@@ -8,6 +8,7 @@ use App\Http\Requests\TopUpPettyCashRequest;
 use App\Http\Resources\PettyCashAccountResource;
 use App\Http\Resources\PettyCashTransactionResource;
 use App\Models\PettyCashAccount;
+use App\Models\PettyCashTransaction;
 use App\Models\Project;
 use App\Models\Site;
 use App\Models\User;
