@@ -102,6 +102,9 @@ import { FinancialReportsDashboard } from './pages/financial-reports/FinancialRe
 // Milestone Releases & Physical Verification Pages (Phase 8 Day 1)
 import { MilestoneReleasesList } from './pages/milestone-releases/MilestoneReleasesList'
 
+// Client Portal Milestones & Progress Photos (Phase 8 Day 2)
+import { ClientMilestonePortal } from './pages/client-portal/ClientMilestonePortal'
+
 // Admin Pages
 import UsersList from './pages/admin/UsersList'
 import RolesList from './pages/admin/RolesList'
@@ -556,6 +559,16 @@ function App() {
               element={
                 <PermissionRoute roles={['Super Admin', 'Admin', 'Finance Manager', 'Finance Officer', 'Company Admin', 'Site Manager', 'Project Manager', 'Director', 'Site Engineer', 'Quantity Surveyor']}>
                   <MilestoneReleasesList />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Client Portal Milestone Authorisations & Progress Photos (Phase 8 Day 2) */}
+            <Route
+              path="client-portal/milestones"
+              element={
+                <PermissionRoute roles={['Client', 'Super Admin', 'Admin', 'Company Admin', 'Site Manager', 'Project Manager', 'Finance Manager', 'Finance Officer', 'Director']}>
+                  <ClientMilestonePortal />
                 </PermissionRoute>
               }
             />

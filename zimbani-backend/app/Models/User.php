@@ -102,4 +102,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Task::class, 'assigned_to');
     }
+
+    /**
+     * Get client profile associated with this user.
+     */
+    public function client()
+    {
+        return $this->hasOne(Client::class, 'user_id');
+    }
 }

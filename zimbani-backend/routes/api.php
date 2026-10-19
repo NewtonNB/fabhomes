@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\ProjectBudgetController;
 use App\Http\Controllers\Api\FinancialReportController;
 use App\Http\Controllers\Api\MilestoneVerificationController;
 use App\Http\Controllers\Api\MilestonePaymentReleaseController;
+use App\Http\Controllers\Api\ClientPortalMilestoneController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -258,6 +259,17 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/milestone-payment-releases/{milestonePaymentRelease}/authorize', [MilestonePaymentReleaseController::class, 'authorizeRelease']);
     Route::post('/milestone-payment-releases/{milestonePaymentRelease}/disburse', [MilestonePaymentReleaseController::class, 'disburse']);
     Route::post('/milestone-payment-releases/{milestonePaymentRelease}/release-retention', [MilestonePaymentReleaseController::class, 'releaseRetention']);
+
+    // Client Portal Milestone Authorisations & Progress Photos (Phase 8 Day 2)
+    Route::prefix('client-portal/milestones')->group(function () {
+        Route::get('/summary', [ClientPortalMilestoneController::class, 'summary']);
+        Route::get('/verifications', [ClientPortalMilestoneController::class, 'index']);
+        Route::get('/verifications/{uuid}', [ClientPortalMilestoneController::class, 'show']);
+        Route::post('/verifications/{uuid}/authorize', [ClientPortalMilestoneController::class, 'authorizeVerification']);
+        Route::post('/verifications/{uuid}/dispute', [ClientPortalMilestoneController::class, 'disputeVerification']);
+        Route::post('/verifications/{uuid}/photos', [ClientPortalMilestoneController::class, 'uploadPhoto']);
+        Route::post('/photos/{uuid}/flag', [ClientPortalMilestoneController::class, 'flagPhoto']);
+    });
 
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {

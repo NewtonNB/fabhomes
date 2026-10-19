@@ -23,6 +23,7 @@ import {
   MdAccountBalanceWallet,
   MdPayments,
   MdAssessment,
+  MdVerified,
   MdClose
 } from 'react-icons/md'
 import './Sidebar.css'
@@ -180,6 +181,12 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           label: 'Payments',
           icon: <MdReceipt />,
           permission: 'view payments',
+        },
+        {
+          path: '/client-portal/milestones',
+          label: 'Client Milestones',
+          icon: <MdVerified />,
+          permission: 'view sites',
         },
       ],
     },

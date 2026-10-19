@@ -189,6 +189,11 @@ class Unit extends Model
         return $this->hasMany(MilestonePaymentRelease::class, 'unit_id');
     }
 
+    public function progressPhotos(): HasMany
+    {
+        return $this->hasMany(MilestoneProgressPhoto::class, 'unit_id');
+    }
+
     /**
      * Get the tasks for the unit.
      */

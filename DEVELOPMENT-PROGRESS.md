@@ -11,8 +11,8 @@
 
 **Phase:** 8 - Milestone-Based Payment Releases & Construction Verification  
 **Week:** 1 of 4  
-**Day:** 1 of 5 (✅ COMPLETED)  
-**Next:** Day 2 of 5 (Client Portal Milestone Payment Authorisations & Progress Photo Verification)
+**Day:** 2 of 5 (✅ COMPLETED)  
+**Next:** Day 3 of 5 (Subcontractor Milestone Valuation & Interim Payment Linkages)
 
 ---
 
@@ -2378,12 +2378,59 @@ All 4 project management modules have full CRUD interfaces with comprehensive fe
 
 ---
 
+### Phase 8 Week 1 Day 2: Client Portal Milestone Payment Authorisations & Progress Photo Verification ✅ (Oct 19, 2026)
+
+**1. Database Migrations & Progress Photo Schema:**
+- ✅ Migration `2026_10_19_140000_create_milestone_progress_photos_table.php` executed cleanly on MySQL (`zimbani_dev`):
+  - `milestone_progress_photos`: `id` (bigint PK), `uuid` (char 36 unique), `milestone_verification_id` (foreignId to `milestone_verifications`), `milestone_id`, `project_id`, `site_id`, `unit_id`, `title`, `caption`, `photo_url`, `thumbnail_url`, `photo_stage` (`pre_work`, `during_construction`, `reinforcement_check`, `concrete_pour`, `masonry_framing`, `mep_installation`, `finishes`, `completed_stage`, `defect_snag`), `captured_at`, `gps_latitude`, `gps_longitude`, `gps_accuracy`, `camera_make_model`, `uploaded_by`, `is_client_visible`, `is_featured`, `client_flagged`, `client_flag_notes`, `client_flagged_at`, `client_flagged_by`, timestamps, softDeletes.
+  - Multi-column indexes on verification, milestone, project, unit, photo_stage, captured_at, and visibility.
+
+**2. Backend Models, Services & Controllers:**
+- ✅ `MilestoneProgressPhoto.php`: ADR-014 hybrid keys, relationships (`milestoneVerification`, `milestone`, `project`, `site`, `unit`, `uploadedByUser`, `clientFlaggedByUser`), and scopes (`clientVisible`, `featured`, `flagged`).
+- ✅ Reverse relationships registered: `MilestoneVerification::progressPhotos()`, `Unit::progressPhotos()`, `User::client()`.
+- ✅ `ClientPortalMilestoneService.php`:
+  - `resolveClientForUser()`: Intelligently resolves client profile from authenticated user account via direct relation, user_id, or email matching.
+  - `getClientVerifications()`: Lists milestone verifications for all properties owned by the client with progress % and photos.
+  - `getClientVerificationDetails()`: Returns verification with full photos gallery, release breakdown (gross, 5% retention held, net release, source escrow account), and audit status with ownership verification.
+  - `clientAuthorize()`: Records client progress sign-off (`approved`), updates stage to `client_approved`, appends audit notes to linked `MilestonePaymentRelease`, and records activity log.
+  - `clientDispute()`: Sets status to `disputed`, flags defect photos, logs dispute reason, and automatically creates a `PunchListItem` snag for the site engineering team to inspect and rectify.
+  - `uploadProgressPhoto()`: Saves progress photo with geotagging (GPS latitude/longitude/accuracy) and construction phase tag.
+  - `flagPhoto()`: Records client defect notes on specific photos.
+  - `getClientSummary()`: Real-time client KPI statistics (Active Units, Total Verifications, Approved Count, Awaiting Sign-off, Escrow Released, Retention Held).
+- ✅ `ClientPortalMilestoneController.php`: 7 RESTful client-portal endpoints registered in `routes/api.php` under `/api/client-portal/milestones/*`.
+- ✅ Backend verification: Passed 8-step automated test suite (`test_client_portal_milestones.php`) testing client resolution, verification listing, photo uploading, photo flagging, client authorization, dispute snag creation, and summary KPIs with transaction rollback.
+
+**3. Frontend React 19 UI & Client Portal Console:**
+- ✅ `client-milestone.types.ts` & `client-portal.service.ts`: Strict TypeScript models, payloads, filter contracts, and KPI statistics.
+- ✅ `ClientMilestonePortal.tsx` & `ClientMilestonePortal.css`:
+  - 5-KPI Top Cards: Properties / Units under Construction, Overall Progress %, Awaiting My Approval, Escrow Released, and 5% Defect Retention Held.
+  - Action Required Callout Banner: Highlighted alert when pending verified milestones require the client's sign-off before funds can be disbursed.
+  - Filters & Search Toolbar: Project selector, Unit selector, Approval Status filter, and live text search.
+  - Verification Cards:
+    - Card header with verification #, project/unit badge, and client approval status pill.
+    - Physical Engineering Audit Box: Confirmed completion %, site engineer structural check, and QS valuation certification notes.
+    - Milestone Payment Release Breakdown Box: Gross valuation, 5% retention held in reserve, net escrow disbursement amount.
+    - Progress Photos Gallery Strip: Thumbnail gallery with phase tags (`reinforcement_check`, `concrete_pour`, etc.) and defect flag indicators.
+    - Action Buttons: "Authorize Release" (modal with escrow confirmation), "Report Snag / Dispute" (modal with defect category and snag logging).
+  - Modals:
+    1. Authorize Payment Release Modal (Escrow deduction confirmation, signature remark, confirm checkbox).
+    2. Dispute & Report Snag Modal (Defect category dropdown, defect description, auto-punch list creation).
+    3. High-Resolution Photo Lightbox Modal (Fullscreen image, stage tag, capture timestamp, camera device, GPS coordinates, and "Flag Defect" action).
+    4. Upload Construction Photo Modal (Title, photo URL, stage selector, GPS coordinates).
+    5. Flag Defect on Photo Modal (Logs specific defect note on individual photo).
+- ✅ Navigation & Sidebar Integration:
+  - Added `/client-portal/milestones` route in `App.tsx` under `<PermissionRoute>`.
+  - Added "Client Milestones" under `Clients & Sales` section in `Sidebar.tsx` with `<MdVerified />`.
+- ✅ Zero TypeScript Compiler Errors: Verified via `npm run build` (clean tsc compilation + Vite bundle in 1.19s).
+
+---
+
 ## 🎯 Next Development Focus
 
 **Phase 8: Milestone-Based Payment Releases & Construction Verification**
 1. ✅ **Day 1**: Milestone-Based Payment Releases & Physical Construction Verification (COMPLETED)
-2. ⏳ **Day 2**: Client Portal Milestone Payment Authorisations & Progress Photo Verification (NEXT)
-3. ⏳ **Day 3**: Subcontractor Milestone Valuation & Interim Payment Linkages
+2. ✅ **Day 2**: Client Portal Milestone Payment Authorisations & Progress Photo Verification (COMPLETED)
+3. ⏳ **Day 3**: Subcontractor Milestone Valuation & Interim Payment Linkages (NEXT)
 4. ⏳ **Day 4**: Escrow Account Reconciliation & Automated Milestone Triggers
 5. ⏳ **Day 5**: Retention Fund Accounting & Defect Liability Warranty Handover
 
@@ -2392,7 +2439,8 @@ All 4 project management modules have full CRUD interfaces with comprehensive fe
 **Last Updated:** October 19, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 8 Day 1 Complete
+**Latest Commit:** Phase 8 Day 2 Complete
+
 
 
 
