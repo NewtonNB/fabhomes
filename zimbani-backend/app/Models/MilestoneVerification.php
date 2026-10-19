@@ -44,6 +44,8 @@ class MilestoneVerification extends Model
         'client_approval_status',
         'client_feedback',
         'rejection_reason',
+        'auto_release_triggered',
+        'auto_release_status',
         'created_by',
         'updated_by',
     ];
@@ -52,6 +54,7 @@ class MilestoneVerification extends Model
         'physical_completion_percentage' => 'decimal:2',
         'qs_certified_amount' => 'decimal:2',
         'structural_checks_passed' => 'boolean',
+        'auto_release_triggered' => 'boolean',
         'inspection_date' => 'date',
         'engineer_signed_at' => 'datetime',
         'qs_signed_at' => 'datetime',
@@ -207,5 +210,10 @@ class MilestoneVerification extends Model
     public function isRejected(): bool
     {
         return $this->stage === 'rejected';
+    }
+
+    public function triggerLogs(): HasMany
+    {
+        return $this->hasMany(MilestoneTriggerLog::class, 'milestone_verification_id');
     }
 }

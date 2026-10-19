@@ -264,4 +264,14 @@ class SavingsAccount extends Model
     {
         return $this->morphMany(Document::class, 'documentable');
     }
+
+    public function escrowReconciliations(): HasMany
+    {
+        return $this->hasMany(EscrowReconciliation::class, 'savings_account_id');
+    }
+
+    public function milestoneTriggerLogs(): HasMany
+    {
+        return $this->hasMany(MilestoneTriggerLog::class, 'savings_account_id');
+    }
 }

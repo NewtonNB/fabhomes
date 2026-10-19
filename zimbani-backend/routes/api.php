@@ -37,6 +37,8 @@ use App\Http\Controllers\Api\MilestoneVerificationController;
 use App\Http\Controllers\Api\MilestonePaymentReleaseController;
 use App\Http\Controllers\Api\ClientPortalMilestoneController;
 use App\Http\Controllers\Api\SubcontractorMilestoneValuationController;
+use App\Http\Controllers\Api\EscrowReconciliationController;
+use App\Http\Controllers\Api\AutomatedMilestoneTriggerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -279,6 +281,24 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/subcontractor-contracts/{contract}/retention-release-certificate', [SubcontractorMilestoneValuationController::class, 'generateRetentionReleaseCertificate']);
     Route::post('/milestone-verifications/{uuid}/generate-subcontractor-certificate', [SubcontractorMilestoneValuationController::class, 'generateCertificateFromMilestone']);
     Route::get('/projects/{project}/milestone-subcontractor-matrix', [SubcontractorMilestoneValuationController::class, 'getProjectMilestoneSubcontractorMatrix']);
+
+    // Escrow Account Reconciliation & Automated Milestone Triggers (Phase 8 Day 4)
+    Route::prefix('escrow-reconciliations')->group(function () {
+        Route::get('/', [EscrowReconciliationController::class, 'index']);
+        Route::post('/', [EscrowReconciliationController::class, 'store']);
+        Route::get('/account/{account}', [EscrowReconciliationController::class, 'accountSummary']);
+        Route::get('/project/{project}', [EscrowReconciliationController::class, 'projectSummary']);
+        Route::get('/{uuid}', [EscrowReconciliationController::class, 'show']);
+        Route::post('/items/{itemUuid}/resolve', [EscrowReconciliationController::class, 'resolveItem']);
+        Route::post('/{uuid}/approve', [EscrowReconciliationController::class, 'approve']);
+    });
+
+    Route::prefix('milestone-triggers')->group(function () {
+        Route::post('/verifications/{verification}/trigger', [AutomatedMilestoneTriggerController::class, 'triggerForVerification']);
+        Route::post('/bulk-evaluate', [AutomatedMilestoneTriggerController::class, 'bulkEvaluate']);
+        Route::get('/shortfall-alerts', [AutomatedMilestoneTriggerController::class, 'shortfallAlerts']);
+        Route::get('/logs', [AutomatedMilestoneTriggerController::class, 'logs']);
+    });
 
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {

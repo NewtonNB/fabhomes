@@ -86,4 +86,25 @@ class Activity extends Model
     {
         return $query->where('type', $type);
     }
+
+    /**
+     * Helper to log an activity seamlessly.
+     */
+    public static function log(string $type, string $description, mixed $entity = null, mixed $user = null, array $properties = []): self
+    {
+        $userId = $user instanceof User ? $user->id : (is_numeric($user) ? $user : auth()->id());
+        $entityType = is_object($entity) ? get_class($entity) : null;
+        $entityId = is_object($entity) && isset($entity->id) ? $entity->id : (is_numeric($entity) ? $entity : null);
+
+        return static::create([
+            'user_id' => $userId,
+            'type' => $type,
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
+            'description' => $description,
+            'properties' => $properties,
+            'ip_address' => request()?->ip(),
+            'user_agent' => request()?->userAgent(),
+        ]);
+    }
 }

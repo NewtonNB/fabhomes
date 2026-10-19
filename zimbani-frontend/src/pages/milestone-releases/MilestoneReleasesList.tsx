@@ -17,12 +17,16 @@ import {
   MdFactCheck,
   MdAccountTree,
   MdReceiptLong,
+  MdAccountBalance,
+  MdSync,
 } from 'react-icons/md'
 import milestoneReleaseService from '../../services/milestone-release.service'
 import subcontractorMilestoneService from '../../services/subcontractor-milestone.service'
+import escrowReconciliationService from '../../services/escrow-reconciliation.service'
 import contractService from '../../services/contract.service'
 import projectService from '../../services/project.service'
 import unitService from '../../services/unit.service'
+import EscrowReconciliationTab from './components/EscrowReconciliationTab'
 import api from '../../config/api'
 import {
   MilestoneVerification,
@@ -49,7 +53,7 @@ interface MilestoneOption {
 
 export const MilestoneReleasesList: React.FC = () => {
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'verifications' | 'releases' | 'matrix'>('verifications')
+  const [activeTab, setActiveTab] = useState<'verifications' | 'releases' | 'matrix' | 'escrow'>('verifications')
 
   // Data states
   const [verifications, setVerifications] = useState<MilestoneVerification[]>([])
@@ -333,6 +337,31 @@ export const MilestoneReleasesList: React.FC = () => {
     }
   }
 
+  // Handle Trigger Escrow Release (Phase 8 Day 4)
+  const handleTriggerEscrowRelease = async (item: MilestoneVerification) => {
+    try {
+      setSubmitting(true)
+      setError(null)
+      const res = await escrowReconciliationService.triggerForVerification(item.id)
+      if (res.status === 'success') {
+        setSuccessMsg(
+          `Automated escrow release triggered successfully! Release #${res.release?.release_number || ''} created and debited from client savings account.`
+        )
+      } else if (res.status === 'shortfall') {
+        setError(
+          `Escrow shortfall detected: Client escrow balance is ${formatCurrency(res.trigger_log.escrow_balance)}, but ${formatCurrency(res.trigger_log.required_amount)} is required. Shortfall: ${formatCurrency(res.trigger_log.shortfall_amount)}.`
+        )
+      } else {
+        setSuccessMsg(`Trigger evaluation finished with status: ${res.status}.`)
+      }
+      refreshAll()
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to trigger automated escrow release.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   // Reload data
   const refreshAll = () => {
     setError(null)
@@ -342,7 +371,7 @@ export const MilestoneReleasesList: React.FC = () => {
       loadVerifications()
     } else if (activeTab === 'releases') {
       loadReleases()
-    } else {
+    } else if (activeTab === 'matrix') {
       loadMatrix()
     }
   }
@@ -734,50 +763,37 @@ export const MilestoneReleasesList: React.FC = () => {
         >
           <MdAccountTree /> Subcontractor Valuation Matrix
         </button>
+        <button
+          className={`releases-tab-btn ${activeTab === 'escrow' ? 'active' : ''}`}
+          onClick={() => setActiveTab('escrow')}
+        >
+          <MdAccountBalance /> Escrow Reconciliation & Triggers
+        </button>
       </div>
 
-      {/* Toolbar / Filters */}
-      <div className="releases-toolbar">
-        <div className="releases-search-box">
-          <MdSearch style={{ color: '#94a3b8', fontSize: '1.2rem' }} />
-          <input
-            type="text"
-            placeholder={
-              activeTab === 'verifications'
-                ? 'Search by verification #, title, or project...'
-                : activeTab === 'releases'
-                ? 'Search by release #, milestone, or reference...'
-                : 'Filter matrix milestones...'
-            }
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+      {/* Toolbar / Filters - only shown for verifications, releases, and matrix tabs */}
+      {activeTab !== 'escrow' && (
+        <div className="releases-toolbar">
+          <div className="releases-search-box">
+            <MdSearch style={{ color: '#94a3b8', fontSize: '1.2rem' }} />
+            <input
+              type="text"
+              placeholder={
+                activeTab === 'verifications'
+                  ? 'Search by verification #, title, or project...'
+                  : activeTab === 'releases'
+                  ? 'Search by release #, milestone, or reference...'
+                  : 'Filter matrix milestones...'
+              }
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <select
-            value={filterProject}
-            onChange={(e) => setFilterProject(e.target.value)}
-            style={{
-              padding: '0.45rem 0.75rem',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              fontSize: '0.875rem',
-              background: '#f8fafc',
-            }}
-          >
-            <option value="">All Projects</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-
-          {activeTab === 'verifications' && (
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <select
-              value={filterStage}
-              onChange={(e) => setFilterStage(e.target.value)}
+              value={filterProject}
+              onChange={(e) => setFilterProject(e.target.value)}
               style={{
                 padding: '0.45rem 0.75rem',
                 borderRadius: '6px',
@@ -786,37 +802,58 @@ export const MilestoneReleasesList: React.FC = () => {
                 background: '#f8fafc',
               }}
             >
-              <option value="">All Verification Stages</option>
-              <option value="draft">Draft</option>
-              <option value="submitted">Submitted</option>
-              <option value="engineer_verified">Engineer Verified</option>
-              <option value="qs_verified">QS Verified</option>
-              <option value="client_approved">Client Approved</option>
-              <option value="rejected">Rejected</option>
+              <option value="">All Projects</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
             </select>
-          )}
 
-          {activeTab === 'releases' && (
-            <select
-              value={filterReleaseStatus}
-              onChange={(e) => setFilterReleaseStatus(e.target.value)}
-              style={{
-                padding: '0.45rem 0.75rem',
-                borderRadius: '6px',
-                border: '1px solid #cbd5e1',
-                fontSize: '0.875rem',
-                background: '#f8fafc',
-              }}
-            >
-              <option value="">All Release Statuses</option>
-              <option value="pending_authorization">Pending Authorization</option>
-              <option value="authorized">Authorized</option>
-              <option value="disbursed">Disbursed</option>
-              <option value="rejected">Rejected</option>
-            </select>
-          )}
+            {activeTab === 'verifications' && (
+              <select
+                value={filterStage}
+                onChange={(e) => setFilterStage(e.target.value)}
+                style={{
+                  padding: '0.45rem 0.75rem',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.875rem',
+                  background: '#f8fafc',
+                }}
+              >
+                <option value="">All Verification Stages</option>
+                <option value="draft">Draft</option>
+                <option value="submitted">Submitted</option>
+                <option value="engineer_verified">Engineer Verified</option>
+                <option value="qs_verified">QS Verified</option>
+                <option value="client_approved">Client Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            )}
+
+            {activeTab === 'releases' && (
+              <select
+                value={filterReleaseStatus}
+                onChange={(e) => setFilterReleaseStatus(e.target.value)}
+                style={{
+                  padding: '0.45rem 0.75rem',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.875rem',
+                  background: '#f8fafc',
+                }}
+              >
+                <option value="">All Release Statuses</option>
+                <option value="pending_authorization">Pending Authorization</option>
+                <option value="authorized">Authorized</option>
+                <option value="disbursed">Disbursed</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content Area */}
       {loading ? (
@@ -934,6 +971,23 @@ export const MilestoneReleasesList: React.FC = () => {
                     </td>
                     <td>
                       <span className={`pill ${item.stage}`}>{item.stage.replace('_', ' ')}</span>
+                      {item.stage === 'client_approved' && (
+                        <div>
+                          {item.auto_release_status === 'debited' ? (
+                            <span className="pill disbursed" style={{ fontSize: '0.68rem', padding: '0.15rem 0.4rem', display: 'inline-block', marginTop: '4px' }}>
+                              Auto-Debited
+                            </span>
+                          ) : item.auto_release_status === 'shortfall' ? (
+                            <span className="pill rejected" style={{ fontSize: '0.68rem', padding: '0.15rem 0.4rem', display: 'inline-block', marginTop: '4px' }}>
+                              Shortfall
+                            </span>
+                          ) : (
+                            <span className="pill in_progress" style={{ fontSize: '0.68rem', padding: '0.15rem 0.4rem', display: 'inline-block', marginTop: '4px' }}>
+                              Pending Escrow
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </td>
                     <td className="text-right">
                       <div className="action-btn-group">
@@ -1013,6 +1067,19 @@ export const MilestoneReleasesList: React.FC = () => {
                             title="Client Progress Approval"
                           >
                             <MdThumbUp /> Client Sign-off
+                          </button>
+                        )}
+
+                        {/* Auto/Manual Escrow Release Trigger (Phase 8 Day 4) */}
+                        {item.stage === 'client_approved' && item.auto_release_status !== 'debited' && (
+                          <button
+                            className="action-btn success"
+                            style={{ backgroundColor: '#059669', borderColor: '#059669' }}
+                            onClick={() => handleTriggerEscrowRelease(item)}
+                            disabled={submitting}
+                            title="Evaluate Escrow & Trigger Release Disbursement"
+                          >
+                            <MdSync /> Trigger Release
                           </button>
                         )}
 
@@ -1239,7 +1306,7 @@ export const MilestoneReleasesList: React.FC = () => {
             </div>
           )}
         </div>
-      ) : (
+      ) : activeTab === 'matrix' ? (
         /* TAB 3: SUBCONTRACTOR MILESTONE VALUATION MATRIX (Phase 8 Day 3) */
         <div className="matrix-container">
           <div className="matrix-header-bar">
@@ -1469,6 +1536,14 @@ export const MilestoneReleasesList: React.FC = () => {
             </div>
           )}
         </div>
+      ) : (
+        /* TAB 4: ESCROW ACCOUNT RECONCILIATION & AUTOMATED MILESTONE TRIGGERS (Phase 8 Day 4) */
+        <EscrowReconciliationTab
+          projects={projects}
+          filterProject={filterProject}
+          formatCurrency={formatCurrency}
+          onVerificationTriggered={refreshAll}
+        />
       )}
 
       {/* MODAL: GENERATE SUBCONTRACTOR IPC DIRECTLY FROM MILESTONE VERIFICATION (Phase 8 Day 3) */}

@@ -164,6 +164,8 @@ export interface MilestoneVerification {
   client_approval_status: ClientApprovalStatus
   client_feedback?: string | null
   rejection_reason?: string | null
+  auto_release_triggered?: boolean
+  auto_release_status?: string | null
   created_at: string
   updated_at: string
   milestone?: RefMilestone

@@ -228,4 +228,14 @@ class MilestonePaymentRelease extends Model
     {
         return !is_null($this->retention_released_at);
     }
+
+    public function triggerLogs(): HasMany
+    {
+        return $this->hasMany(MilestoneTriggerLog::class, 'milestone_payment_release_id');
+    }
+
+    public function reconciliationItems(): HasMany
+    {
+        return $this->hasMany(EscrowReconciliationItem::class, 'milestone_payment_release_id');
+    }
 }
