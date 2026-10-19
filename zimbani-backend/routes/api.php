@@ -31,6 +31,8 @@ use App\Http\Controllers\Api\SubcontractorContractController;
 use App\Http\Controllers\Api\PaymentCertificateController;
 use App\Http\Controllers\Api\PettyCashAccountController;
 use App\Http\Controllers\Api\ExpenseClaimController;
+use App\Http\Controllers\Api\ProjectBudgetController;
+use App\Http\Controllers\Api\FinancialReportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -228,6 +230,18 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/expense-claims/{expenseClaim}/reimburse', [ExpenseClaimController::class, 'reimburse']);
     Route::post('/expense-claims/{expenseClaim}/reject', [ExpenseClaimController::class, 'reject']);
 
+    // Cost Accounting & Cost Code Budgets (Phase 7 Day 5)
+    Route::post('/project-budgets/seed-standard/{project}', [ProjectBudgetController::class, 'seedStandard']);
+    Route::apiResource('project-budgets', ProjectBudgetController::class)->parameters(['project-budgets' => 'projectBudget']);
+
+    // Financial Auditing, Profitability & Forecasting Reports (Phase 7 Day 5)
+    Route::get('/financial-reports/executive-summary', [FinancialReportController::class, 'executiveSummary']);
+    Route::get('/financial-reports/budget-variance', [FinancialReportController::class, 'budgetVariance']);
+    Route::get('/financial-reports/profitability', [FinancialReportController::class, 'profitability']);
+    Route::get('/financial-reports/cash-flow-forecast', [FinancialReportController::class, 'cashFlowForecast']);
+    Route::get('/financial-reports/compliance-audit', [FinancialReportController::class, 'complianceAudit']);
+    Route::get('/financial-reports/export', [FinancialReportController::class, 'exportCsv']);
+
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
         // User management
@@ -307,5 +321,12 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         // Petty Cash & Expenses statistics (Phase 7 Day 4)
         Route::get('/petty-cash-accounts/statistics', [PettyCashAccountController::class, 'statistics']);
         Route::get('/expense-claims/statistics', [ExpenseClaimController::class, 'statistics']);
+
+        // Financial Reports & Cost Accounting (Phase 7 Day 5)
+        Route::get('/financial-reports/executive-summary', [FinancialReportController::class, 'executiveSummary']);
+        Route::get('/financial-reports/budget-variance', [FinancialReportController::class, 'budgetVariance']);
+        Route::get('/financial-reports/profitability', [FinancialReportController::class, 'profitability']);
+        Route::get('/financial-reports/cash-flow-forecast', [FinancialReportController::class, 'cashFlowForecast']);
+        Route::get('/financial-reports/compliance-audit', [FinancialReportController::class, 'complianceAudit']);
     });
 });

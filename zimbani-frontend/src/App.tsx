@@ -96,6 +96,9 @@ import { ExpenseClaimsList } from './pages/expenses/ExpenseClaimsList'
 import { ExpenseClaimForm } from './pages/expenses/ExpenseClaimForm'
 import { ExpenseClaimDetails } from './pages/expenses/ExpenseClaimDetails'
 
+// Financial Reporting, Cost Accounting & Auditing (Phase 7 Day 5)
+import { FinancialReportsDashboard } from './pages/financial-reports/FinancialReportsDashboard'
+
 // Admin Pages
 import UsersList from './pages/admin/UsersList'
 import RolesList from './pages/admin/RolesList'
@@ -530,6 +533,16 @@ function App() {
               element={
                 <PermissionRoute permission="edit expenses">
                   <ExpenseClaimForm />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Financial Reports, Auditing & Cost Accounting (Phase 7 Day 5) */}
+            <Route
+              path="financial-reports"
+              element={
+                <PermissionRoute roles={['Super Admin', 'Admin', 'Finance Manager', 'Finance Officer', 'Company Admin', 'Site Manager', 'Project Manager', 'Director']}>
+                  <FinancialReportsDashboard />
                 </PermissionRoute>
               }
             />

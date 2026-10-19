@@ -108,6 +108,14 @@ class Project extends Model
     }
 
     /**
+     * Get the units for the project.
+     */
+    public function units(): HasMany
+    {
+        return $this->hasMany(Unit::class, 'project_id');
+    }
+
+    /**
      * Get the users assigned to the project.
      */
     public function users(): BelongsToMany
@@ -251,6 +259,14 @@ class Project extends Model
     public function expenseClaims(): HasMany
     {
         return $this->hasMany(ExpenseClaim::class, 'project_id');
+    }
+
+    /**
+     * Get cost code budgets for the project.
+     */
+    public function budgets(): HasMany
+    {
+        return $this->hasMany(ProjectBudget::class, 'project_id');
     }
 
     /**

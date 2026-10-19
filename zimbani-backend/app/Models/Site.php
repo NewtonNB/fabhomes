@@ -281,6 +281,14 @@ class Site extends Model
     }
 
     /**
+     * Get cost code budgets for the site.
+     */
+    public function budgets(): HasMany
+    {
+        return $this->hasMany(ProjectBudget::class, 'site_id');
+    }
+
+    /**
      * Get the documents for the site.
      */
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany

@@ -23,6 +23,7 @@ import {
   MdRequestQuote,
   MdAccountBalanceWallet,
   MdPayments,
+  MdAssessment,
   MdClose
 } from 'react-icons/md'
 import './Sidebar.css'
@@ -181,6 +182,12 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       label: 'Expense Claims',
       icon: <MdPayments />,
       permission: 'view expenses',
+    },
+    {
+      path: '/financial-reports',
+      label: 'Financial Reports',
+      icon: <MdAssessment />,
+      permission: 'view transactions',
     },
     {
       path: '/documents',
