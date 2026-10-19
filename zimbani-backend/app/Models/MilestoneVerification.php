@@ -153,6 +153,11 @@ class MilestoneVerification extends Model
         return $this->hasMany(MilestonePaymentRelease::class, 'milestone_verification_id');
     }
 
+    public function paymentCertificates(): HasMany
+    {
+        return $this->hasMany(PaymentCertificate::class, 'milestone_verification_id');
+    }
+
     public function progressPhotos(): HasMany
     {
         return $this->hasMany(MilestoneProgressPhoto::class, 'milestone_verification_id')->orderBy('captured_at');

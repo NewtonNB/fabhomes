@@ -201,4 +201,30 @@ class ConstructionMilestone extends Model
     {
         return $this->hasMany(MilestonePaymentRelease::class, 'milestone_id');
     }
+
+    /**
+     * Subcontractor contract milestone allocations.
+     */
+    public function contractMilestones(): HasMany
+    {
+        return $this->hasMany(ContractMilestone::class, 'milestone_id');
+    }
+
+    /**
+     * Subcontractors assigned to this milestone.
+     */
+    public function subcontractorContracts(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(SubcontractorContract::class, 'contract_milestones', 'milestone_id', 'contract_id')
+            ->withPivot(['uuid', 'allocated_amount', 'weight_percentage', 'status', 'certified_amount', 'paid_amount', 'notes'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Payment certificates issued for this milestone.
+     */
+    public function paymentCertificates(): HasMany
+    {
+        return $this->hasMany(PaymentCertificate::class, 'milestone_id');
+    }
 }

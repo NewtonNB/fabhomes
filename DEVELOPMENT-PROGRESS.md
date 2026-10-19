@@ -11,8 +11,8 @@
 
 **Phase:** 8 - Milestone-Based Payment Releases & Construction Verification  
 **Week:** 1 of 4  
-**Day:** 2 of 5 (✅ COMPLETED)  
-**Next:** Day 3 of 5 (Subcontractor Milestone Valuation & Interim Payment Linkages)
+**Day:** 3 of 5 (✅ COMPLETED)  
+**Next:** Day 4 of 5 (Escrow Account Reconciliation & Automated Milestone Triggers)
 
 ---
 
@@ -2425,13 +2425,66 @@ All 4 project management modules have full CRUD interfaces with comprehensive fe
 
 ---
 
+### Phase 8 Day 3: Subcontractor Milestone Valuation & Interim Payment Linkages ✅ (Oct 19, 2026)
+
+**Overview:**
+Delivered full trade contractor milestone allocation, progress valuation tracking, and automated Interim Payment Certificate (IPC) generation directly from QS-verified/client-approved construction milestones, including automatic 5% defect liability retention reserve and 6% statutory Uganda Revenue Authority (URA) Withholding Tax (WHT) calculations, defect liability retention release certification, and a project-wide milestone valuation matrix.
+
+**Database & Migrations:**
+- Migration `2026_10_19_160000_create_contract_milestones_and_link_certificates.php`:
+  - `contract_milestones` table: Hybrid primary key (`id` bigint + `uuid` char(36)), `contract_id` (FK), `milestone_id` (FK), `allocated_amount`, `weight_percentage`, `start_date`, `due_date`, `status` (`pending`, `in_progress`, `under_review`, `certified`, `completed`), `certified_amount`, `paid_amount`, `notes`, softDeletes.
+  - Linked to `payment_certificates`: Added `milestone_id` (nullable FK), `milestone_verification_id` (nullable FK), `physical_completion_percentage`, `boq_compliance_status`, and `qs_valuation_reference`.
+
+**Backend Architecture & Business Logic:**
+- Models & Relationships:
+  - `ContractMilestone`: Hybrid key, computed accessors (`remaining_to_certify`, `percentage_certified`), scopes for status filtering.
+  - `SubcontractorContract`: Added `contractMilestones(): HasMany` and `milestones(): BelongsToMany`.
+  - `PaymentCertificate`: Added milestone link fields and `milestone(): BelongsTo`, `milestoneVerification(): BelongsTo`.
+  - `ConstructionMilestone`: Added `contractMilestones(): HasMany`, `subcontractorContracts(): BelongsToMany`, and `paymentCertificates(): HasMany`.
+  - `MilestoneVerification`: Added `paymentCertificates(): HasMany`.
+- Service Layer (`SubcontractorMilestoneValuationService`):
+  - `allocateMilestones()`: Validates and assigns milestone work packages to a trade contractor contract.
+  - `generateCertificateFromMilestone()`: One-click IPC generation directly from QS-verified milestone verification; automatically computes:
+    - Current Gross Valuation: Cumulative gross valuation minus prior gross certifications.
+    - 5% Defect Liability Retention: `5% * Current Gross Valuation` held in reserve.
+    - 6% Statutory URA Withholding Tax: `6% * Current Gross Valuation` statutory deduction.
+    - Net Interim Certified Amount: `Current Gross - Retention - WHT - Other Deductions`.
+  - `generateRetentionReleaseCertificate()`: Creates Defect Liability Retention Release Certificate (`retention_release`) upon expiration of warranty period and inspection sign-off.
+  - `getContractMilestoneProgress()`: Aggregates total contract sum, total allocated, total certified gross, total paid, retention held, and milestone completion counts.
+  - `getProjectMilestoneSubcontractorMatrix()`: Aggregates project-level cross-sectional valuation matrix of milestones, assigned trade contractors, certified percentages, paid amounts, and issued IPCs.
+- Controller & API Routes (`SubcontractorMilestoneValuationController`):
+  - `GET /api/v1/subcontractor-contracts/{contract}/milestones`
+  - `POST /api/v1/subcontractor-contracts/{contract}/milestones`
+  - `GET /api/v1/subcontractor-contracts/{contract}/milestone-progress`
+  - `POST /api/v1/subcontractor-contracts/{contract}/retention-release-certificate`
+  - `POST /api/v1/milestone-verifications/{uuid}/generate-subcontractor-certificate`
+  - `GET /api/v1/projects/{project}/milestone-subcontractor-matrix`
+- Automated Backend Testing:
+  - Automated 9-step test script executing clean verification of contract creation, milestone allocation, QS sign-off, IPC generation with 5% retention + 6% WHT calculations, retention release certificate generation, and project matrix compilation.
+
+**Frontend Integration (React 19 + TypeScript):**
+- Types & Services:
+  - `subcontractor-milestone.types.ts`: `ContractMilestone`, `ContractMilestoneProgress`, `ProjectMilestoneMatrix`, `AllocateMilestonesPayload`, `GenerateCertificateFromMilestonePayload`.
+  - `subcontractor-milestone.service.ts`: Full REST client wrapper with Axios.
+- UI Enhancements:
+  - `ContractDetails.tsx`:
+    - "Allocated Milestone Work Packages" card displaying coverage progress bar, allocation breakdown, weight %, QS certified progress, and status pills.
+    - "Allocate Construction Milestones" modal enabling multi-milestone work package assignment with dynamic row additions, amount calculations, and weight allocations.
+    - "Release 5% Retention" action button and modal for issuing Defect Liability Retention Release certificates.
+  - `MilestoneReleasesList.tsx`:
+    - One-click "Subcontractor IPC" button on QS-verified verifications opening the IPC generator with live calculation preview of Gross Valuation, 5% Retention, 6% URA WHT, and Net Certified Payable.
+    - New Tab 3: "Subcontractor Valuation Matrix" displaying the project-level cross-sectional valuation matrix, milestone work packages, assigned trade contractors, progress bars, issued certificate counts, and KPI summary statistics.
+- Build Verification: Clean `npm run build` compilation with 0 TypeScript errors.
+
+---
+
 ## 🎯 Next Development Focus
 
 **Phase 8: Milestone-Based Payment Releases & Construction Verification**
 1. ✅ **Day 1**: Milestone-Based Payment Releases & Physical Construction Verification (COMPLETED)
 2. ✅ **Day 2**: Client Portal Milestone Payment Authorisations & Progress Photo Verification (COMPLETED)
-3. ⏳ **Day 3**: Subcontractor Milestone Valuation & Interim Payment Linkages (NEXT)
-4. ⏳ **Day 4**: Escrow Account Reconciliation & Automated Milestone Triggers
+3. ✅ **Day 3**: Subcontractor Milestone Valuation & Interim Payment Linkages (COMPLETED)
+4. ⏳ **Day 4**: Escrow Account Reconciliation & Automated Milestone Triggers (NEXT)
 5. ⏳ **Day 5**: Retention Fund Accounting & Defect Liability Warranty Handover
 
 ---
@@ -2439,7 +2492,7 @@ All 4 project management modules have full CRUD interfaces with comprehensive fe
 **Last Updated:** October 19, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 8 Day 2 Complete
+**Latest Commit:** Phase 8 Day 3 Complete
 
 
 

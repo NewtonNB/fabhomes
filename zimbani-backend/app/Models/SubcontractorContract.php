@@ -158,6 +158,18 @@ class SubcontractorContract extends Model
         return $this->hasMany(PaymentCertificate::class, 'contract_id')->latest('valuation_date');
     }
 
+    public function contractMilestones(): HasMany
+    {
+        return $this->hasMany(ContractMilestone::class, 'contract_id');
+    }
+
+    public function milestones(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(ConstructionMilestone::class, 'contract_milestones', 'contract_id', 'milestone_id')
+            ->withPivot(['uuid', 'allocated_amount', 'weight_percentage', 'status', 'certified_amount', 'paid_amount', 'notes'])
+            ->withTimestamps();
+    }
+
     public function documents(): MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');

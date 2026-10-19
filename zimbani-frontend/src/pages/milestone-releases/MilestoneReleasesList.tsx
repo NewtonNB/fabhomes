@@ -15,8 +15,12 @@ import {
   MdAccountBalanceWallet,
   MdClose,
   MdFactCheck,
+  MdAccountTree,
+  MdReceiptLong,
 } from 'react-icons/md'
 import milestoneReleaseService from '../../services/milestone-release.service'
+import subcontractorMilestoneService from '../../services/subcontractor-milestone.service'
+import contractService from '../../services/contract.service'
 import projectService from '../../services/project.service'
 import unitService from '../../services/unit.service'
 import api from '../../config/api'
@@ -32,6 +36,8 @@ import {
 } from '../../types/milestone-release.types'
 import { Project } from '../../types/project.types'
 import { Unit } from '../../types/unit.types'
+import { SubcontractorContract } from '../../types/contract.types'
+import { ProjectMilestoneMatrix } from '../../types/subcontractor-milestone.types'
 import './MilestoneReleases.css'
 
 interface MilestoneOption {
@@ -43,11 +49,13 @@ interface MilestoneOption {
 
 export const MilestoneReleasesList: React.FC = () => {
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'verifications' | 'releases'>('verifications')
+  const [activeTab, setActiveTab] = useState<'verifications' | 'releases' | 'matrix'>('verifications')
 
   // Data states
   const [verifications, setVerifications] = useState<MilestoneVerification[]>([])
   const [releases, setReleases] = useState<MilestonePaymentRelease[]>([])
+  const [matrixData, setMatrixData] = useState<ProjectMilestoneMatrix | null>(null)
+  const [matrixLoading, setMatrixLoading] = useState<boolean>(false)
   const [stats, setStats] = useState<MilestoneReleaseStatistics | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
   const [units, setUnits] = useState<Unit[]>([])
@@ -81,6 +89,21 @@ export const MilestoneReleasesList: React.FC = () => {
   const [showRetentionModal, setShowRetentionModal] = useState<boolean>(false)
   const [showRejectModal, setShowRejectModal] = useState<boolean>(false)
   const [showDetailModal, setShowDetailModal] = useState<boolean>(false)
+  const [showSubcontractorIpcModal, setShowSubcontractorIpcModal] = useState<boolean>(false)
+
+  // Subcontractor IPC Generation form states (Phase 8 Day 3)
+  const [contractsList, setContractsList] = useState<SubcontractorContract[]>([])
+  const [selectedContractId, setSelectedContractId] = useState<string>('')
+  const [ipcGrossAmount, setIpcGrossAmount] = useState<number>(0)
+  const [ipcMaterialsAmount, setIpcMaterialsAmount] = useState<number>(0)
+  const [ipcOtherDeductions, setIpcOtherDeductions] = useState<number>(0)
+  const [ipcSummary, setIpcSummary] = useState<string>('')
+  const [ipcPeriodStart, setIpcPeriodStart] = useState<string>(
+    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  )
+  const [ipcPeriodEnd, setIpcPeriodEnd] = useState<string>(
+    new Date().toISOString().slice(0, 10)
+  )
 
   // Selected records for action modals
   const [selectedVerification, setSelectedVerification] = useState<MilestoneVerification | null>(null)
@@ -131,11 +154,11 @@ export const MilestoneReleasesList: React.FC = () => {
   const [authorizeNotes, setAuthorizeNotes] = useState<string>('')
 
   // Currency helper
-  const formatCurrency = (amount: number | string | undefined | null) => {
+  const formatCurrency = (amount: number | string | undefined | null, currency: string = 'USD') => {
     const num = Number(amount) || 0
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currency || 'USD',
       minimumFractionDigits: 2,
     }).format(num)
   }
@@ -226,6 +249,90 @@ export const MilestoneReleasesList: React.FC = () => {
     }
   }, [releasePage, filterProject, filterReleaseStatus, search])
 
+  // Load Project Milestone Subcontractor Matrix (Phase 8 Day 3)
+  const loadMatrix = useCallback(async (projId?: string) => {
+    const targetProject = projId || filterProject || (projects.length > 0 ? String(projects[0].id) : undefined)
+    if (!targetProject) return
+    try {
+      setMatrixLoading(true)
+      const data = await subcontractorMilestoneService.getProjectMilestoneSubcontractorMatrix(targetProject)
+      setMatrixData(data)
+    } catch (err: any) {
+      console.error('Failed to load milestone subcontractor matrix', err)
+    } finally {
+      setMatrixLoading(false)
+    }
+  }, [filterProject, projects])
+
+  // Open Subcontractor IPC modal
+  const handleOpenSubcontractorIpc = async (verification: MilestoneVerification) => {
+    setSelectedVerification(verification)
+    setIpcGrossAmount(Number(verification.qs_certified_amount || 0))
+    setIpcMaterialsAmount(0)
+    setIpcOtherDeductions(0)
+    setIpcSummary(
+      `Interim valuation for ${verification.milestone?.milestone_name || 'milestone package'}. Verified completion: ${verification.physical_completion_percentage}%.`
+    )
+    setIpcPeriodStart(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))
+    setIpcPeriodEnd(new Date().toISOString().slice(0, 10))
+
+    try {
+      setSubmitting(true)
+      const res = await contractService.getSubcontractorContracts({
+        project_id: String(verification.project_id),
+        status: 'active',
+        per_page: 50,
+      })
+      const list = res.data || []
+      setContractsList(list)
+      if (list.length > 0) {
+        setSelectedContractId(String(list[0].id))
+      } else {
+        setSelectedContractId('')
+      }
+      setShowSubcontractorIpcModal(true)
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to load project subcontractor contracts.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // Handle Generate Subcontractor IPC
+  const handleGenerateSubcontractorIpc = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedVerification || !selectedContractId) {
+      setError('Please select a subcontractor contract.')
+      return
+    }
+
+    try {
+      setSubmitting(true)
+      setError(null)
+      const cert = await subcontractorMilestoneService.generateCertificateFromMilestone(
+        selectedVerification.uuid,
+        {
+          contract_id: selectedContractId,
+          certified_amount: ipcGrossAmount,
+          materials_on_site_value: ipcMaterialsAmount,
+          other_deductions: ipcOtherDeductions,
+          measurement_summary: ipcSummary,
+          valuation_period_start: ipcPeriodStart,
+          valuation_period_end: ipcPeriodEnd,
+        }
+      )
+      setSuccessMsg(
+        `Interim Payment Certificate ${cert.certificate_number} generated successfully for ${formatCurrency(cert.net_certified_amount)}.`
+      )
+      setShowSubcontractorIpcModal(false)
+      refreshAll()
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to generate subcontractor payment certificate.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   // Reload data
   const refreshAll = () => {
     setError(null)
@@ -233,8 +340,10 @@ export const MilestoneReleasesList: React.FC = () => {
     loadStats()
     if (activeTab === 'verifications') {
       loadVerifications()
-    } else {
+    } else if (activeTab === 'releases') {
       loadReleases()
+    } else {
+      loadMatrix()
     }
   }
 
@@ -245,10 +354,12 @@ export const MilestoneReleasesList: React.FC = () => {
   useEffect(() => {
     if (activeTab === 'verifications') {
       loadVerifications()
-    } else {
+    } else if (activeTab === 'releases') {
       loadReleases()
+    } else if (activeTab === 'matrix') {
+      loadMatrix()
     }
-  }, [activeTab, loadVerifications, loadReleases])
+  }, [activeTab, loadVerifications, loadReleases, loadMatrix])
 
   // Handle Create Verification
   const handleCreateVerification = async (e: React.FormEvent) => {
@@ -617,6 +728,12 @@ export const MilestoneReleasesList: React.FC = () => {
         >
           <MdAccountBalanceWallet /> Payment Releases & Retention ({releases.length})
         </button>
+        <button
+          className={`releases-tab-btn ${activeTab === 'matrix' ? 'active' : ''}`}
+          onClick={() => setActiveTab('matrix')}
+        >
+          <MdAccountTree /> Subcontractor Valuation Matrix
+        </button>
       </div>
 
       {/* Toolbar / Filters */}
@@ -628,7 +745,9 @@ export const MilestoneReleasesList: React.FC = () => {
             placeholder={
               activeTab === 'verifications'
                 ? 'Search by verification #, title, or project...'
-                : 'Search by release #, milestone, or reference...'
+                : activeTab === 'releases'
+                ? 'Search by release #, milestone, or reference...'
+                : 'Filter matrix milestones...'
             }
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -655,7 +774,7 @@ export const MilestoneReleasesList: React.FC = () => {
             ))}
           </select>
 
-          {activeTab === 'verifications' ? (
+          {activeTab === 'verifications' && (
             <select
               value={filterStage}
               onChange={(e) => setFilterStage(e.target.value)}
@@ -675,7 +794,9 @@ export const MilestoneReleasesList: React.FC = () => {
               <option value="client_approved">Client Approved</option>
               <option value="rejected">Rejected</option>
             </select>
-          ) : (
+          )}
+
+          {activeTab === 'releases' && (
             <select
               value={filterReleaseStatus}
               onChange={(e) => setFilterReleaseStatus(e.target.value)}
@@ -700,7 +821,7 @@ export const MilestoneReleasesList: React.FC = () => {
       {/* Main Content Area */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-          Loading {activeTab === 'verifications' ? 'verifications' : 'payment releases'}...
+          Loading {activeTab === 'verifications' ? 'verifications' : activeTab === 'releases' ? 'payment releases' : 'subcontractor milestone matrix'}...
         </div>
       ) : activeTab === 'verifications' ? (
         /* TAB 1: VERIFICATIONS TABLE */
@@ -895,6 +1016,19 @@ export const MilestoneReleasesList: React.FC = () => {
                           </button>
                         )}
 
+                        {/* One-Click Subcontractor IPC Linkage (Phase 8 Day 3) */}
+                        {(item.stage === 'qs_verified' || item.stage === 'client_approved') &&
+                          Number(item.qs_certified_amount) > 0 && (
+                            <button
+                              className="action-btn primary"
+                              style={{ backgroundColor: '#0284c7', borderColor: '#0284c7' }}
+                              onClick={() => handleOpenSubcontractorIpc(item)}
+                              title="Generate Subcontractor Interim Payment Certificate (IPC)"
+                            >
+                              <MdReceiptLong /> Subcontractor IPC
+                            </button>
+                          )}
+
                         {item.stage !== 'client_approved' && item.stage !== 'rejected' && (
                           <button
                             className="action-btn"
@@ -939,7 +1073,7 @@ export const MilestoneReleasesList: React.FC = () => {
             </div>
           )}
         </div>
-      ) : (
+      ) : activeTab === 'releases' ? (
         /* TAB 2: PAYMENT RELEASES TABLE */
         <div className="releases-table-card">
           <table className="releases-table">
@@ -1104,6 +1238,409 @@ export const MilestoneReleasesList: React.FC = () => {
               </button>
             </div>
           )}
+        </div>
+      ) : (
+        /* TAB 3: SUBCONTRACTOR MILESTONE VALUATION MATRIX (Phase 8 Day 3) */
+        <div className="matrix-container">
+          <div className="matrix-header-bar">
+            <div>
+              <h3 className="matrix-title">Project Subcontractor & Milestone Valuation Matrix</h3>
+              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#64748b' }}>
+                Cross-sectional breakdown of construction milestones, allocated trade subcontractors, verified valuations, and defect retentions.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <select
+                value={filterProject}
+                onChange={(e) => {
+                  setFilterProject(e.target.value)
+                  loadMatrix(e.target.value)
+                }}
+                style={{
+                  padding: '0.45rem 0.75rem',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.875rem',
+                  background: '#ffffff',
+                }}
+              >
+                <option value="">Select Project for Matrix...</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="action-btn"
+                onClick={() => loadMatrix()}
+                disabled={matrixLoading}
+                title="Refresh Matrix"
+              >
+                <MdRefresh /> Refresh
+              </button>
+            </div>
+          </div>
+
+          {matrixLoading ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+              Loading project subcontractor matrix...
+            </div>
+          ) : !matrixData ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+              Please select a project to display the subcontractor milestone matrix.
+            </div>
+          ) : (
+            <div>
+              {/* Matrix Top Summary KPI */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '1rem',
+                  padding: '1.25rem',
+                  background: '#f8fafc',
+                  borderBottom: '1px solid #e2e8f0',
+                }}
+              >
+                <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
+                    Total Milestones
+                  </div>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 700, color: '#0f172a' }}>
+                    {matrixData.summary.total_milestones}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                    {matrixData.summary.total_subcontractors} Trade Subcontractors
+                  </div>
+                </div>
+
+                <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
+                    Allocated Subcontractor Sum
+                  </div>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 700, color: '#2563eb' }}>
+                    {formatCurrency(matrixData.summary.total_allocated_sum)}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Committed trade packages</div>
+                </div>
+
+                <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
+                    Certified Gross Work
+                  </div>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 700, color: '#059669' }}>
+                    {formatCurrency(matrixData.summary.total_certified_gross)}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                    {matrixData.summary.total_allocated_sum > 0
+                      ? `${Math.round((matrixData.summary.total_certified_gross / matrixData.summary.total_allocated_sum) * 100)}% of allocated`
+                      : '0%'}
+                  </div>
+                </div>
+
+                <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
+                    Retention Held (5% Defect Pool)
+                  </div>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 700, color: '#d97706' }}>
+                    {formatCurrency(matrixData.summary.total_retention_held)}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Warranty reserve</div>
+                </div>
+              </div>
+
+              {/* Matrix Table */}
+              <div style={{ overflowX: 'auto' }}>
+                <table className="matrix-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '25%' }}>Milestone Work Package</th>
+                      <th style={{ width: '15%' }}>Progress & Status</th>
+                      <th style={{ width: '40%' }}>Allocated Subcontractors & Packages</th>
+                      <th style={{ width: '20%' }}>Valuation Totals</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {matrixData.milestones.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+                          No milestones configured for this project.
+                        </td>
+                      </tr>
+                    ) : (
+                      matrixData.milestones.map((m) => (
+                        <tr key={m.milestone_id} className="matrix-milestone-row">
+                          <td>
+                            <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem' }}>
+                              #{m.milestone_order} — {m.milestone_name}
+                            </div>
+                            {m.milestone_code && (
+                              <div style={{ fontSize: '0.75rem', color: '#64748b', fontFamily: 'monospace' }}>
+                                Code: {m.milestone_code}
+                              </div>
+                            )}
+                            {m.target_date && (
+                              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
+                                Target: {m.target_date}
+                              </div>
+                            )}
+                          </td>
+
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                              <div style={{ flex: 1, background: '#e2e8f0', borderRadius: '999px', height: '6px', overflow: 'hidden' }}>
+                                <div
+                                  style={{
+                                    width: `${Math.min(100, m.completion_percentage)}%`,
+                                    background: m.completion_percentage >= 100 ? '#16a34a' : '#2563eb',
+                                    height: '100%',
+                                  }}
+                                />
+                              </div>
+                              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{m.completion_percentage}%</span>
+                            </div>
+                            <span className={`pill ${m.status}`}>{m.status.replace('_', ' ')}</span>
+                          </td>
+
+                          <td>
+                            {m.allocated_subcontractors.length === 0 ? (
+                              <div style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '0.85rem' }}>
+                                No subcontractor packages allocated yet.
+                              </div>
+                            ) : (
+                              m.allocated_subcontractors.map((sub) => (
+                                <div key={sub.contract_milestone_id} className="subcontractor-nested-card">
+                                  <div>
+                                    <div style={{ fontWeight: 600, color: '#0f172a' }}>{sub.subcontractor_name}</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                      <span style={{ textTransform: 'capitalize' }}>{sub.trade_category}</span>
+                                      <span>•</span>
+                                      <span style={{ fontFamily: 'monospace' }}>{sub.contract_number}</span>
+                                    </div>
+                                  </div>
+
+                                  <div style={{ textAlign: 'right' }}>
+                                    <div style={{ fontWeight: 600, color: '#2563eb' }}>
+                                      {formatCurrency(sub.allocated_amount)}
+                                      {sub.weight_percentage && (
+                                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 'normal' }}>
+                                          {' '}
+                                          ({sub.weight_percentage}%)
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600 }}>
+                                      Cert: {formatCurrency(sub.certified_amount)} ({sub.percentage_certified}%)
+                                    </div>
+                                    {sub.certificates_count > 0 && (
+                                      <div style={{ fontSize: '0.7rem', color: '#64748b' }}>
+                                        {sub.certificates_count} IPC{sub.certificates_count > 1 ? 's' : ''} issued
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </td>
+
+                          <td>
+                            <div style={{ background: '#f8fafc', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.25rem' }}>
+                                <span style={{ color: '#64748b' }}>Allocated:</span>
+                                <strong>{formatCurrency(m.totals.allocated_sum)}</strong>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.25rem' }}>
+                                <span style={{ color: '#64748b' }}>Certified:</span>
+                                <strong style={{ color: '#059669' }}>{formatCurrency(m.totals.certified_amount)}</strong>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                                <span style={{ color: '#64748b' }}>Paid:</span>
+                                <strong style={{ color: '#0284c7' }}>{formatCurrency(m.totals.paid_amount)}</strong>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MODAL: GENERATE SUBCONTRACTOR IPC DIRECTLY FROM MILESTONE VERIFICATION (Phase 8 Day 3) */}
+      {showSubcontractorIpcModal && selectedVerification && (
+        <div className="modal-overlay">
+          <div className="modal-dialog" style={{ maxWidth: '640px' }}>
+            <div className="modal-header-row">
+              <div>
+                <h3 style={{ margin: 0 }}>Issue Subcontractor Interim Payment Certificate</h3>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                  Linked to Verification {selectedVerification.verification_number} ({selectedVerification.milestone?.milestone_name})
+                </span>
+              </div>
+              <button
+                onClick={() => setShowSubcontractorIpcModal(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem' }}
+              >
+                <MdClose />
+              </button>
+            </div>
+
+            <form onSubmit={handleGenerateSubcontractorIpc}>
+              <div className="form-group">
+                <label>Subcontractor Contract *</label>
+                {contractsList.length === 0 ? (
+                  <div style={{ color: '#dc2626', fontSize: '0.85rem', padding: '0.5rem', background: '#fef2f2', borderRadius: '6px' }}>
+                    No active subcontractor contracts found for this project. Please create or activate a contract under the Contracts module first.
+                  </div>
+                ) : (
+                  <select
+                    required
+                    value={selectedContractId}
+                    onChange={(e) => setSelectedContractId(e.target.value)}
+                  >
+                    <option value="">Select Subcontractor Contract...</option>
+                    {contractsList.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.contract_number} — {c.subcontractor_name} ({c.trade_category}) [{formatCurrency(c.contract_sum, c.currency)}]
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div className="form-group">
+                  <label>Gross Valuation Amount (USD) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    required
+                    value={ipcGrossAmount}
+                    onChange={(e) => setIpcGrossAmount(parseFloat(e.target.value) || 0)}
+                  />
+                  <small style={{ color: '#64748b', fontSize: '0.75rem' }}>
+                    QS Certified: {formatCurrency(selectedVerification.qs_certified_amount)}
+                  </small>
+                </div>
+
+                <div className="form-group">
+                  <label>Materials On Site (USD)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={ipcMaterialsAmount}
+                    onChange={(e) => setIpcMaterialsAmount(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div className="form-group">
+                  <label>Valuation Period Start</label>
+                  <input
+                    type="date"
+                    value={ipcPeriodStart}
+                    onChange={(e) => setIpcPeriodStart(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Valuation Period End</label>
+                  <input
+                    type="date"
+                    value={ipcPeriodEnd}
+                    onChange={(e) => setIpcPeriodEnd(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Other Deductions (USD)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={ipcOtherDeductions}
+                  onChange={(e) => setIpcOtherDeductions(parseFloat(e.target.value) || 0)}
+                  placeholder="e.g. advance recoupment or penalties"
+                />
+              </div>
+
+              {/* Auto-Calculated Valuation & Statutory Deductions Preview */}
+              <div className="ipc-calc-preview">
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                  Certificate Calculation & Statutory Deductions
+                </div>
+                <div className="ipc-calc-row">
+                  <span>Gross Valuation Work Executed:</span>
+                  <strong>{formatCurrency(ipcGrossAmount)}</strong>
+                </div>
+                <div className="ipc-calc-row" style={{ color: '#d97706' }}>
+                  <span>Less: 5% Defect Liability Retention:</span>
+                  <strong>- {formatCurrency(ipcGrossAmount * 0.05)}</strong>
+                </div>
+                <div className="ipc-calc-row" style={{ color: '#475569' }}>
+                  <span>Less: 6% Statutory Uganda Revenue Authority (URA) WHT:</span>
+                  <strong>- {formatCurrency(ipcGrossAmount * 0.06)}</strong>
+                </div>
+                {ipcOtherDeductions > 0 && (
+                  <div className="ipc-calc-row" style={{ color: '#dc2626' }}>
+                    <span>Less: Other Deductions / Contra Charges:</span>
+                    <strong>- {formatCurrency(ipcOtherDeductions)}</strong>
+                  </div>
+                )}
+                <div className="ipc-calc-row total" style={{ color: '#16a34a' }}>
+                  <span>Net Interim Payment Payable to Subcontractor:</span>
+                  <strong>
+                    {formatCurrency(
+                      Math.max(
+                        0,
+                        ipcGrossAmount -
+                          ipcGrossAmount * 0.05 -
+                          ipcGrossAmount * 0.06 -
+                          ipcOtherDeductions
+                      )
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Valuation & Measurement Notes</label>
+                <textarea
+                  rows={2}
+                  value={ipcSummary}
+                  onChange={(e) => setIpcSummary(e.target.value)}
+                  placeholder="Reference measurement sheet, QS valuation report, and specific work package items..."
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.25rem' }}>
+                <button
+                  type="button"
+                  className="action-btn"
+                  onClick={() => setShowSubcontractorIpcModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="action-btn primary"
+                  disabled={submitting || contractsList.length === 0}
+                  style={{ backgroundColor: '#0284c7' }}
+                >
+                  {submitting ? 'Generating...' : 'Confirm & Generate IPC'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

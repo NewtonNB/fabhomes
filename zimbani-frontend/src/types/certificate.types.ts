@@ -56,12 +56,20 @@ export interface PaymentCertificate {
   paid_by?: number | null
   payment_reference?: string | null
   rejection_reason?: string | null
+  // Milestone Valuation Linkages (Phase 8 Day 3)
+  milestone_id?: number | null
+  milestone_verification_id?: number | null
+  physical_completion_percentage?: number | null
+  boq_compliance_status?: string | null
+  qs_valuation_reference?: string | null
 
   created_by?: number
   created_at: string
   updated_at: string
 
   // Relationships
+  milestone?: any
+  milestone_verification?: any
   contract?: SubcontractorContract
   project?: ContractRefProject
   site?: ContractRefSite

@@ -19,6 +19,11 @@ class PaymentCertificate extends Model
         'contract_id',
         'project_id',
         'site_id',
+        'milestone_id',
+        'milestone_verification_id',
+        'physical_completion_percentage',
+        'boq_compliance_status',
+        'qs_valuation_reference',
         'valuation_period_start',
         'valuation_period_end',
         'valuation_date',
@@ -65,6 +70,7 @@ class PaymentCertificate extends Model
         'withholding_tax_amount' => 'decimal:2',
         'other_deductions' => 'decimal:2',
         'net_certified_amount' => 'decimal:2',
+        'physical_completion_percentage' => 'decimal:2',
         'valuation_period_start' => 'date',
         'valuation_period_end' => 'date',
         'valuation_date' => 'date',
@@ -169,6 +175,16 @@ class PaymentCertificate extends Model
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
+    }
+
+    public function milestone(): BelongsTo
+    {
+        return $this->belongsTo(ConstructionMilestone::class, 'milestone_id');
+    }
+
+    public function milestoneVerification(): BelongsTo
+    {
+        return $this->belongsTo(MilestoneVerification::class, 'milestone_verification_id');
     }
 
     public function siteManager(): BelongsTo

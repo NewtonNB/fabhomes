@@ -36,6 +36,7 @@ use App\Http\Controllers\Api\FinancialReportController;
 use App\Http\Controllers\Api\MilestoneVerificationController;
 use App\Http\Controllers\Api\MilestonePaymentReleaseController;
 use App\Http\Controllers\Api\ClientPortalMilestoneController;
+use App\Http\Controllers\Api\SubcontractorMilestoneValuationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -270,6 +271,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/verifications/{uuid}/photos', [ClientPortalMilestoneController::class, 'uploadPhoto']);
         Route::post('/photos/{uuid}/flag', [ClientPortalMilestoneController::class, 'flagPhoto']);
     });
+
+    // Subcontractor Milestone Valuation & Interim Payment Linkages (Phase 8 Day 3)
+    Route::get('/subcontractor-contracts/{contract}/milestones', [SubcontractorMilestoneValuationController::class, 'getContractMilestones']);
+    Route::post('/subcontractor-contracts/{contract}/milestones', [SubcontractorMilestoneValuationController::class, 'allocateMilestones']);
+    Route::get('/subcontractor-contracts/{contract}/milestone-progress', [SubcontractorMilestoneValuationController::class, 'getContractMilestoneProgress']);
+    Route::post('/subcontractor-contracts/{contract}/retention-release-certificate', [SubcontractorMilestoneValuationController::class, 'generateRetentionReleaseCertificate']);
+    Route::post('/milestone-verifications/{uuid}/generate-subcontractor-certificate', [SubcontractorMilestoneValuationController::class, 'generateCertificateFromMilestone']);
+    Route::get('/projects/{project}/milestone-subcontractor-matrix', [SubcontractorMilestoneValuationController::class, 'getProjectMilestoneSubcontractorMatrix']);
 
     // Admin: User Management routes (stricter rate limit)
     Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
