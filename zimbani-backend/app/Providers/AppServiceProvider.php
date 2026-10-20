@@ -91,6 +91,7 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\RetentionFund::class => \App\Policies\RetentionFundPolicy::class,
         \App\Models\DefectLiabilityCertificate::class => \App\Policies\DefectLiabilityCertificatePolicy::class,
         \App\Models\ConstructionSavingScheme::class => \App\Policies\ConstructionSavingSchemePolicy::class,
+        \App\Models\MobileMoneyTransaction::class => \App\Policies\MobileMoneyTransactionPolicy::class,
     ];
 
     /**

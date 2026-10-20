@@ -42,6 +42,7 @@ use App\Http\Controllers\Api\AutomatedMilestoneTriggerController;
 use App\Http\Controllers\Api\RetentionFundController;
 use App\Http\Controllers\Api\DefectLiabilityCertificateController;
 use App\Http\Controllers\Api\ConstructionSavingSchemeController;
+use App\Http\Controllers\Api\MobileMoneyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -70,6 +71,9 @@ Route::prefix('v1')->group(function () {
     
     Route::post('/password/reset', [AuthController::class, 'resetPassword'])
         ->middleware('throttle:3,1'); // 3 attempts per minute
+
+    // Mobile Money Public Webhook IPN Callback (Phase 9 Day 2)
+    Route::post('/mobile-money/webhook/{provider}', [MobileMoneyController::class, 'handleWebhook']);
 });
 
 // Protected routes (require authentication)
@@ -208,6 +212,18 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/savings-accounts/{savingsAccount}/rebalance-pools', [ConstructionSavingSchemeController::class, 'rebalancePools']);
     Route::post('/milestone-pools/{poolUuid}/lock', [ConstructionSavingSchemeController::class, 'lockPool']);
     Route::get('/savings-accounts/{savingsAccount}/scheme-readiness', [ConstructionSavingSchemeController::class, 'getAccountReadiness']);
+
+    // Mobile Money & Automated Gateway Disbursements (Phase 9 Day 2)
+    Route::prefix('mobile-money')->group(function () {
+        Route::get('/statistics', [MobileMoneyController::class, 'statistics']);
+        Route::get('/transactions', [MobileMoneyController::class, 'index']);
+        Route::get('/transactions/{uuid}', [MobileMoneyController::class, 'show']);
+        Route::post('/stk-push', [MobileMoneyController::class, 'initiateStkPush']);
+        Route::post('/disburse', [MobileMoneyController::class, 'disburse']);
+        Route::post('/simulate-callback', [MobileMoneyController::class, 'simulateCallback']);
+        Route::get('/webhook-logs', [MobileMoneyController::class, 'webhookLogs']);
+        Route::get('/gateways', [MobileMoneyController::class, 'gateways']);
+    });
 
     // Financial Transactions & Immutable Ledger
     Route::get('/transactions', [TransactionController::class, 'index']);

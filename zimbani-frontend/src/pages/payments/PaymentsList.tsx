@@ -14,9 +14,11 @@ import {
 } from 'react-icons/md'
 import { paymentService } from '../../services/payment.service'
 import { Payment, PaymentStatistics } from '../../types/payment.types'
+import { MobileMoneyConsoleTab } from './components/MobileMoneyConsoleTab'
 import './PaymentsList.css'
 
 const PaymentsList: React.FC = () => {
+  const [mainTab, setMainTab] = useState<'standard' | 'mobile_money'>('standard')
   const [payments, setPayments] = useState<Payment[]>([])
   const [statistics, setStatistics] = useState<PaymentStatistics | null>(null)
   const [loading, setLoading] = useState(true)
@@ -248,8 +250,62 @@ const PaymentsList: React.FC = () => {
         </div>
       </div>
 
-      {/* Resilient KPI Stats Header */}
-      <div className="payments-stats">
+      {/* Module Switcher Tabs */}
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '24px', borderBottom: '2px solid #e2e8f0' }}>
+        <button
+          onClick={() => setMainTab('standard')}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '12px 6px',
+            fontSize: '15px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            color: mainTab === 'standard' ? '#2563eb' : '#64748b',
+            borderBottom: mainTab === 'standard' ? '2px solid #2563eb' : '2px solid transparent',
+            marginBottom: '-2px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <MdReceipt size={18} />
+          Standard Collections & Invoices
+        </button>
+
+        <button
+          onClick={() => setMainTab('mobile_money')}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '12px 6px',
+            fontSize: '15px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            color: mainTab === 'mobile_money' ? '#2563eb' : '#64748b',
+            borderBottom: mainTab === 'mobile_money' ? '2px solid #2563eb' : '2px solid transparent',
+            marginBottom: '-2px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <span>📱</span>
+          Mobile Money Console (MTN & Airtel)
+        </button>
+      </div>
+
+      {mainTab === 'mobile_money' ? (
+        <MobileMoneyConsoleTab
+          onRefreshParent={() => {
+            fetchPayments(true)
+            fetchStatistics()
+          }}
+        />
+      ) : (
+        <>
+          {/* Resilient KPI Stats Header */}
+          <div className="payments-stats">
         <div className="stat-card total">
           <div className="stat-icon-wrapper">
             <MdReceipt />
@@ -553,6 +609,8 @@ const PaymentsList: React.FC = () => {
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   )
 }
