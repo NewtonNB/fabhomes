@@ -499,3 +499,69 @@
   font-weight: 600;
 }
 
+/* Retention & Defect Liability Specific Styles */
+.retention-funds-tab-container {
+  width: 100%;
+}
+
+.pill.accumulating { background: #eff6ff; color: #1d4ed8; }
+.pill.dlp_active { background: #fef3c7; color: #b45309; }
+.pill.eligible_for_release { background: #dcfce7; color: #15803d; }
+.pill.partially_released { background: #f3e8ff; color: #7e22ce; }
+.pill.fully_released { background: #ecfdf5; color: #047857; }
+
+.pill.practical_completion { background: #eff6ff; color: #1d4ed8; }
+.pill.defect_clearance { background: #ecfdf5; color: #047857; }
+.pill.final_handover { background: #f0fdf4; color: #15803d; }
+.pill.retention_release { background: #fef3c7; color: #b45309; }
+
+.pill.subcontractor_contract { background: #f1f5f9; color: #334155; }
+.pill.client_milestone { background: #e0f2fe; color: #0369a1; }
+.pill.general_project { background: #f3f4f6; color: #4b5563; }
+
+.pill.withholding { background: #eff6ff; color: #2563eb; }
+.pill.rectification_deduction { background: #fef2f2; color: #dc2626; }
+.pill.interim_release { background: #f3e8ff; color: #7c3aed; }
+.pill.final_release { background: #ecfdf5; color: #059669; }
+
+.pill.pending_signatures { background: #fef3c7; color: #b45309; }
+.pill.issued { background: #dcfce7; color: #15803d; }
+.pill.revoked { background: #fef2f2; color: #dc2626; }
+
+.action-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.action-icon-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.action-icon-btn.blue { color: #2563eb; border-color: #bfdbfe; background: #eff6ff; }
+.action-icon-btn.blue:hover { background: #dbeafe; }
+
+.action-icon-btn.green { color: #059669; border-color: #a7f3d0; background: #ecfdf5; }
+.action-icon-btn.green:hover { background: #d1fae5; }
+
+.action-icon-btn.amber { color: #d97706; border-color: #fde68a; background: #fffbeb; }
+.action-icon-btn.amber:hover { background: #fef3c7; }
+
+.action-icon-btn.red { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
+.action-icon-btn.red:hover { background: #fee2e2; }
+
+.action-icon-btn.purple { color: #7c3aed; border-color: #ddd6fe; background: #f5f3ff; }
+.action-icon-btn.purple:hover { background: #ede9fe; }
+
+.action-icon-btn.gray { color: #64748b; border-color: #e2e8f0; background: #f8fafc; }
+.action-icon-btn.gray:hover { background: #f1f5f9; color: #1e293b; }
+

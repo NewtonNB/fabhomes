@@ -34,6 +34,7 @@ class PaymentCertificate extends Model
         'materials_on_site_value',
         'retention_rate',
         'retention_deducted',
+        'retention_released_at',
         'withholding_tax_rate',
         'withholding_tax_amount',
         'other_deductions',
@@ -78,6 +79,7 @@ class PaymentCertificate extends Model
         'finance_officer_approved_at' => 'datetime',
         'admin_authorized_at' => 'datetime',
         'paid_at' => 'datetime',
+        'retention_released_at' => 'datetime',
     ];
 
     protected static function booted()
@@ -185,6 +187,11 @@ class PaymentCertificate extends Model
     public function milestoneVerification(): BelongsTo
     {
         return $this->belongsTo(MilestoneVerification::class, 'milestone_verification_id');
+    }
+
+    public function retentionTransactions(): HasMany
+    {
+        return $this->hasMany(RetentionTransaction::class, 'payment_certificate_id');
     }
 
     public function siteManager(): BelongsTo

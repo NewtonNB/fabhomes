@@ -27,6 +27,7 @@ import contractService from '../../services/contract.service'
 import projectService from '../../services/project.service'
 import unitService from '../../services/unit.service'
 import EscrowReconciliationTab from './components/EscrowReconciliationTab'
+import RetentionFundsTab from './components/RetentionFundsTab'
 import api from '../../config/api'
 import {
   MilestoneVerification,
@@ -53,7 +54,7 @@ interface MilestoneOption {
 
 export const MilestoneReleasesList: React.FC = () => {
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'verifications' | 'releases' | 'matrix' | 'escrow'>('verifications')
+  const [activeTab, setActiveTab] = useState<'verifications' | 'releases' | 'matrix' | 'escrow' | 'retention'>('verifications')
 
   // Data states
   const [verifications, setVerifications] = useState<MilestoneVerification[]>([])
@@ -769,10 +770,16 @@ export const MilestoneReleasesList: React.FC = () => {
         >
           <MdAccountBalance /> Escrow Reconciliation & Triggers
         </button>
+        <button
+          className={`releases-tab-btn ${activeTab === 'retention' ? 'active' : ''}`}
+          onClick={() => setActiveTab('retention')}
+        >
+          <MdShield /> Retention & Defect Warranty
+        </button>
       </div>
 
       {/* Toolbar / Filters - only shown for verifications, releases, and matrix tabs */}
-      {activeTab !== 'escrow' && (
+      {activeTab !== 'escrow' && activeTab !== 'retention' && (
         <div className="releases-toolbar">
           <div className="releases-search-box">
             <MdSearch style={{ color: '#94a3b8', fontSize: '1.2rem' }} />
@@ -1536,13 +1543,21 @@ export const MilestoneReleasesList: React.FC = () => {
             </div>
           )}
         </div>
-      ) : (
+      ) : activeTab === 'escrow' ? (
         /* TAB 4: ESCROW ACCOUNT RECONCILIATION & AUTOMATED MILESTONE TRIGGERS (Phase 8 Day 4) */
         <EscrowReconciliationTab
           projects={projects}
           filterProject={filterProject}
           formatCurrency={formatCurrency}
           onVerificationTriggered={refreshAll}
+        />
+      ) : (
+        /* TAB 5: RETENTION FUND ACCOUNTING & DEFECT LIABILITY WARRANTY HANDOVER (Phase 8 Day 5) */
+        <RetentionFundsTab
+          projects={projects}
+          filterProject={filterProject}
+          formatCurrency={formatCurrency}
+          onFundUpdated={refreshAll}
         />
       )}
 

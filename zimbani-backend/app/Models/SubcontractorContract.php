@@ -170,6 +170,16 @@ class SubcontractorContract extends Model
             ->withTimestamps();
     }
 
+    public function retentionFunds(): HasMany
+    {
+        return $this->hasMany(RetentionFund::class, 'contract_id');
+    }
+
+    public function defectLiabilityCertificates(): HasMany
+    {
+        return $this->hasMany(DefectLiabilityCertificate::class, 'contract_id');
+    }
+
     public function documents(): MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');

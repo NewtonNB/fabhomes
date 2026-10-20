@@ -39,6 +39,8 @@ use App\Http\Controllers\Api\ClientPortalMilestoneController;
 use App\Http\Controllers\Api\SubcontractorMilestoneValuationController;
 use App\Http\Controllers\Api\EscrowReconciliationController;
 use App\Http\Controllers\Api\AutomatedMilestoneTriggerController;
+use App\Http\Controllers\Api\RetentionFundController;
+use App\Http\Controllers\Api\DefectLiabilityCertificateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -298,6 +300,27 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/bulk-evaluate', [AutomatedMilestoneTriggerController::class, 'bulkEvaluate']);
         Route::get('/shortfall-alerts', [AutomatedMilestoneTriggerController::class, 'shortfallAlerts']);
         Route::get('/logs', [AutomatedMilestoneTriggerController::class, 'logs']);
+    });
+
+    // Retention Fund Accounting & Defect Liability Warranty Handover (Phase 8 Day 5)
+    Route::prefix('retention-funds')->group(function () {
+        Route::get('/statistics', [RetentionFundController::class, 'statistics']);
+        Route::get('/', [RetentionFundController::class, 'index']);
+        Route::get('/{uuid}', [RetentionFundController::class, 'show']);
+        Route::get('/{uuid}/maturity-schedule', [RetentionFundController::class, 'maturitySchedule']);
+        Route::post('/{uuid}/rectification-deduction', [RetentionFundController::class, 'rectificationDeduction']);
+        Route::post('/{uuid}/release', [RetentionFundController::class, 'release']);
+        Route::post('/{uuid}/start-dlp', [RetentionFundController::class, 'startDlp']);
+    });
+
+    Route::prefix('defect-certificates')->group(function () {
+        Route::get('/', [DefectLiabilityCertificateController::class, 'index']);
+        Route::post('/', [DefectLiabilityCertificateController::class, 'store']);
+        Route::get('/{uuid}', [DefectLiabilityCertificateController::class, 'show']);
+        Route::get('/{uuid}/snags-check', [DefectLiabilityCertificateController::class, 'snagsCheck']);
+        Route::post('/{uuid}/sign-engineer', [DefectLiabilityCertificateController::class, 'signEngineer']);
+        Route::post('/{uuid}/sign-qs', [DefectLiabilityCertificateController::class, 'signQs']);
+        Route::post('/{uuid}/sign-client', [DefectLiabilityCertificateController::class, 'signClient']);
     });
 
     // Admin: User Management routes (stricter rate limit)

@@ -178,6 +178,11 @@ class MilestonePaymentRelease extends Model
         return $this->belongsTo(User::class, 'retention_released_by');
     }
 
+    public function retentionTransactions(): HasMany
+    {
+        return $this->hasMany(RetentionTransaction::class, 'milestone_payment_release_id');
+    }
+
     public function transaction(): BelongsTo
     {
         return $this->belongsTo(Transaction::class, 'transaction_id');

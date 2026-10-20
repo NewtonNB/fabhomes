@@ -38,12 +38,15 @@ class PunchListItem extends Model
         'verified_by',
         'verified_at',
         'verification_notes',
+        'defect_liability_certificate_id',
+        'is_dlp_defect',
     ];
 
     protected $casts = [
         'due_date' => 'date',
         'rectified_at' => 'datetime',
         'verified_at' => 'datetime',
+        'is_dlp_defect' => 'boolean',
     ];
 
     /**
@@ -108,6 +111,11 @@ class PunchListItem extends Model
     public function task(): BelongsTo
     {
         return $this->belongsTo(Task::class, 'task_id');
+    }
+
+    public function defectLiabilityCertificate(): BelongsTo
+    {
+        return $this->belongsTo(DefectLiabilityCertificate::class, 'defect_liability_certificate_id');
     }
 
     public function assignedUser(): BelongsTo

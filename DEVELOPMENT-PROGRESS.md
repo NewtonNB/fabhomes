@@ -2538,21 +2538,89 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+### Phase 8 Day 5: Retention Fund Accounting & Defect Liability Warranty Handover ✅ (Oct 20, 2026)
+
+- **Database Architecture & Schema Migration:**
+  - Created migration `2026_10_20_054954_create_retention_funds_and_defect_liability_tables.php`:
+    - `retention_funds`: Hybrid primary key (`id` bigint + `uuid` char(36)), unique `fund_number` (format `RET-YYYYMM-XXXX`), `project_id`, `unit_id`, `contract_id`, `client_id`, `beneficiary_type` (`subcontractor`, `developer`, `client`), `beneficiary_name`, `fund_type` (`subcontractor_contract`, `client_milestone`, `general_project`), `total_withheld_amount`, `total_deductions_amount`, `total_released_amount`, `current_balance`, `currency`, `retention_rate` (default 5.00%), `status` (`accumulating`, `dlp_active`, `eligible_for_release`, `partially_released`, `fully_released`), `practical_completion_date`, `dlp_commenced_at`, `dlp_expiry_date`, `dlp_period_days` (default 180), `eligible_for_release`, `cleared_for_release_at`, `cleared_by`, `notes`, `deleted_at`.
+    - `defect_liability_certificates`: Hybrid primary key, `certificate_number` (`PCC-YYYYMM-XXXX`, `DCC-YYYYMM-XXXX`, `DLC-YYYYMM-XXXX`, `HND-YYYYMM-XXXX`), `certificate_type` (`practical_completion`, `defect_clearance`, `final_handover`, `retention_release`), `project_id`, `unit_id`, `contract_id`, `client_id`, `retention_fund_id`, `commencement_date`, `maturity_date`, `retention_pool_amount`, `deductions_amount`, `net_release_amount`, `currency`, `open_snags_count`, `resolved_snags_count`, `qs_signed_by`, `qs_signed_at`, `engineer_signed_by`, `engineer_signed_at`, `client_signed_at`, `status` (`draft`, `pending_signatures`, `issued`, `revoked`), `inspection_notes`, `certificate_notes`.
+    - `retention_transactions`: Immutable transaction ledger (`withholding`, `rectification_deduction`, `interim_release`, `final_release`), `amount`, `balance_before`, `balance_after`, `reference_number`, `description`, `processed_by`, `processed_at`.
+    - Altered `punch_list_items`: Added foreign key `defect_liability_certificate_id` and boolean `is_dlp_defect`.
+    - Altered `payment_certificates`: Added timestamp `retention_released_at`.
+
+- **Eloquent Models & Relationships:**
+  - `RetentionFund.php`: Auto-generating fund number, computed accessors (`days_remaining_in_dlp`, `is_dlp_matured`, `release_rate_percentage`), relationships to `Project`, `Unit`, `SubcontractorContract`, `Client`, `clearedByUser`, `transactions`, `certificates`.
+  - `DefectLiabilityCertificate.php`: Auto-generating certificate number by type, accessors for signature completeness, relationships to `Project`, `SubcontractorContract`, `RetentionFund`, `PunchListItem`, `RetentionTransaction`, `qsUser`, `engineerUser`.
+  - `RetentionTransaction.php`: Immutable fund transaction model.
+  - Enhanced `SubcontractorContract.php`, `PaymentCertificate.php`, `MilestonePaymentRelease.php`, and `PunchListItem.php` with reverse relationships and DLP accessors.
+
+- **Backend Business Logic Services:**
+  - `RetentionFundService.php`:
+    - `getOrCreateFundForContract`: Resolves or creates contractor retention fund account.
+    - `recordRetentionWithheld`: Multi-tier withholding from interim payment certificates and client milestone releases.
+    - `recordRectificationDeduction`: Deducts 3rd-party defect repair charges from contractor retention pool with immutable ledger entry.
+    - `startDefectLiabilityPeriod`: Initiates warranty period, computes maturity date based on FIDIC duration (180 days default).
+    - `evaluateDlpAndSnagClearance`: Verifies DLP maturity and evaluates punch-list clearance.
+    - `releaseRetention`: Executes interim or final retention release disbursements with double-entry ledger integration (`Transaction::record`).
+    - `getPortfolioStatistics`: Computes total pool withheld, deductions, active reserves held, total released, and release rate %.
+  - `DefectLiabilityCertificateService.php`:
+    - `issuePracticalCompletionCertificate`: Issues PCC, commences DLP warranty, and handles optional FIDIC 50% interim retention release.
+    - `conductSnagAudit`: Evaluates open vs closed punch-list items for contract or unit.
+    - `issueDefectClearanceCertificate`: Strictly verifies punch-list status; throws `InvalidArgumentException` if any open or unverified snags remain.
+    - `issueFinalRetentionReleaseCertificate`: Issues final DLC and releases remaining 100% retention balance.
+    - `signCertificate`: Tripartite digital signature workflows (Engineer, QS, Client).
+
+- **RESTful API Controllers & Authorization Policies:**
+  - `RetentionFundController.php` & `DefectLiabilityCertificateController.php` with complete input validation and policy authorization.
+  - `RetentionFundPolicy.php` & `DefectLiabilityCertificatePolicy.php` registered in `AppServiceProvider.php`.
+  - 14 API routes registered in `routes/api.php` under `/api/v1/retention-funds/*` and `/api/v1/defect-certificates/*`.
+  - Verification test suite: All 12 automated business assertions passed successfully.
+
+- **React 19 + TypeScript Frontend Console:**
+  - `retention-fund.types.ts`: Comprehensive TypeScript interfaces, payloads, filter types, and enum unions.
+  - `retention-fund.service.ts`: API service with Axios calls for statistics, funds, certificates, deductions, releases, and digital signatures.
+  - `RetentionFundsTab.tsx`:
+    - Portfolio KPI Summary Cards: Total Retention Withheld, Active Retention Held, Rectification Deductions, Total Retention Released with release rate %.
+    - Sub-view 1 (Retention Funds & DLP Schedule): Table showing fund number, beneficiary/trade, project, withheld amount, deductions, released amount, current balance, DLP countdown timer badge ("124 days left" or "Matured"), snag clearance status, and action buttons.
+    - Sub-view 2 (Defect Certificates & Punch-list Audit): Table showing certificate #, type (PCC, DCC, Final Release, Handover), contractor, retention pool, deductions, net release, open vs resolved snag counts, tripartite signature badges, and action buttons.
+    - Modal 1 (Issue Practical Completion Certificate): FIDIC 180-day DLP commencement with optional 50% interim release.
+    - Modal 2 (Record Rectification Deduction): Third-party defect rectification charge deduction from contractor pool.
+    - Modal 3 (Defect Clearance Certificate & Snag Audit): Live snag check blocking issuance if any open punch-list items remain.
+    - Modal 4 (Disburse Retention Payout): Interim or final retention release with ledger disbursement reference.
+    - Modal 5 (Retention Fund Transaction Ledger History): Full transaction audit trail with balance before/after.
+    - Modal 6 (Defect Certificate Detail Modal): Complete certificate breakdown with tripartite signature tracking.
+  - `MilestoneReleasesList.tsx`:
+    - Added Tab 5: "Retention & Defect Warranty" (`<MdShield />`).
+  - `MilestoneReleases.css`:
+    - Added styling for retention status pills, certificate type pills, transaction pills, and action icon buttons.
+- Build Verification: Clean `npm run build` compilation with 0 TypeScript errors (built in 11.91s).
+
+---
+
 ## 🎯 Next Development Focus
 
-**Phase 8: Milestone-Based Payment Releases & Construction Verification**
+**Phase 8: Milestone-Based Payment Releases & Construction Verification (100% COMPLETE)**
 1. ✅ **Day 1**: Milestone-Based Payment Releases & Physical Construction Verification (COMPLETED)
 2. ✅ **Day 2**: Client Portal Milestone Payment Authorisations & Progress Photo Verification (COMPLETED)
 3. ✅ **Day 3**: Subcontractor Milestone Valuation & Interim Payment Linkages (COMPLETED)
 4. ✅ **Day 4**: Escrow Account Reconciliation & Automated Milestone Triggers (COMPLETED)
-5. ⏳ **Day 5**: Retention Fund Accounting & Defect Liability Warranty Handover (NEXT)
+5. ✅ **Day 5**: Retention Fund Accounting & Defect Liability Warranty Handover (COMPLETED)
 
 ---
 
-**Last Updated:** October 19, 2026  
+**Phase 9: Construction Saving Schemes, Mobile Money & Offline PWA Sync**
+1. ⏳ **Day 1**: Construction Saving Scheme & Tiered Milestone Savings Pools (NEXT)
+2. ⏳ **Day 2**: Mobile Money & Automated Gateway Disbursements
+3. ⏳ **Day 3**: Offline Site Synchronization & Progressive Web App (PWA) Walk-through Audits
+4. ⏳ **Day 4**: Multi-Currency FX Hedging & Construction Material Escalation Indexing
+5. ⏳ **Day 5**: Capstone Project Handover & End-to-End Financial Settlement Verification
+
+---
+
+**Last Updated:** October 20, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 8 Day 4 Complete
+**Latest Commit:** Phase 8 Complete (Days 1 - 5)
 
 
 
