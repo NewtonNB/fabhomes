@@ -14,12 +14,15 @@ import {
   MdVisibility,
   MdAttachMoney,
   MdClose,
+  MdConstruction,
 } from 'react-icons/md'
 import {
   SavingsAccount,
   SavingsAccountStatistics,
 } from '../../types/savings-account.types'
 import savingsAccountService from '../../services/savings-account.service'
+import constructionSavingSchemeService from '../../services/construction-scheme.service'
+import { ConstructionSavingScheme } from '../../types/construction-scheme.types'
 import './SavingsAccountsList.css'
 
 export const SavingsAccountsList: React.FC = () => {
@@ -59,6 +62,29 @@ export const SavingsAccountsList: React.FC = () => {
   const [closeModalOpen, setCloseModalOpen] = useState<boolean>(false)
   const [closeTarget, setCloseTarget] = useState<SavingsAccount | null>(null)
   const [closeNotes, setCloseNotes] = useState<string>('')
+
+  // Construction Schemes Modal
+  const [showSchemesModal, setShowSchemesModal] = useState<boolean>(false)
+  const [schemesList, setSchemesList] = useState<ConstructionSavingScheme[]>([])
+  const [schemesLoading, setSchemesLoading] = useState<boolean>(false)
+
+  const handleOpenSchemes = async () => {
+    setShowSchemesModal(true)
+    try {
+      setSchemesLoading(true)
+      const res = await constructionSavingSchemeService.getSchemes({ is_active: true })
+      if (!res.data || res.data.length === 0) {
+        const seeded = await constructionSavingSchemeService.seedDefaults()
+        setSchemesList(seeded)
+      } else {
+        setSchemesList(res.data)
+      }
+    } catch (err: any) {
+      console.error('Failed to load schemes', err)
+    } finally {
+      setSchemesLoading(false)
+    }
+  }
 
   const triggerSuccess = (msg: string) => {
     setSuccessMessage(msg)
@@ -211,6 +237,14 @@ export const SavingsAccountsList: React.FC = () => {
         </div>
 
         <div className="savings-header-actions">
+          <button
+            className="btn btn-secondary"
+            onClick={handleOpenSchemes}
+            title="View Standard Construction Saving Scheme Templates & Milestone Weights"
+          >
+            <MdConstruction /> Construction Schemes
+          </button>
+
           <button
             className="btn btn-secondary"
             onClick={() => {
@@ -703,6 +737,129 @@ export const SavingsAccountsList: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: CONSTRUCTION SAVING SCHEMES TEMPLATES              */}
+      {/* ========================================================= */}
+      {showSchemesModal && (
+        <div className="modal-overlay">
+          <div className="modal-dialog" style={{ maxWidth: '800px' }}>
+            <div className="modal-header">
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                <MdConstruction style={{ color: '#2563eb' }} />
+                Construction Saving Scheme Templates
+              </h2>
+              <button className="modal-close-btn" onClick={() => setShowSchemesModal(false)}>
+                <MdClose />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p style={{ color: '#64748b', fontSize: '0.875rem', marginTop: 0 }}>
+                Standard sequential milestone schemes. Enrolling an account creates tiered savings pools that allocate deposits sequentially (Waterfall) from Substructure to Handover.
+              </p>
+
+              {schemesLoading ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                  Loading construction schemes...
+                </div>
+              ) : schemesList.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                  No construction schemes found.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {schemesList.map((scheme) => (
+                    <div
+                      key={scheme.uuid}
+                      style={{
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        padding: '1rem 1.25rem',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          marginBottom: '0.5rem',
+                          flexWrap: 'wrap',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#0f172a' }}>
+                            {scheme.name}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#64748b', fontFamily: 'monospace' }}>
+                            Code: {scheme.scheme_code} &bull; Type: {scheme.project_type}
+                          </div>
+                        </div>
+
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontWeight: 700, color: '#059669', fontSize: '1.05rem' }}>
+                            {scheme.currency} {Number(scheme.standard_target_amount).toLocaleString()}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                            Min Deposit: {scheme.currency} {Number(scheme.minimum_initial_deposit).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+
+                      {scheme.description && (
+                        <p style={{ fontSize: '0.85rem', color: '#475569', margin: '0 0 0.75rem 0' }}>
+                          {scheme.description}
+                        </p>
+                      )}
+
+                      {/* Milestone Template Tiers */}
+                      {scheme.milestone_template && scheme.milestone_template.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
+                            Milestone Funding Tiers ({scheme.milestone_template.length} Pools):
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
+                            {scheme.milestone_template.map((tmpl) => (
+                              <div
+                                key={tmpl.tier_order}
+                                style={{
+                                  background: '#ffffff',
+                                  border: '1px solid #cbd5e1',
+                                  borderRadius: '6px',
+                                  padding: '0.4rem 0.6rem',
+                                  fontSize: '0.8rem',
+                                }}
+                              >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
+                                  <span>#{tmpl.tier_order} {tmpl.name}</span>
+                                  <span style={{ color: '#2563eb' }}>{tmpl.weight_percentage}%</span>
+                                </div>
+                                {tmpl.description && (
+                                  <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.15rem' }}>
+                                    {tmpl.description}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={() => setShowSchemesModal(false)}>
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

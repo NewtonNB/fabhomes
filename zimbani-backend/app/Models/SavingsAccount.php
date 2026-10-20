@@ -29,6 +29,10 @@ class SavingsAccount extends Model
         'closed_date',
         'plot_id',
         'project_id',
+        'construction_saving_scheme_id',
+        'is_waterfall_allocation_enabled',
+        'total_allocated_to_pools',
+        'total_locked_in_pools',
         'notes',
         'created_by',
         'updated_by',
@@ -37,6 +41,9 @@ class SavingsAccount extends Model
     protected $casts = [
         'target_amount' => 'decimal:2',
         'current_balance' => 'decimal:2',
+        'total_allocated_to_pools' => 'decimal:2',
+        'total_locked_in_pools' => 'decimal:2',
+        'is_waterfall_allocation_enabled' => 'boolean',
         'opened_date' => 'date',
         'target_date' => 'date',
         'closed_date' => 'date',
@@ -45,6 +52,7 @@ class SavingsAccount extends Model
     protected $appends = [
         'progress_percentage',
         'remaining_amount',
+        'unallocated_balance',
         'is_active',
         'is_completed',
         'is_suspended',
@@ -112,6 +120,11 @@ class SavingsAccount extends Model
     public function getRemainingAmountAttribute(): float
     {
         return max(0.0, (float) $this->target_amount - (float) $this->current_balance);
+    }
+
+    public function getUnallocatedBalanceAttribute(): float
+    {
+        return max(0.0, round((float) $this->current_balance - (float) $this->total_allocated_to_pools, 2));
     }
 
     public function getIsActiveAttribute(): bool
@@ -273,5 +286,20 @@ class SavingsAccount extends Model
     public function milestoneTriggerLogs(): HasMany
     {
         return $this->hasMany(MilestoneTriggerLog::class, 'savings_account_id');
+    }
+
+    public function constructionScheme(): BelongsTo
+    {
+        return $this->belongsTo(ConstructionSavingScheme::class, 'construction_saving_scheme_id');
+    }
+
+    public function milestonePools(): HasMany
+    {
+        return $this->hasMany(MilestoneSavingsPool::class, 'savings_account_id')->orderBy('tier_order');
+    }
+
+    public function poolAllocations(): HasMany
+    {
+        return $this->hasMany(SavingsPoolAllocation::class, 'savings_account_id')->latest();
     }
 }

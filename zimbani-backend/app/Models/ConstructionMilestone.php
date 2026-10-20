@@ -24,6 +24,7 @@ class ConstructionMilestone extends Model
     protected $fillable = [
         'uuid',
         'project_id',
+        'milestone_savings_pool_id',
         'milestone_name',
         'milestone_order',
         'description',
@@ -226,5 +227,13 @@ class ConstructionMilestone extends Model
     public function paymentCertificates(): HasMany
     {
         return $this->hasMany(PaymentCertificate::class, 'milestone_id');
+    }
+
+    /**
+     * Linked client construction milestone savings pool.
+     */
+    public function savingsPool(): BelongsTo
+    {
+        return $this->belongsTo(MilestoneSavingsPool::class, 'milestone_savings_pool_id');
     }
 }

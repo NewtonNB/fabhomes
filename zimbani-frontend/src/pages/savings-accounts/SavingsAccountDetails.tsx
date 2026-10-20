@@ -22,6 +22,9 @@ import savingsAccountService from '../../services/savings-account.service'
 import documentService from '../../services/document.service'
 import { DocumentUploadModal } from '../../components/documents/DocumentUploadModal'
 import { DocumentsTable } from '../../components/documents/DocumentsTable'
+import { MilestoneSavingsPoolsCard } from './components/MilestoneSavingsPoolsCard'
+import projectService from '../../services/project.service'
+import { Project } from '../../types/project.types'
 import './SavingsAccountDetails.css'
 
 export const SavingsAccountDetails: React.FC = () => {
@@ -30,6 +33,7 @@ export const SavingsAccountDetails: React.FC = () => {
 
   const [account, setAccount] = useState<SavingsAccount | null>(null)
   const [documents, setDocuments] = useState<Document[]>([])
+  const [projectsList, setProjectsList] = useState<Project[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
@@ -80,6 +84,13 @@ export const SavingsAccountDetails: React.FC = () => {
 
   useEffect(() => {
     fetchAccount()
+    projectService
+      .getProjects({ per_page: 100 })
+      .then((res: any) => {
+        const raw = res?.data?.data || res?.data || (Array.isArray(res) ? res : [])
+        setProjectsList(Array.isArray(raw) ? raw : [])
+      })
+      .catch(() => {})
   }, [id])
 
   const triggerSuccess = (msg: string) => {
@@ -420,6 +431,17 @@ export const SavingsAccountDetails: React.FC = () => {
                 </div>
               )}
             </div>
+          )}
+
+          {/* Tiered Milestone Savings Pools (Phase 9 Day 1) */}
+          {account.account_type === 'construction_saving' && (
+            <MilestoneSavingsPoolsCard
+              accountUuid={account.uuid}
+              accountBalance={Number(account.current_balance)}
+              accountCurrency={account.currency}
+              projects={projectsList}
+              onUpdated={fetchAccount}
+            />
           )}
 
           {/* Recent Deposits & Payments */}

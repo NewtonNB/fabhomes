@@ -41,6 +41,7 @@ use App\Http\Controllers\Api\EscrowReconciliationController;
 use App\Http\Controllers\Api\AutomatedMilestoneTriggerController;
 use App\Http\Controllers\Api\RetentionFundController;
 use App\Http\Controllers\Api\DefectLiabilityCertificateController;
+use App\Http\Controllers\Api\ConstructionSavingSchemeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -197,6 +198,16 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/savings-accounts/{savingsAccount}/close', [SavingsAccountController::class, 'close']);
     Route::post('/savings-accounts/{savingsAccount}/adjust-balance', [SavingsAccountController::class, 'adjustBalance']);
     Route::get('/savings-accounts/{savingsAccount}/statement', [SavingsAccountController::class, 'statement']);
+
+    // Construction Saving Schemes & Tiered Milestone Savings Pools (Phase 9 Day 1)
+    Route::post('/construction-schemes/seed-defaults', [ConstructionSavingSchemeController::class, 'seedDefaults']);
+    Route::apiResource('construction-schemes', ConstructionSavingSchemeController::class)->parameters(['construction-schemes' => 'scheme']);
+    Route::post('/savings-accounts/{savingsAccount}/enroll-scheme', [ConstructionSavingSchemeController::class, 'enrollAccount']);
+    Route::get('/savings-accounts/{savingsAccount}/milestone-pools', [ConstructionSavingSchemeController::class, 'getAccountPools']);
+    Route::post('/savings-accounts/{savingsAccount}/allocate-deposit', [ConstructionSavingSchemeController::class, 'allocateDeposit']);
+    Route::post('/savings-accounts/{savingsAccount}/rebalance-pools', [ConstructionSavingSchemeController::class, 'rebalancePools']);
+    Route::post('/milestone-pools/{poolUuid}/lock', [ConstructionSavingSchemeController::class, 'lockPool']);
+    Route::get('/savings-accounts/{savingsAccount}/scheme-readiness', [ConstructionSavingSchemeController::class, 'getAccountReadiness']);
 
     // Financial Transactions & Immutable Ledger
     Route::get('/transactions', [TransactionController::class, 'index']);

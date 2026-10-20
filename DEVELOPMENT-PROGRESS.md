@@ -2597,6 +2597,59 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+---
+
+### Phase 9 Day 1: Construction Saving Scheme & Tiered Milestone Savings Pools ✅ (Oct 20, 2026)
+
+- **Database Architecture & Schema Migration:**
+  - Created migration `2026_10_20_094000_create_construction_saving_schemes_and_pools_tables.php`:
+    - `construction_saving_schemes`: Hybrid primary key (`id` bigint + `uuid` char(36)), unique `scheme_code` (e.g. `CSS-VILLA-4BR`, `CSS-BUNG-3BR`, `CSS-STARTER-2BR`), `name`, `description`, `project_type` (`residential`, `commercial`, `mixed_use`), `currency` (`UGX`, `USD`), `standard_target_amount`, `minimum_initial_deposit`, `minimum_milestone_threshold_percentage` (default 100.00%), `waterfall_auto_allocation` (boolean), `is_active`, `milestone_template` (JSON storing tier orders, names, weights, and scopes), softDeletes.
+    - `milestone_savings_pools`: Hybrid primary key, unique `pool_code` (`POOL-YYYYMM-XXXX`), `savings_account_id`, `project_id`, `construction_milestone_id`, `tier_order` (1 to 6), `milestone_name`, `target_amount`, `allocated_amount`, `locked_amount`, `disbursed_amount`, `currency`, `weight_percentage`, `status` (`unfunded`, `partially_funded`, `fully_funded`, `locked`, `partially_disbursed`, `fully_disbursed`), `funded_at`, `commenced_at`, `completed_at`, `notes`, softDeletes.
+    - `savings_pool_allocations`: Immutable pool movement ledger (`deposit_allocation`, `manual_rebalance`, `escrow_lock`, `milestone_disbursement`, `refund_unlock`), `amount`, `balance_before`, `balance_after`, `reference_number` (`ALC-`, `REB-`, `LCK-`, `DIS-`), `notes`, `allocated_by`.
+    - Altered `savings_accounts`: Added foreign key `construction_saving_scheme_id`, `is_waterfall_allocation_enabled`, `total_allocated_to_pools`, `total_locked_in_pools`.
+    - Altered `construction_milestones`: Added foreign key `milestone_savings_pool_id`.
+
+- **Eloquent Models & Relationships:**
+  - `ConstructionSavingScheme.php`: Auto-generating scheme codes, milestone template helpers, relationships to `savingsAccounts()` and audit users.
+  - `MilestoneSavingsPool.php`: Auto-generating pool codes (`POOL-YYYYMM-XXXX`), computed accessors (`funding_percentage`, `remaining_to_target`, `available_to_lock`, `can_commence_work`), relationships to `savingsAccount()`, `project()`, `constructionMilestone()`, `allocations()`.
+  - `SavingsPoolAllocation.php`: Immutable allocation transaction model with type-prefixed reference numbers.
+  - Enhanced `SavingsAccount.php` with `constructionScheme()`, `milestonePools()`, `poolAllocations()`, and `unallocated_balance` accessor.
+  - Enhanced `ConstructionMilestone.php` with `savingsPool()` relationship.
+
+- **Backend Business Logic Services:**
+  - `ConstructionSavingSchemeService.php`:
+    - `seedDefaultSchemes`: Seeds standard 4-Bedroom Villa (UGX 250M), 3-Bedroom Bungalow (UGX 180M), and 2-Bedroom Starter (UGX 95M) schemes.
+    - `createScheme`: Validates and saves custom schemes with 100% milestone weighting validation.
+    - `enrollAccountInScheme`: Links savings account to scheme, calculates proportional target amounts per tier, links physical project milestones, and auto-allocates existing balances.
+    - `allocateDeposit`: High-speed waterfall allocation sequentially funding milestone tiers in priority construction sequence (Substructure -> Superstructure -> Roofing -> etc.), updating pool status to `fully_funded` upon reaching 100% threshold.
+    - `rebalancePools`: Two-legged reallocation of unlocked savings between milestone pools with audit ledger logging.
+    - `lockMilestonePool`: Commits funds to escrow for construction kickoff; strictly validates minimum funding threshold (100% standard).
+    - `disburseFromPool`: Releases locked escrow funds to contractors and suppliers upon verified physical milestone completion.
+    - `getAccountReadinessAudit`: Comprehensive evaluation of next milestone ready for site work, funding percentages, and shortfall amounts.
+
+- **RESTful API Controllers & Policies:**
+  - `ConstructionSavingSchemeController.php`: 8 RESTful endpoints for scheme CRUD, defaults seeding, account enrollment, pool listing, waterfall allocations, pool rebalancing, escrow locking, and readiness auditing.
+  - `ConstructionSavingSchemePolicy.php`: RBAC authorization mapped in `AppServiceProvider.php`.
+  - Automated Verification: All 10 end-to-end business assertions verified with clean transaction rollback.
+
+- **React 19 + TypeScript Frontend Experience:**
+  - `construction-scheme.types.ts`: Complete TypeScript types, interfaces, and request payloads.
+  - `construction-scheme.service.ts`: API service for all scheme and pool operations.
+  - `MilestoneSavingsPoolsCard.tsx`:
+    - Embedded into `SavingsAccountDetails.tsx` for all construction saving accounts.
+    - Scheme & funding summary hero card: Total Target, Total Saved, Locked in Escrow, Disbursed, Unallocated Balance.
+    - Milestone Readiness Action Banner: Displays current active site construction or alerts when next tier is 100% funded and ready for escrow lock.
+    - Visual Tiered Milestone Tracks: Displays each milestone tier with progress bars, targets, allocations, escrow locks, and disbursements.
+    - Modal 1: Enroll in Construction Saving Scheme with template selection.
+    - Modal 2: Waterfall / Custom Savings Allocation dialog.
+    - Modal 3: Rebalance Funds Between Milestone Pools dialog.
+    - Modal 4: Lock Milestone in Escrow & Authorize Site Work dialog.
+    - Modal 5: Pool Allocation Ledger History dialog.
+  - `SavingsAccountsList.tsx`: Added "Construction Schemes" header action with template preview modal.
+  - Build Verification: Clean `npm run build` compilation with 0 TypeScript errors (built in 3.60s).
+
+---
+
 ## 🎯 Next Development Focus
 
 **Phase 8: Milestone-Based Payment Releases & Construction Verification (100% COMPLETE)**
@@ -2609,8 +2662,8 @@ Delivered robust external settlement statement reconciliation for client escrow 
 ---
 
 **Phase 9: Construction Saving Schemes, Mobile Money & Offline PWA Sync**
-1. ⏳ **Day 1**: Construction Saving Scheme & Tiered Milestone Savings Pools (NEXT)
-2. ⏳ **Day 2**: Mobile Money & Automated Gateway Disbursements
+1. ✅ **Day 1**: Construction Saving Scheme & Tiered Milestone Savings Pools (COMPLETED)
+2. ⏳ **Day 2**: Mobile Money & Automated Gateway Disbursements (NEXT)
 3. ⏳ **Day 3**: Offline Site Synchronization & Progressive Web App (PWA) Walk-through Audits
 4. ⏳ **Day 4**: Multi-Currency FX Hedging & Construction Material Escalation Indexing
 5. ⏳ **Day 5**: Capstone Project Handover & End-to-End Financial Settlement Verification
@@ -2620,7 +2673,7 @@ Delivered robust external settlement statement reconciliation for client escrow 
 **Last Updated:** October 20, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 8 Complete (Days 1 - 5)
+**Latest Commit:** Phase 9 Day 1 Complete
 
 
 
