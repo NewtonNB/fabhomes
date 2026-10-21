@@ -44,6 +44,7 @@ use App\Http\Controllers\Api\DefectLiabilityCertificateController;
 use App\Http\Controllers\Api\ConstructionSavingSchemeController;
 use App\Http\Controllers\Api\MobileMoneyController;
 use App\Http\Controllers\Api\SiteAuditSyncController;
+use App\Http\Controllers\Api\MultiCurrencyEscalationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -232,6 +233,24 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/sync', [SiteAuditSyncController::class, 'sync']);
         Route::get('/sync-logs', [SiteAuditSyncController::class, 'syncLogs']);
         Route::get('/checklist-templates', [SiteAuditSyncController::class, 'checklistTemplates']);
+    });
+
+    // Multi-Currency FX Hedging & Material Escalation (Phase 9 Day 4)
+    Route::prefix('fx')->group(function () {
+        Route::get('/rates', [MultiCurrencyEscalationController::class, 'getRates']);
+        Route::post('/rates', [MultiCurrencyEscalationController::class, 'recordRate']);
+        Route::get('/convert', [MultiCurrencyEscalationController::class, 'convert']);
+        Route::get('/hedging-contracts', [MultiCurrencyEscalationController::class, 'getHedgingContracts']);
+        Route::post('/hedging-contracts', [MultiCurrencyEscalationController::class, 'createHedgingContract']);
+        Route::post('/hedging-contracts/{uuid}/drawdown', [MultiCurrencyEscalationController::class, 'drawdownHedgingContract']);
+    });
+
+    Route::prefix('escalation')->group(function () {
+        Route::get('/indices', [MultiCurrencyEscalationController::class, 'getIndices']);
+        Route::get('/indices/{uuid}', [MultiCurrencyEscalationController::class, 'getIndex']);
+        Route::post('/indices/{uuid}/update-price', [MultiCurrencyEscalationController::class, 'updateMaterialPrice']);
+        Route::post('/calculate-adjustment', [MultiCurrencyEscalationController::class, 'calculateBoqEscalation']);
+        Route::get('/statistics', [MultiCurrencyEscalationController::class, 'getStatistics']);
     });
 
     // Financial Transactions & Immutable Ledger

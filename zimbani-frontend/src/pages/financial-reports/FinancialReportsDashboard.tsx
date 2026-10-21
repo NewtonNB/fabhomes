@@ -19,7 +19,9 @@ import {
   MdClose,
   MdReceiptLong,
   MdSpeed,
+  MdCurrencyExchange,
 } from 'react-icons/md'
+import MultiCurrencyEscalationTab from './components/MultiCurrencyEscalationTab'
 import financialReportService from '../../services/financial-report.service'
 import budgetService from '../../services/budget.service'
 import projectService from '../../services/project.service'
@@ -40,7 +42,7 @@ import { Project } from '../../types/project.types'
 import { Site } from '../../types/site.types'
 import './FinancialReports.css'
 
-type TabType = 'variance' | 'profitability' | 'cash_flow' | 'compliance' | 'budgets'
+type TabType = 'variance' | 'profitability' | 'cash_flow' | 'compliance' | 'budgets' | 'fx_escalation'
 
 const COST_CATEGORIES: { value: BudgetCostCategory; label: string }[] = [
   { value: 'subcontractor', label: 'Subcontractor Trade' },
@@ -470,6 +472,13 @@ export const FinancialReportsDashboard: React.FC = () => {
         >
           <MdAccountBalance /> Cost-Code Budgets
           <span className="tab-badge neutral">{budgetsList.length}</span>
+        </button>
+
+        <button
+          className={`financial-tab-btn ${activeTab === 'fx_escalation' ? 'active' : ''}`}
+          onClick={() => setActiveTab('fx_escalation')}
+        >
+          <MdCurrencyExchange /> FX Hedging & Material Escalation
         </button>
       </div>
 
@@ -987,6 +996,9 @@ export const FinancialReportsDashboard: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* FX Hedging & Material Escalation Tab */}
+      {activeTab === 'fx_escalation' && <MultiCurrencyEscalationTab />}
 
       {/* Modal: Add Budget Code */}
       {showAddModal && (

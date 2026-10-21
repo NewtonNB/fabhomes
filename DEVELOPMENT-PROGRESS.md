@@ -2750,19 +2750,73 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+### Phase 9 Day 4: Multi-Currency FX Hedging & Construction Material Escalation Indexing ✅ (Oct 21, 2026)
+
+- **Database Architecture & Schema Migration:**
+  - Created migration `2026_10_21_103000_create_multi_currency_and_escalation_tables.php`:
+    - `fx_exchange_rates`: Tracks multi-currency exchange rates (`USD`, `GBP`, `EUR`, `KES` against `UGX`) with spot, buy, and sell rates, Bank of Uganda (BOU) source, and rate dates.
+    - `fx_hedging_contracts`: Forward rate locks for diaspora construction clients (`HEDGE-YYYYMM-XXXX`) locking guaranteed UGX budgets, committed foreign currencies, drawdowns, expiry dates, and 0.5% premium reserve fee tracking.
+    - `material_price_indices`: Construction Input Price Index (CIPI) baskets for Uganda building corridors with base period, base index (100.00), current index, escalation percentage, and tolerance alert thresholds.
+    - `material_price_records`: Spot survey records for core construction commodities (Steel Rebar Y12/Y16, Portland Cement 32.5R/42.5N, River Sand, Crushed Aggregates 20mm, Hardwood Formwork Timber, Pre-painted Corrugated Roofing Iron Sheets) with basket weights and variance calculations.
+
+- **Eloquent Models & Relationships:**
+  - `FxExchangeRate.php`: Real-time spot and conversion rate accessors.
+  - `FxHedgingContract.php`: Hybrid primary key, client relationship, savings account relationship, milestone savings pool relationship, remaining budget calculations, and drawdown methods.
+  - `MaterialPriceIndex.php`: Index records relationship, threshold breach indicators, and project type categorization.
+  - `MaterialPriceRecord.php`: Commodity basket record with price variance percentage calculation and survey verification.
+
+- **Backend Business Logic Services:**
+  - `MultiCurrencyEscalationService.php`:
+    - `seedInitialData`: Seeds initial rates (USD, GBP, EUR, KES) and Kampala CIPI commodity basket.
+    - `convertCurrency`: Real-time multi-currency cross-rate conversion.
+    - `createHedgingContract`: Issues diaspora forward contract with locked rate, guaranteed local budget, and premium fee.
+    - `drawdownHedgingContract`: Deducts foreign commitment and credits guaranteed local funds directly into designated milestone savings pools.
+    - `updateMaterialPrice`: Recalculates weighted composite price index and triggers price volatility alerts when variance exceeds tolerance thresholds.
+    - `calculateBoqEscalation`: FIDIC Clause 70 price fluctuation formula implementation evaluating material variance impact on construction contracts.
+    - `getStatistics`: Aggregate portfolio metrics for foreign locked capital, guaranteed local buffers, and material basket inflation.
+
+- **Controllers, Policies, & API Endpoints:**
+  - `MultiCurrencyEscalationController.php`: RESTful endpoints registered in `routes/api.php`:
+    - `GET /api/v1/fx/rates` - Get active currency rates
+    - `POST /api/v1/fx/convert` - Perform on-the-fly currency conversion
+    - `GET /api/v1/fx/hedges` - List active diaspora FX hedging contracts
+    - `POST /api/v1/fx/hedges` - Issue new forward rate lock
+    - `POST /api/v1/fx/hedges/{uuid}/drawdown` - Drawdown forward funds into milestone pool
+    - `GET /api/v1/fx/statistics` - FX exposure and hedging metrics
+    - `GET /api/v1/escalation/indices` - Material price indices and commodity baskets
+    - `POST /api/v1/escalation/prices` - Update material spot prices and recalculate index
+    - `POST /api/v1/escalation/calculate-boq` - FIDIC Clause 70 BOQ escalation calculation
+
+- **Frontend Architecture & Financial Dashboard Integration:**
+  - TypeScript interfaces: `multi-currency-escalation.types.ts` defining FX rates, hedging contracts, CIPI indices, price records, BOQ variations, and statistics.
+  - Client Service Layer: `multi-currency-escalation.service.ts` for all FX and escalation API endpoints.
+  - UI Component: `MultiCurrencyEscalationTab.tsx` & `.css`:
+    - Live multi-currency exchange ticker with Bank of Uganda (BOU) rates.
+    - Material Price Index (CIPI) commodity basket table with spot survey editor and tolerance alert badges.
+    - FIDIC Clause 70 Interactive BOQ Price Variation Calculator with cost delta and contingency buffer recommendations.
+    - Diaspora FX Forward Locks manager with live utilization bars and milestone drawdown modal.
+    - Quick currency converter tool.
+  - Integrated into `FinancialReportsDashboard.tsx` with dedicated navigation tab and responsive UI.
+
+- **Verification & Testing:**
+  - 9-step backend verification test (`test_multi_currency_and_escalation.php`) passed all assertions: rate retrieval, currency converter, diaspora hedging contract issuance, milestone pool drawdown, index recalculation, steel/cement spot price surge with threshold alerts, and FIDIC Clause 70 BOQ escalation calculation.
+  - Frontend production build passed cleanly (`npm run build`, 0 errors).
+
+---
+
 **Phase 9: Construction Saving Schemes, Mobile Money & Offline PWA Sync**
 1. ✅ **Day 1**: Construction Saving Scheme & Tiered Milestone Savings Pools (COMPLETED)
 2. ✅ **Day 2**: Mobile Money & Automated Gateway Disbursements (COMPLETED)
 3. ✅ **Day 3**: Offline Site Synchronization & Progressive Web App (PWA) Walk-through Audits (COMPLETED)
-4. ⏳ **Day 4**: Multi-Currency FX Hedging & Construction Material Escalation Indexing (NEXT)
-5. ⏳ **Day 5**: Capstone Project Handover & End-to-End Financial Settlement Verification
+4. ✅ **Day 4**: Multi-Currency FX Hedging & Construction Material Escalation Indexing (COMPLETED)
+5. ⏳ **Day 5**: Capstone Project Handover & End-to-End Financial Settlement Verification (NEXT)
 
 ---
 
 **Last Updated:** October 21, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 9 Day 3 Complete
+**Latest Commit:** Phase 9 Day 4 Complete
 
 
 
