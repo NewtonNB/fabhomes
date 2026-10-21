@@ -2880,10 +2880,74 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+### Phase 10 Day 1: Unified Payment Gateway Adapters & Dynamic PaymentIntents Engine ✅ (Oct 21, 2026)
+
+- **Database Architecture & Schema Migration:**
+  - Created migration `2026_10_21_140000_create_payment_intents_and_gateways_tables.php`:
+    - `payment_gateway_configs`: Dynamic gateway configuration ledger with API keys, merchant IDs, environments (`sandbox`, `production`), supported currencies (`UGX`, `USD`, `GBP`, `EUR`, `KES`), supported methods (`card`, `mobile_money`, `bank_transfer`), and transaction fee formula rules (percentage + flat fee).
+    - `payment_intents`: Multi-channel checkout lifecycle engine (`INT-YYYYMM-XXXX`) tracking:
+      - Client, project, unit, savings account, milestone savings pool linkages.
+      - Gateway routing: `flutterwave`, `pesapal`, `mtn_momo`, `airtel_money`, `bank_transfer`.
+      - State machine: `requires_payment_method`, `requires_action`, `processing`, `succeeded`, `failed`, `cancelled`, `expired`.
+      - Fee calculations, expiration windows (45 minutes default), gateway references, and checkout URLs.
+
+- **Adapter Pattern & Enterprise Architecture:**
+  - `PaymentGatewayInterface.php`: Contract defining `initiatePayment()`, `verifyPayment()`, `queryStatus()`, `processRefund()`, `validateWebhook()`, and `parseWebhookPayload()`.
+  - `FlutterwaveAdapter.php`: Multi-currency credit/debit card, mobile money, and hosted checkout redirect integration.
+  - `PesapalAdapter.php`: Pesapal v3 order tracking API integration for East African regional payment processing.
+  - `DirectMobileMoneyAdapter.php`: Telco-direct STK push integration for MTN MoMo and Airtel Money.
+  - `BankTransferAdapter.php`: Stanbic Bank direct EFT / RTGS virtual account voucher generation and payment matching.
+  - `PaymentGatewayManager.php`: Dynamic factory resolver managing active gateway adapters.
+
+- **Backend Business Logic Services:**
+  - `PaymentProcessingService.php`:
+    - `seedInitialGateways`: Auto-provisions configurations for Flutterwave, Pesapal, MTN MoMo, Airtel Money, and Stanbic Bank.
+    - `createPaymentIntent`: Pre-computes transaction fees, creates the intent, dispatches to the corresponding adapter, and populates checkout URLs.
+    - `confirmPaymentIntent`: Idempotently verifies transactions, transitions status to `succeeded`, records official `Payment` records in `payments` table, credits client savings accounts, and updates milestone savings pools.
+    - `cancelPaymentIntent`: Safely cancels unfulfilled intents.
+    - `handleWebhook`: Cryptographically verifies signatures, parses payloads, confirms matching intents, and logs telemetry in `payment_webhook_logs`.
+    - `getStatistics`: Aggregates volume, fees, transaction counts, success rates, and method/gateway distributions.
+
+- **Controllers, Policies, & API Endpoints:**
+  - `PaymentGatewayIntegrationController.php`: RESTful endpoints registered in `routes/api.php`:
+    - `GET /api/v1/payment-gateways` - List active gateway configurations
+    - `GET /api/v1/payment-gateways/statistics` - Global payment metrics
+    - `GET /api/v1/payment-intents` - List paginated intents with status filters
+    - `POST /api/v1/payment-intents` - Create new dynamic payment intent
+    - `GET /api/v1/payment-intents/{identifier}` - Show payment intent details
+    - `POST /api/v1/payment-intents/{identifier}/confirm` - Confirm payment intent
+    - `POST /api/v1/payment-intents/{identifier}/cancel` - Cancel payment intent
+    - `POST /api/v1/payments/webhooks/{gateway}` - Public gateway webhook receiver
+
+- **Frontend Architecture & Payments Console Integration:**
+  - TypeScript interfaces: `payment-integration.types.ts` defining gateways, intents, payloads, and statistics.
+  - Client Service Layer: `payment-integration.service.ts` for all gateway and checkout API endpoints.
+  - UI Component: `PaymentGatewaysTab.tsx` & `.css`:
+    - Real-time KPI Stats Bar (Total Volume, Fees Collected, Success Rate, Pending Transactions).
+    - Configured Gateway Adapters Cards with live environment badges, fee rules, and supported methods.
+    - Dynamic Multi-Channel Payment Intent Checkout Terminal modal with instant hosted checkout links and STK prompt simulation.
+    - Live Payment Intents History Ledger with confirm and cancel quick actions.
+  - Integrated into `PaymentsList.tsx` as dedicated 3rd tab ("Payment Gateways & Checkout").
+
+- **Verification & Testing:**
+  - 6-step backend test suite (`test_payment_integration.php`) passed all assertions: Gateway configuration seeding (5 adapters), Flutterwave card intent creation with fee calculation (2.5% fee on 2.5M UGX), intent confirmation posting to client savings account (credited to 22.5M UGX) and creating official payment record, MTN MoMo direct USSD push intent generation, universal webhook ingestion with idempotent confirmation, and global statistics reporting.
+  - Frontend production build passed cleanly (`npm run build` in 1m 10s, 0 errors).
+
+---
+
+**Phase 10: Payment Integration (Production Gateways, Adapter Architecture, Webhooks)**
+1. ✅ **Day 1**: Unified Gateway Adapter Architecture & Dynamic PaymentIntents Engine (COMPLETED)
+2. ⏳ **Day 2**: Universal Webhook Ingestion, Cryptographic Verification & Replay Protection (NEXT)
+3. ⏳ **Day 3**: Automated Refunds, Reversals & Dispute Resolution Ledger
+4. ⏳ **Day 4**: Frontend Multi-Channel Unified Checkout Modal & Gateway Health Monitor
+5. ⏳ **Day 5**: End-to-End Payment Simulation, Sandbox Gateway Tests & Bank Reconciliation Staging
+
+---
+
 **Last Updated:** October 21, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 9 Day 5 Complete
+**Latest Commit:** Phase 10 Day 1 Complete
 
 
 

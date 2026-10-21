@@ -11,14 +11,16 @@ import {
   MdCheck,
   MdVerified,
   MdRefresh,
+  MdPayment,
 } from 'react-icons/md'
 import { paymentService } from '../../services/payment.service'
 import { Payment, PaymentStatistics } from '../../types/payment.types'
 import { MobileMoneyConsoleTab } from './components/MobileMoneyConsoleTab'
+import { PaymentGatewaysTab } from './components/PaymentGatewaysTab'
 import './PaymentsList.css'
 
 const PaymentsList: React.FC = () => {
-  const [mainTab, setMainTab] = useState<'standard' | 'mobile_money'>('standard')
+  const [mainTab, setMainTab] = useState<'standard' | 'mobile_money' | 'gateways'>('standard')
   const [payments, setPayments] = useState<Payment[]>([])
   const [statistics, setStatistics] = useState<PaymentStatistics | null>(null)
   const [loading, setLoading] = useState(true)
@@ -293,6 +295,27 @@ const PaymentsList: React.FC = () => {
           <span>📱</span>
           Mobile Money Console (MTN & Airtel)
         </button>
+
+        <button
+          onClick={() => setMainTab('gateways')}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '12px 6px',
+            fontSize: '15px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            color: mainTab === 'gateways' ? '#2563eb' : '#64748b',
+            borderBottom: mainTab === 'gateways' ? '2px solid #2563eb' : '2px solid transparent',
+            marginBottom: '-2px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <MdPayment size={18} />
+          Payment Gateways & Checkout
+        </button>
       </div>
 
       {mainTab === 'mobile_money' ? (
@@ -302,6 +325,8 @@ const PaymentsList: React.FC = () => {
             fetchStatistics()
           }}
         />
+      ) : mainTab === 'gateways' ? (
+        <PaymentGatewaysTab />
       ) : (
         <>
           {/* Resilient KPI Stats Header */}

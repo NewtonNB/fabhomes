@@ -46,6 +46,7 @@ use App\Http\Controllers\Api\MobileMoneyController;
 use App\Http\Controllers\Api\SiteAuditSyncController;
 use App\Http\Controllers\Api\MultiCurrencyEscalationController;
 use App\Http\Controllers\Api\ProjectHandoverSettlementController;
+use App\Http\Controllers\Api\PaymentGatewayIntegrationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +78,9 @@ Route::prefix('v1')->group(function () {
 
     // Mobile Money Public Webhook IPN Callback (Phase 9 Day 2)
     Route::post('/mobile-money/webhook/{provider}', [MobileMoneyController::class, 'handleWebhook']);
+
+    // Universal Payment Gateway Public Webhooks (Phase 10)
+    Route::post('/payments/webhooks/{gateway}', [PaymentGatewayIntegrationController::class, 'handleWebhook']);
 });
 
 // Protected routes (require authentication)
@@ -267,6 +271,20 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/audit', [ProjectHandoverSettlementController::class, 'generateAudit']);
         Route::post('/{identifier}/finalize', [ProjectHandoverSettlementController::class, 'finalizeSettlement']);
         Route::get('/capstone-summary', [ProjectHandoverSettlementController::class, 'capstoneSummary']);
+    });
+
+    // Payment Integration & Dynamic Intents (Phase 10)
+    Route::prefix('payment-gateways')->group(function () {
+        Route::get('/', [PaymentGatewayIntegrationController::class, 'gateways']);
+        Route::get('/statistics', [PaymentGatewayIntegrationController::class, 'statistics']);
+    });
+
+    Route::prefix('payment-intents')->group(function () {
+        Route::get('/', [PaymentGatewayIntegrationController::class, 'intents']);
+        Route::post('/', [PaymentGatewayIntegrationController::class, 'createIntent']);
+        Route::get('/{identifier}', [PaymentGatewayIntegrationController::class, 'showIntent']);
+        Route::post('/{identifier}/confirm', [PaymentGatewayIntegrationController::class, 'confirmIntent']);
+        Route::post('/{identifier}/cancel', [PaymentGatewayIntegrationController::class, 'cancelIntent']);
     });
 
     // Financial Transactions & Immutable Ledger
