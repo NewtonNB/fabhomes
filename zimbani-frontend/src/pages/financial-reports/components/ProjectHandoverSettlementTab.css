@@ -1,0 +1,435 @@
+.capstone-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* KPI Bar */
+.capstone-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.capstone-kpi-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.capstone-kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.capstone-kpi-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.capstone-kpi-icon {
+  font-size: 20px;
+}
+
+.capstone-kpi-icon.success {
+  color: #16a34a;
+}
+.capstone-kpi-icon.primary {
+  color: #2563eb;
+}
+.capstone-kpi-icon.warning {
+  color: #d97706;
+}
+.capstone-kpi-icon.purple {
+  color: #9333ea;
+}
+
+.capstone-kpi-val {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.capstone-kpi-subtext {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Subtabs */
+.capstone-subtabs-nav {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 4px;
+}
+
+.capstone-subtab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.capstone-subtab-btn:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.capstone-subtab-btn.active {
+  color: #0284c7;
+  background: #f0f9ff;
+  border-bottom: 3px solid #0284c7;
+}
+
+/* Main Cards */
+.capstone-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.capstone-card-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.capstone-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.capstone-card-subtitle {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.capstone-card-body {
+  padding: 24px;
+}
+
+/* Milestone Gates Grid */
+.milestone-gates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.gate-badge-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+}
+
+.gate-badge-card.cleared {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.gate-icon {
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.gate-icon.cleared {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.gate-icon.pending {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.gate-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.gate-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.gate-status {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.gate-status.cleared {
+  color: #16a34a;
+}
+.gate-status.pending {
+  color: #64748b;
+}
+
+/* Checklist Group */
+.dossier-checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.dossier-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dossier-item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.dossier-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #0284c7;
+  cursor: pointer;
+}
+
+.dossier-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.dossier-input:focus {
+  outline: none;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+/* Key Release Protocol Box */
+.deed-certificate-card {
+  border: 2px dashed #0284c7;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+}
+
+.deed-seal {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  border: 2px solid #16a34a;
+  color: #16a34a;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: #f0fdf4;
+}
+
+.deed-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.deed-header h2 {
+  font-size: 20px;
+  color: #0f172a;
+  margin: 0;
+}
+
+.deed-header p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Sign-off Form */
+.signoff-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.signoff-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.signoff-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* Financial Ledger Table */
+.settlement-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.settlement-table th {
+  background: #f8fafc;
+  color: #475569;
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 600;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.settlement-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+}
+
+.settlement-table tr.total-row {
+  background: #f8fafc;
+  font-weight: 700;
+  font-size: 14px;
+  border-top: 2px solid #cbd5e1;
+}
+
+.settlement-table tr.highlight-row {
+  background: #f0fdf4;
+  font-weight: 700;
+}
+
+.badge-balanced {
+  background: #dcfce7;
+  color: #15803d;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge-refund {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge-payable {
+  background: #fef3c7;
+  color: #b45309;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.btn-capstone-primary {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.btn-capstone-primary:hover {
+  background: #0369a1;
+}
+
+.btn-capstone-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-capstone-success {
+  background: #16a34a;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.btn-capstone-success:hover {
+  background: #15803d;
+}
+
+.countdown-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 10px;
+  padding: 14px 20px;
+  margin-bottom: 20px;
+}
+
+.countdown-banner-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #065f46;
+  font-weight: 600;
+  font-size: 14px;
+}

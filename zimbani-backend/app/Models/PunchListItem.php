@@ -103,6 +103,11 @@ class PunchListItem extends Model
         return $this->belongsTo(SiteInspection::class, 'site_inspection_id');
     }
 
+    public function inspection(): BelongsTo
+    {
+        return $this->siteInspection();
+    }
+
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class, 'site_id');

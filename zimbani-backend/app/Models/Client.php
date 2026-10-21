@@ -173,6 +173,16 @@ class Client extends Model
         return $this->belongsTo(User::class, 'kyc_verified_by');
     }
 
+    public function handovers()
+    {
+        return $this->hasMany(ProjectHandover::class, 'client_id');
+    }
+
+    public function finalSettlements()
+    {
+        return $this->hasMany(ProjectFinalSettlement::class, 'client_id');
+    }
+
     /**
      * Scopes
      */

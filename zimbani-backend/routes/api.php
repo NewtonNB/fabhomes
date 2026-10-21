@@ -45,6 +45,7 @@ use App\Http\Controllers\Api\ConstructionSavingSchemeController;
 use App\Http\Controllers\Api\MobileMoneyController;
 use App\Http\Controllers\Api\SiteAuditSyncController;
 use App\Http\Controllers\Api\MultiCurrencyEscalationController;
+use App\Http\Controllers\Api\ProjectHandoverSettlementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -251,6 +252,21 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/indices/{uuid}/update-price', [MultiCurrencyEscalationController::class, 'updateMaterialPrice']);
         Route::post('/calculate-adjustment', [MultiCurrencyEscalationController::class, 'calculateBoqEscalation']);
         Route::get('/statistics', [MultiCurrencyEscalationController::class, 'getStatistics']);
+    });
+
+    // Capstone Project Handover & End-to-End Financial Settlement (Phase 9 Day 5)
+    Route::prefix('handovers')->group(function () {
+        Route::get('/', [ProjectHandoverSettlementController::class, 'index']);
+        Route::post('/', [ProjectHandoverSettlementController::class, 'store']);
+        Route::get('/{identifier}', [ProjectHandoverSettlementController::class, 'show']);
+        Route::put('/{identifier}/dossier', [ProjectHandoverSettlementController::class, 'updateDossier']);
+        Route::post('/{identifier}/signoff', [ProjectHandoverSettlementController::class, 'signoff']);
+    });
+
+    Route::prefix('settlements')->group(function () {
+        Route::post('/audit', [ProjectHandoverSettlementController::class, 'generateAudit']);
+        Route::post('/{identifier}/finalize', [ProjectHandoverSettlementController::class, 'finalizeSettlement']);
+        Route::get('/capstone-summary', [ProjectHandoverSettlementController::class, 'capstoneSummary']);
     });
 
     // Financial Transactions & Immutable Ledger

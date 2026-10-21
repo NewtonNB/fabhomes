@@ -286,6 +286,22 @@ class Project extends Model
     }
 
     /**
+     * Get project handovers.
+     */
+    public function handovers(): HasMany
+    {
+        return $this->hasMany(ProjectHandover::class, 'project_id');
+    }
+
+    /**
+     * Get final financial settlements for the project.
+     */
+    public function finalSettlements(): HasMany
+    {
+        return $this->hasMany(ProjectFinalSettlement::class, 'project_id');
+    }
+
+    /**
      * Scope a query to only include active projects.
      */
     public function scopeActive($query)

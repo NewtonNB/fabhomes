@@ -20,8 +20,10 @@ import {
   MdReceiptLong,
   MdSpeed,
   MdCurrencyExchange,
+  MdAssignmentTurnedIn,
 } from 'react-icons/md'
 import MultiCurrencyEscalationTab from './components/MultiCurrencyEscalationTab'
+import ProjectHandoverSettlementTab from './components/ProjectHandoverSettlementTab'
 import financialReportService from '../../services/financial-report.service'
 import budgetService from '../../services/budget.service'
 import projectService from '../../services/project.service'
@@ -42,7 +44,14 @@ import { Project } from '../../types/project.types'
 import { Site } from '../../types/site.types'
 import './FinancialReports.css'
 
-type TabType = 'variance' | 'profitability' | 'cash_flow' | 'compliance' | 'budgets' | 'fx_escalation'
+type TabType =
+  | 'variance'
+  | 'profitability'
+  | 'cash_flow'
+  | 'compliance'
+  | 'budgets'
+  | 'fx_escalation'
+  | 'capstone_settlement'
 
 const COST_CATEGORIES: { value: BudgetCostCategory; label: string }[] = [
   { value: 'subcontractor', label: 'Subcontractor Trade' },
@@ -479,6 +488,13 @@ export const FinancialReportsDashboard: React.FC = () => {
           onClick={() => setActiveTab('fx_escalation')}
         >
           <MdCurrencyExchange /> FX Hedging & Material Escalation
+        </button>
+
+        <button
+          className={`financial-tab-btn ${activeTab === 'capstone_settlement' ? 'active' : ''}`}
+          onClick={() => setActiveTab('capstone_settlement')}
+        >
+          <MdAssignmentTurnedIn /> Capstone Handover & Settlement
         </button>
       </div>
 
@@ -999,6 +1015,9 @@ export const FinancialReportsDashboard: React.FC = () => {
 
       {/* FX Hedging & Material Escalation Tab */}
       {activeTab === 'fx_escalation' && <MultiCurrencyEscalationTab />}
+
+      {/* Capstone Project Handover & Settlement Tab */}
+      {activeTab === 'capstone_settlement' && <ProjectHandoverSettlementTab />}
 
       {/* Modal: Add Budget Code */}
       {showAddModal && (
