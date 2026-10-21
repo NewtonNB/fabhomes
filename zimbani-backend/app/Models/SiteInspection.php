@@ -18,6 +18,11 @@ class SiteInspection extends Model
 
     protected $fillable = [
         'uuid',
+        'client_sync_id',
+        'device_id',
+        'offline_created_at',
+        'synced_at',
+        'sync_status',
         'inspection_number',
         'title',
         'inspection_type',
@@ -26,14 +31,21 @@ class SiteInspection extends Model
         'unit_id',
         'task_id',
         'milestone_id',
+        'milestone_savings_pool_id',
         'inspector_id',
         'scheduled_date',
         'inspected_at',
         'status',
         'score',
+        'verified_milestone_percentage',
         'checklist_items',
         'summary_notes',
         'conditions',
+        'gps_latitude',
+        'gps_longitude',
+        'gps_accuracy',
+        'weather_condition',
+        'work_authorized',
         'supervisor_id',
         'signed_off_at',
         'sign_off_notes',
@@ -43,8 +55,15 @@ class SiteInspection extends Model
     protected $casts = [
         'scheduled_date' => 'date',
         'inspected_at' => 'datetime',
+        'offline_created_at' => 'datetime',
+        'synced_at' => 'datetime',
         'signed_off_at' => 'datetime',
         'score' => 'decimal:2',
+        'verified_milestone_percentage' => 'decimal:2',
+        'gps_latitude' => 'decimal:7',
+        'gps_longitude' => 'decimal:7',
+        'gps_accuracy' => 'decimal:2',
+        'work_authorized' => 'boolean',
         'checklist_items' => 'array',
     ];
 
@@ -110,6 +129,11 @@ class SiteInspection extends Model
     public function milestone(): BelongsTo
     {
         return $this->belongsTo(ConstructionMilestone::class, 'milestone_id');
+    }
+
+    public function milestoneSavingsPool(): BelongsTo
+    {
+        return $this->belongsTo(MilestoneSavingsPool::class, 'milestone_savings_pool_id');
     }
 
     public function inspector(): BelongsTo

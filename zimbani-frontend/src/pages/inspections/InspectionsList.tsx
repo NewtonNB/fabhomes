@@ -15,6 +15,7 @@ import {
   MdReportProblem,
   MdVerified,
   MdVisibility,
+  MdSync,
 } from 'react-icons/md'
 import {
   SiteInspection,
@@ -37,15 +38,20 @@ import inspectionService from '../../services/inspection.service'
 import { siteService } from '../../services/site.service'
 import { projectService } from '../../services/project.service'
 import { adminService } from '../../services/admin.service'
+import OfflineWalkthroughConsole from './components/OfflineWalkthroughConsole'
 import './InspectionsList.css'
 
 export const InspectionsList: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const initialSiteId = searchParams.get('site_id') || ''
-  const activeTabParam = (searchParams.get('tab') as 'inspections' | 'defects' | 'signoffs') || 'inspections'
+  const activeTabParam =
+    (searchParams.get('tab') as 'inspections' | 'defects' | 'signoffs' | 'walkthrough') ||
+    'inspections'
 
   // Tabs
-  const [activeTab, setActiveTab] = useState<'inspections' | 'defects' | 'signoffs'>(activeTabParam)
+  const [activeTab, setActiveTab] = useState<'inspections' | 'defects' | 'signoffs' | 'walkthrough'>(
+    activeTabParam
+  )
 
   // Data states
   const [inspections, setInspections] = useState<SiteInspection[]>([])
@@ -156,7 +162,7 @@ export const InspectionsList: React.FC = () => {
   }, [])
 
   // Sync tab with URL
-  const handleTabChange = (tab: 'inspections' | 'defects' | 'signoffs') => {
+  const handleTabChange = (tab: 'inspections' | 'defects' | 'signoffs' | 'walkthrough') => {
     setActiveTab(tab)
     setSearchParams((prev) => {
       prev.set('tab', tab)
@@ -651,6 +657,20 @@ export const InspectionsList: React.FC = () => {
           <MdAssignmentTurnedIn /> Sign-off Queue
           <span className={`tab-badge ${(stats?.needs_sign_off ?? 0) > 0 ? 'badge-urgent' : ''}`}>
             {stats?.needs_sign_off ?? 0}
+          </span>
+        </button>
+
+        <button
+          className={`tab-btn ${activeTab === 'walkthrough' ? 'active' : ''}`}
+          onClick={() => handleTabChange('walkthrough')}
+          style={{
+            background: activeTab === 'walkthrough' ? '#ecfdf5' : undefined,
+            color: activeTab === 'walkthrough' ? '#047857' : undefined,
+          }}
+        >
+          <MdSync /> Offline PWA Walkthrough & Sync
+          <span className="tab-badge" style={{ background: '#10b981', color: 'white' }}>
+            PWA
           </span>
         </button>
       </div>
@@ -1271,6 +1291,18 @@ export const InspectionsList: React.FC = () => {
             </table>
           </div>
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 4: OFFLINE SITE WALKTHROUGH & PWA SYNC                               */}
+      {/* ========================================================================= */}
+      {activeTab === 'walkthrough' && (
+        <OfflineWalkthroughConsole
+          onInspectionSaved={() => {
+            fetchInspections()
+            fetchStatistics()
+          }}
+        />
       )}
 
       {/* ========================================================================= */}

@@ -17,6 +17,9 @@ class PunchListItem extends Model
 
     protected $fillable = [
         'uuid',
+        'client_sync_id',
+        'offline_created_at',
+        'synced_at',
         'item_number',
         'site_inspection_id',
         'site_id',
@@ -25,7 +28,10 @@ class PunchListItem extends Model
         'task_id',
         'title',
         'description',
+        'photo_url',
         'location_details',
+        'gps_latitude',
+        'gps_longitude',
         'category',
         'severity',
         'status',
@@ -46,6 +52,10 @@ class PunchListItem extends Model
         'due_date' => 'date',
         'rectified_at' => 'datetime',
         'verified_at' => 'datetime',
+        'offline_created_at' => 'datetime',
+        'synced_at' => 'datetime',
+        'gps_latitude' => 'decimal:7',
+        'gps_longitude' => 'decimal:7',
         'is_dlp_defect' => 'boolean',
     ];
 

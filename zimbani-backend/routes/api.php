@@ -43,6 +43,7 @@ use App\Http\Controllers\Api\RetentionFundController;
 use App\Http\Controllers\Api\DefectLiabilityCertificateController;
 use App\Http\Controllers\Api\ConstructionSavingSchemeController;
 use App\Http\Controllers\Api\MobileMoneyController;
+use App\Http\Controllers\Api\SiteAuditSyncController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -223,6 +224,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/simulate-callback', [MobileMoneyController::class, 'simulateCallback']);
         Route::get('/webhook-logs', [MobileMoneyController::class, 'webhookLogs']);
         Route::get('/gateways', [MobileMoneyController::class, 'gateways']);
+    });
+
+    // Offline Site Walk-Through Synchronization & Audits (Phase 9 Day 3)
+    Route::prefix('site-audits')->group(function () {
+        Route::get('/cache-package', [SiteAuditSyncController::class, 'getOfflinePackage']);
+        Route::post('/sync', [SiteAuditSyncController::class, 'sync']);
+        Route::get('/sync-logs', [SiteAuditSyncController::class, 'syncLogs']);
+        Route::get('/checklist-templates', [SiteAuditSyncController::class, 'checklistTemplates']);
     });
 
     // Financial Transactions & Immutable Ledger
