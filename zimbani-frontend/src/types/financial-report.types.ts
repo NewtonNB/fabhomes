@@ -214,3 +214,105 @@ export interface ExecutiveKpis {
   currency: string
   computed_at: string
 }
+
+
+// Phase 11 Day 2 Client, Plot & Construction Analytics Types
+export interface ClientActivitySummary {
+  total_clients: number
+  new_clients: number
+  active_clients: number
+  dormant_clients: number
+  churn_rate_percentage: number
+  kyc_verified_count: number
+  kyc_pending_count: number
+}
+
+export interface TopClientItem {
+  client_id: number
+  client_uuid: string
+  client_number: string
+  name: string
+  email: string
+  phone: string
+  total_deposits: number
+  transaction_count: number
+  active_schemes: number
+  allocated_plots: number
+  last_deposit_at?: string
+}
+
+export interface ClientActivityReport {
+  period: {
+    from: string
+    to: string
+  }
+  summary: ClientActivitySummary
+  by_account_type: Record<string, number>
+  top_clients: TopClientItem[]
+}
+
+export interface PlotAllocationEstateItem {
+  site_id: number
+  site_uuid: string
+  site_name: string
+  site_code: string
+  location: string
+  total_plots: number
+  available_plots: number
+  reserved_plots: number
+  allocated_plots: number
+  handed_over_plots: number
+  allocation_rate_percentage: number
+  total_inventory_value: number
+  realized_collections: number
+  outstanding_receivables: number
+}
+
+export interface PlotAllocationReport {
+  summary: {
+    total_plots: number
+    available_plots: number
+    reserved_plots: number
+    allocated_plots: number
+    handed_over_plots: number
+    allocation_rate_percentage: number
+    total_inventory_value: number
+    realized_collections: number
+    outstanding_receivables: number
+    currency: string
+  }
+  by_estate: PlotAllocationEstateItem[]
+}
+
+export interface ConstructionProgressProjectItem {
+  project_id: number
+  project_uuid: string
+  project_name: string
+  site_name: string
+  status: string
+  completion_percentage: number
+  target_completion_date?: string
+  budget: number
+  actual_cost: number
+  variance: number
+  health_status: 'on_track' | 'at_risk' | 'critical'
+  milestones_total: number
+  milestones_completed: number
+  milestones_delayed: number
+}
+
+export interface ConstructionProgressReport {
+  summary: {
+    total_projects: number
+    total_milestones: number
+    completed_milestones: number
+    in_progress_milestones: number
+    delayed_milestones: number
+    on_time_completion_rate: number
+    total_construction_budget: number
+    total_certified_cost: number
+    budget_utilization_percentage: number
+    currency: string
+  }
+  by_project: ConstructionProgressProjectItem[]
+}

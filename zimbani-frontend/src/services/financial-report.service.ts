@@ -9,6 +9,9 @@ import {
   FinancialSummaryFilters,
   CashFlowBreakdownReport,
   ExecutiveKpis,
+  ClientActivityReport,
+  PlotAllocationReport,
+  ConstructionProgressReport,
 } from '../types/financial-report.types'
 
 class FinancialReportService {
@@ -114,6 +117,43 @@ class FinancialReportService {
 
   async getExecutiveKpis(): Promise<ExecutiveKpis> {
     const response = await api.get<{ success: boolean; data: ExecutiveKpis }>('/reports/executive-kpis')
+    return response.data.data
+  }
+
+  // --- Phase 11 Day 2 Client Activity, Plot Allocation & Construction Analytics ---
+
+  async getClientActivity(filters?: { date_from?: string; date_to?: string; status?: string }): Promise<ClientActivityReport> {
+    const params = new URLSearchParams()
+    if (filters?.date_from) params.append('date_from', filters.date_from)
+    if (filters?.date_to) params.append('date_to', filters.date_to)
+    if (filters?.status) params.append('status', filters.status)
+
+    const response = await api.get<{ success: boolean; data: ClientActivityReport }>(
+      `/reports/client-activity?${params.toString()}`
+    )
+    return response.data.data
+  }
+
+  async getPlotAllocation(filters?: { site_id?: number; status?: string }): Promise<PlotAllocationReport> {
+    const params = new URLSearchParams()
+    if (filters?.site_id) params.append('site_id', filters.site_id.toString())
+    if (filters?.status) params.append('status', filters.status)
+
+    const response = await api.get<{ success: boolean; data: PlotAllocationReport }>(
+      `/reports/plot-allocation?${params.toString()}`
+    )
+    return response.data.data
+  }
+
+  async getConstructionProgress(filters?: { project_id?: number; site_id?: number; status?: string }): Promise<ConstructionProgressReport> {
+    const params = new URLSearchParams()
+    if (filters?.project_id) params.append('project_id', filters.project_id.toString())
+    if (filters?.site_id) params.append('site_id', filters.site_id.toString())
+    if (filters?.status) params.append('status', filters.status)
+
+    const response = await api.get<{ success: boolean; data: ConstructionProgressReport }>(
+      `/reports/construction-progress?${params.toString()}`
+    )
     return response.data.data
   }
 }

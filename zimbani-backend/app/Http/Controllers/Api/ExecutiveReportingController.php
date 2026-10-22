@@ -70,4 +70,63 @@ class ExecutiveReportingController extends Controller
             'data' => $kpis,
         ]);
     }
+
+    /**
+     * Client Activity & Engagement Report
+     * GET /api/v1/reports/client-activity
+     */
+    public function clientActivity(Request $request): JsonResponse
+    {
+        $filters = $request->validate([
+            'date_from' => 'nullable|date',
+            'date_to' => 'nullable|date',
+            'status' => 'nullable|string',
+        ]);
+
+        $report = $this->reportingService->getClientActivityReport($filters);
+
+        return response()->json([
+            'success' => true,
+            'data' => $report,
+        ]);
+    }
+
+    /**
+     * Plot Allocation & Estate Inventory Report
+     * GET /api/v1/reports/plot-allocation
+     */
+    public function plotAllocation(Request $request): JsonResponse
+    {
+        $filters = $request->validate([
+            'site_id' => 'nullable|integer',
+            'status' => 'nullable|string',
+        ]);
+
+        $report = $this->reportingService->getPlotAllocationReport($filters);
+
+        return response()->json([
+            'success' => true,
+            'data' => $report,
+        ]);
+    }
+
+    /**
+     * Construction Milestone & Project Health Analytics
+     * GET /api/v1/reports/construction-progress
+     */
+    public function constructionProgress(Request $request): JsonResponse
+    {
+        $filters = $request->validate([
+            'project_id' => 'nullable|integer',
+            'site_id' => 'nullable|integer',
+            'status' => 'nullable|string',
+        ]);
+
+        $report = $this->reportingService->getConstructionProgressReport($filters);
+
+        return response()->json([
+            'success' => true,
+            'data' => $report,
+        ]);
+    }
 }

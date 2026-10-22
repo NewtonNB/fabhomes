@@ -334,11 +334,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/entries/{id}/match', [PaymentSimulationReconciliationController::class, 'manualMatch']);
     });
 
-    // Executive BI Analytics & Advanced Reporting Engine (Phase 11 Day 1)
+    // Executive BI Analytics & Advanced Reporting Engine (Phase 11 Day 1 & Day 2)
     Route::prefix('reports')->group(function () {
         Route::get('/financial-summary', [ExecutiveReportingController::class, 'financialSummary']);
         Route::get('/cash-flow-breakdown', [ExecutiveReportingController::class, 'cashFlowBreakdown']);
         Route::get('/executive-kpis', [ExecutiveReportingController::class, 'executiveKpis']);
+        Route::get('/client-activity', [ExecutiveReportingController::class, 'clientActivity']);
+        Route::get('/plot-allocation', [ExecutiveReportingController::class, 'plotAllocation']);
+        Route::get('/construction-progress', [ExecutiveReportingController::class, 'constructionProgress']);
     });
 
     // Financial Transactions & Immutable Ledger

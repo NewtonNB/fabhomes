@@ -3188,10 +3188,36 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+---
+
+### Phase 11 Day 2: Client Activity, Plot Allocation & Construction Milestone Analytics ✅ (Oct 22, 2026)
+
+- **Domain Analytics & Aggregation Engine:**
+  - Enhanced `ExecutiveReportingService.php`:
+    - `getClientActivityReport(array $filters)`: API Spec Section 11.2 compliant. Calculates total registered clients, new period enrollments, active transacting clients, dormant clients (>60 days inactive), and churn rate. Breaks down clients by scheme types (`LAND_SAVINGS`, `CONSTRUCTION_SAVINGS`) and ranks top 15 depositors by cumulative contributions, transaction count, scheme count, and allocated plots.
+    - `getPlotAllocationReport(array $filters)`: API Spec Section 11.3 compliant. Analyzes inventory status (`available`, `reserved`, `allocated`, `handed_over`) and dynamic allocation rates (`(allocated + handed_over) / total_plots * 100`). Aggregates financial valuation (total portfolio value, realized collections, and outstanding receivables) per commercial estate (`Site`).
+    - `getConstructionProgressReport(array $filters)`: Compares scheduled vs. actual milestone timelines, on-time completion rates, certified subcontractor costs vs. allocated budgets, and performs project health triage (`on_track`, `at_risk`, `critical`).
+
+- **Controllers, Policies, & API Endpoints:**
+  - Enhanced `ExecutiveReportingController.php` with 3 endpoints in `routes/api.php` under `auth:sanctum`:
+    - `GET /api/v1/reports/client-activity` — API Spec Section 11.2 compliant
+    - `GET /api/v1/reports/plot-allocation` — API Spec Section 11.3 compliant
+    - `GET /api/v1/reports/construction-progress` — Project health & milestone triage
+
+- **Frontend Architecture & Service Layer:**
+  - TypeScript types: Added `ClientActivityReport`, `ClientActivitySummary`, `TopClientItem`, `PlotAllocationReport`, `PlotAllocationEstateItem`, `ConstructionProgressReport`, and `ConstructionProgressProjectItem` to `src/types/financial-report.types.ts`.
+  - Service methods: Added `getClientActivity()`, `getPlotAllocation()`, and `getConstructionProgress()` to `src/services/financial-report.service.ts`.
+
+- **Verification & Testing:**
+  - Automated test script `test_phase_11_day_2.php` passed all domain aggregations and verified HTTP status 200 on all 3 endpoints.
+  - Frontend production build passed cleanly (`npm run build` in 1.30s, 0 errors).
+
+---
+
 **Phase 11: Advanced Reporting, BI Analytics, Document Management & Export Engine**
 1. ✅ **Day 1**: Comprehensive Financial Reports & Executive BI Aggregation Engine (COMPLETED)
-2. ⏳ **Day 2**: Client Activity, Plot Allocation & Construction Milestone Analytics (NEXT)
-3. ⏳ **Day 3**: Document Management System (DMS) & Secure File Repository
+2. ✅ **Day 2**: Client Activity, Plot Allocation & Construction Milestone Analytics (COMPLETED)
+3. ⏳ **Day 3**: Document Management System (DMS) & Secure File Repository (NEXT)
 4. ⏳ **Day 4**: Multi-Format Report Export Engine (PDF, Excel/CSV) & Scheduled Delivery
 5. ⏳ **Day 5**: Executive Management Dashboard & Interactive BI Visualization Frontend
 
@@ -3200,7 +3226,7 @@ Delivered robust external settlement statement reconciliation for client escrow 
 **Last Updated:** October 22, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 11 Day 1 Complete
+**Latest Commit:** Phase 11 Day 2 Complete
 
 
 
