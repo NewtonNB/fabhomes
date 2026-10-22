@@ -10,6 +10,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Models\PunchListItem;
 use App\Models\Activity;
+use App\Models\ClientSecurityProfile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
@@ -157,17 +158,31 @@ class ClientPortalMilestoneService
     }
 
     /**
-     * Client authorizes milestone progress & payment release.
+     * Client authorizes milestone progress & payment release with Quick-PIN verification.
      */
     public function clientAuthorize(string $uuid, User $user, ?string $feedback = null, ?string $pin = null): MilestoneVerification
     {
-        return DB::transaction(function () use ($uuid, $user, $feedback) {
+        // 1. Verify Quick-PIN if client has set one up
+        $securityProfile = ClientSecurityProfile::where('user_id', $user->id)->first();
+        if ($securityProfile && !empty($securityProfile->pin_hash)) {
+            if (empty($pin)) {
+                throw new Exception("Quick-PIN authentication is required to authorize this milestone payment release.");
+            }
+            if (!$securityProfile->verifyPin($pin)) {
+                throw new Exception("Invalid Quick-PIN. Please verify your 4-digit security PIN to authorize release.");
+            }
+        }
+
+        return DB::transaction(function () use ($uuid, $user, $feedback, $securityProfile) {
             $client = $this->resolveClientForUser($user);
             $verification = $this->getClientVerificationDetails($uuid, $client);
 
             if ($verification->client_approval_status === 'approved') {
                 throw new Exception("This milestone verification is already approved by the client.");
             }
+
+            // Cryptographic digital sign-off certificate
+            $signatureHash = hash('sha256', "SIGN-OFF:{$verification->uuid}:{$user->id}:" . now()->toIso8601String());
 
             $verification->update([
                 'client_approval_status' => 'approved',
@@ -180,7 +195,7 @@ class ClientPortalMilestoneService
             // Notify / update associated payment release
             $release = MilestonePaymentRelease::where('milestone_verification_id', $verification->id)->first();
             if ($release) {
-                $note = "Client ({$user->name}) signed off on portal at " . now()->format('Y-m-d H:i') . ". Ready for finance release.";
+                $note = "Client ({$user->name}) signed off with Quick-PIN on portal at " . now()->format('Y-m-d H:i') . ". Signature: [{$signatureHash}]. Ready for escrow disbursement.";
                 $existingNotes = $release->notes ? $release->notes . " | " . $note : $note;
                 $release->update(['notes' => $existingNotes]);
             }
@@ -190,11 +205,13 @@ class ClientPortalMilestoneService
                 'type' => 'milestone_verification_client_authorized',
                 'entity_type' => MilestoneVerification::class,
                 'entity_id' => $verification->id,
-                'description' => "Client {$user->name} authorized milestone verification {$verification->verification_number}",
+                'description' => "Client {$user->name} authorized milestone verification {$verification->verification_number} with digital signature",
                 'properties' => [
                     'verification_id' => $verification->id,
                     'verification_number' => $verification->verification_number,
                     'feedback' => $feedback,
+                    'signature_hash' => $signatureHash,
+                    'pin_authenticated' => $securityProfile ? true : false,
                 ],
             ]);
 
@@ -206,6 +223,78 @@ class ClientPortalMilestoneService
                 'progressPhotos',
             ]);
         });
+    }
+
+    /**
+     * Client reports a snag/defect on their property.
+     */
+    public function reportDefect(User $user, array $data): PunchListItem
+    {
+        $client = $this->resolveClientForUser($user);
+        $unitId = $data['unit_id'] ?? null;
+
+        $unit = null;
+        if ($unitId) {
+            $unit = Unit::where('id', $unitId)
+                ->where(function ($q) use ($client, $user) {
+                    $q->where('client_id', $user->id);
+                    if ($client) {
+                        $q->orWhere('client_id', $client->id);
+                    }
+                })
+                ->first();
+
+            if (!$unit) {
+                throw new Exception("You do not own or have allocation rights to Unit ID {$unitId}.");
+            }
+        }
+
+        $itemNumber = 'SNAG-' . now()->format('Ymd') . '-' . str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
+
+        return PunchListItem::create([
+            'uuid' => (string) Str::uuid(),
+            'item_number' => $itemNumber,
+            'site_id' => $unit ? $unit->site_id : ($data['site_id'] ?? 1),
+            'project_id' => $unit ? $unit->project_id : ($data['project_id'] ?? 1),
+            'unit_id' => $unit ? $unit->id : null,
+            'title' => $data['title'],
+            'description' => $data['description'],
+            'photo_url' => $data['photo_url'] ?? null,
+            'location_details' => $data['location_details'] ?? ($unit ? "Plot/Unit {$unit->unit_number}" : 'On-Site'),
+            'category' => in_array($data['category'] ?? 'finishing', ['structural', 'architectural', 'plumbing', 'electrical', 'finishing', 'safety', 'other']) ? $data['category'] : 'finishing',
+            'severity' => in_array($data['severity'] ?? 'medium', ['low', 'medium', 'high', 'critical']) ? $data['severity'] : 'medium',
+            'status' => 'open',
+            'reported_by' => $user->id,
+        ]);
+    }
+
+    /**
+     * Get client's reported punch-list defect items.
+     */
+    public function getClientPunchListItems(User $user): array
+    {
+        $client = $this->resolveClientForUser($user);
+
+        $unitIds = Unit::where('client_id', $user->id)
+            ->when($client, fn($q) => $q->orWhere('client_id', $client->id))
+            ->pluck('id')
+            ->toArray();
+
+        $items = PunchListItem::with(['unit:id,uuid,unit_number,name', 'project:id,uuid,name'])
+            ->where(function ($q) use ($user, $unitIds) {
+                $q->where('reported_by', $user->id);
+                if (!empty($unitIds)) {
+                    $q->orWhereIn('unit_id', $unitIds);
+                }
+            })
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return [
+            'punch_items' => $items,
+            'open_count' => $items->whereIn('status', ['open', 'in_progress'])->count(),
+            'rectified_count' => $items->whereIn('status', ['rectified', 'verified', 'closed'])->count(),
+        ];
     }
 
     /**

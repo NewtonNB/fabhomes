@@ -443,6 +443,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/verifications/{uuid}/dispute', [ClientPortalMilestoneController::class, 'disputeVerification']);
         Route::post('/verifications/{uuid}/photos', [ClientPortalMilestoneController::class, 'uploadPhoto']);
         Route::post('/photos/{uuid}/flag', [ClientPortalMilestoneController::class, 'flagPhoto']);
+        Route::post('/defects', [ClientPortalMilestoneController::class, 'reportDefect']);
+        Route::get('/defects', [ClientPortalMilestoneController::class, 'getPunchListItems']);
     });
 
     // Client Portal PWA Self-Service & Security Profile (Phase 12 Day 1 & Day 2)

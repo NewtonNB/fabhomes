@@ -103,8 +103,9 @@ class ClientAuthService
             );
 
             // Optional initial Quick-PIN setup during onboarding
-            if (!empty($data['pin'])) {
-                $securityProfile->setPin((string) $data['pin']);
+            $initialPin = $data['pin'] ?? $data['quick_pin'] ?? null;
+            if (!empty($initialPin)) {
+                $securityProfile->setPin((string) $initialPin);
             }
 
             // Create Sanctum Access Token

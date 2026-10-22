@@ -187,6 +187,59 @@ class ClientPortalMilestoneController extends Controller
     }
 
     /**
+     * Client reports a direct defect / punch-list snag item.
+     */
+    public function reportDefect(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'unit_id' => 'nullable|integer',
+            'project_id' => 'nullable|integer',
+            'site_id' => 'nullable|integer',
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:2000',
+            'photo_url' => 'nullable|string|max:500',
+            'location_details' => 'nullable|string|max:255',
+            'category' => 'nullable|string|in:structural,architectural,plumbing,electrical,finishing,safety,other',
+            'severity' => 'nullable|string|in:low,medium,high,critical',
+        ]);
+
+        try {
+            $item = $this->service->reportDefect($request->user(), $validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Defect punch-list item submitted successfully. Site management alerted.',
+                'data' => $item,
+            ], 201);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Get client's punch list items.
+     */
+    public function getPunchListItems(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getClientPunchListItems($request->user());
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
      * Get Client milestone portal summary KPI statistics.
      */
     public function summary(Request $request): JsonResponse

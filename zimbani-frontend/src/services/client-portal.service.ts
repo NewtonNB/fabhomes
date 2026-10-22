@@ -109,6 +109,27 @@ class ClientPortalService {
     )
     return response.data.data
   }
+
+  /**
+   * Client reports a direct defect/snag punch-list item.
+   */
+  async reportDefect(payload: any): Promise<any> {
+    const response = await api.post<{ success: boolean; message: string; data: any }>(
+      `${this.baseUrl}/defects`,
+      payload
+    )
+    return response.data.data
+  }
+
+  /**
+   * Get client's punch list defect items.
+   */
+  async getPunchListItems(): Promise<{ punch_items: any[]; open_count: number; rectified_count: number }> {
+    const response = await api.get<{ success: boolean; data: { punch_items: any[]; open_count: number; rectified_count: number } }>(
+      `${this.baseUrl}/defects`
+    )
+    return response.data.data
+  }
 }
 
 export const clientPortalService = new ClientPortalService()
