@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
   MdHome,
   MdSecurity,
@@ -23,14 +22,15 @@ import {
 import { clientPortalAuthService } from '../../services/client-portal-auth.service'
 import { ClientPortalProfileResponse, ClientSessionItem } from '../../types/client-portal-auth.types'
 import { useAuth } from '../../contexts/AuthContext'
+import { ClientSavingsTab } from './components/ClientSavingsTab'
+import { ClientMilestoneTrackerTab } from './components/ClientMilestoneTrackerTab'
 import './ClientPortalLayout.css'
 
 export const ClientPortalDashboard: React.FC = () => {
-  const navigate = useNavigate()
   const { user, logout } = useAuth()
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'overview' | 'security' | 'profile' | 'milestones'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'savings' | 'milestones' | 'security' | 'profile'>('overview')
   const [profileData, setProfileData] = useState<ClientPortalProfileResponse | null>(null)
   const [sessions, setSessions] = useState<ClientSessionItem[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -317,6 +317,10 @@ export const ClientPortalDashboard: React.FC = () => {
     return 'UGX ' + Math.round(amt).toLocaleString()
   }
 
+  const handleNotify = (msg: string, type: 'success' | 'error') => {
+    setActionMessage({ text: msg, type })
+  }
+
   if (isLoading && !profileData) {
     return (
       <div className="portal-container" style={{ justifyContent: 'center', alignItems: 'center' }}>
@@ -459,9 +463,12 @@ export const ClientPortalDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button className="portal-btn-primary" onClick={() => setActiveTab('milestones')}>
-              <MdConstruction /> View My Milestones
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button className="portal-btn-primary" onClick={() => setActiveTab('savings')}>
+              <MdSavings /> Savings Schemes
+            </button>
+            <button className="portal-btn-secondary" onClick={() => setActiveTab('milestones')}>
+              <MdConstruction /> Milestones
             </button>
             <button className="portal-btn-secondary" onClick={() => loadProfile()}>
               <MdRefresh /> Refresh
@@ -478,6 +485,18 @@ export const ClientPortalDashboard: React.FC = () => {
             <MdHome /> Overview
           </button>
           <button
+            className={`portal-nav-tab ${activeTab === 'savings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('savings')}
+          >
+            <MdSavings /> Savings Schemes
+          </button>
+          <button
+            className={`portal-nav-tab ${activeTab === 'milestones' ? 'active' : ''}`}
+            onClick={() => setActiveTab('milestones')}
+          >
+            <MdConstruction /> Milestones & Progress
+          </button>
+          <button
             className={`portal-nav-tab ${activeTab === 'security' ? 'active' : ''}`}
             onClick={() => setActiveTab('security')}
           >
@@ -489,12 +508,6 @@ export const ClientPortalDashboard: React.FC = () => {
           >
             <MdPerson /> Profile & KYC
           </button>
-          <button
-            className={`portal-nav-tab ${activeTab === 'milestones' ? 'active' : ''}`}
-            onClick={() => setActiveTab('milestones')}
-          >
-            <MdConstruction /> Construction Milestones
-          </button>
         </nav>
 
         {/* TAB 1: OVERVIEW */}
@@ -502,7 +515,12 @@ export const ClientPortalDashboard: React.FC = () => {
           <div>
             {/* KPI Cards Grid */}
             <div className="portal-kpi-grid">
-              <div className="portal-kpi-card">
+              <div
+                className="portal-kpi-card"
+                style={{ cursor: 'pointer' }}
+                onClick={() => setActiveTab('savings')}
+                title="Click to manage savings accounts"
+              >
                 <div className="portal-kpi-icon savings">
                   <MdSavings />
                 </div>
@@ -512,7 +530,7 @@ export const ClientPortalDashboard: React.FC = () => {
                     {formatCurrency(portfolio?.total_savings_balance || 0)}
                   </span>
                   <span className="portal-kpi-subtitle">
-                    {portfolio?.savings_count || 0} Active Scheme Account(s)
+                    {portfolio?.savings_count || 0} Active Scheme Account(s) • Click to open
                   </span>
                 </div>
               </div>
@@ -530,7 +548,12 @@ export const ClientPortalDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="portal-kpi-card">
+              <div
+                className="portal-kpi-card"
+                style={{ cursor: 'pointer' }}
+                onClick={() => setActiveTab('milestones')}
+                title="Click to view construction milestones"
+              >
                 <div className="portal-kpi-icon milestones">
                   <MdConstruction />
                 </div>
@@ -539,7 +562,7 @@ export const ClientPortalDashboard: React.FC = () => {
                   <span className="portal-kpi-value">
                     {portfolio?.pending_milestones_count || 0} Milestone(s)
                   </span>
-                  <span className="portal-kpi-subtitle">Awaiting your approval & release</span>
+                  <span className="portal-kpi-subtitle">Awaiting your approval & release • Click to inspect</span>
                 </div>
               </div>
 
@@ -987,21 +1010,14 @@ export const ClientPortalDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 4: MILESTONES (EMBEDDED PHASE 8 LAUNCHER) */}
+        {/* TAB 4: SAVINGS SCHEMES & DEPOSITS */}
+        {activeTab === 'savings' && (
+          <ClientSavingsTab onNotify={handleNotify} />
+        )}
+
+        {/* TAB 5: CONSTRUCTION MILESTONES & REAL-TIME TRACKERS */}
         {activeTab === 'milestones' && (
-          <div className="portal-card" style={{ padding: 24, textAlign: 'center' }}>
-            <div className="portal-kpi-icon milestones" style={{ margin: '0 auto 16px auto', width: 56, height: 56 }}>
-              <MdConstruction style={{ fontSize: 28 }} />
-            </div>
-            <h3 style={{ fontSize: 18, color: '#fff', margin: '0 0 8px 0' }}>Milestone Authorisation & Photo Audits</h3>
-            <p style={{ maxWidth: 560, margin: '0 auto 20px auto', fontSize: 13, color: '#94a3b8' }}>
-              Inspect high-definition site progress photos, review QS certifications, authorize escrow milestone releases,
-              or flag construction punch-list defects.
-            </p>
-            <button className="portal-btn-primary" onClick={() => navigate('/client-portal/milestones')}>
-              Launch Milestone Verification Console <MdArrowForward />
-            </button>
-          </div>
+          <ClientMilestoneTrackerTab onNotify={handleNotify} />
         )}
       </main>
 
@@ -1096,6 +1112,13 @@ export const ClientPortalDashboard: React.FC = () => {
         >
           <MdHome />
           <span>Home</span>
+        </button>
+        <button
+          className={`portal-bottom-nav-item ${activeTab === 'savings' ? 'active' : ''}`}
+          onClick={() => setActiveTab('savings')}
+        >
+          <MdSavings />
+          <span>Savings</span>
         </button>
         <button
           className={`portal-bottom-nav-item ${activeTab === 'milestones' ? 'active' : ''}`}

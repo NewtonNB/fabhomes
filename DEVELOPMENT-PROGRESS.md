@@ -10,8 +10,8 @@
 ## 🎯 Current Status
 
 **Phase:** 12 - Client Portal PWA & Customer Self-Service Experience  
-**Status:** ⏳ In Progress (Day 1 of 5 ✅ COMPLETED)  
-**Next:** Day 2 of 5 (Client Savings Dashboard, Milestone Progress Trackers & Deposit Checkout)
+**Status:** ⏳ In Progress (Day 2 of 5 ✅ COMPLETED)  
+**Next:** Day 3 of 5 (Plot Reservation, Deed Status & Interactive Estate Map Viewer)
 
 ---
 
@@ -3353,10 +3353,44 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+### Phase 12 Day 2: Client Savings Dashboard, Milestone Progress Trackers & Deposit Checkout ✅ (Oct 22, 2026)
+
+- **Backend Architecture & Service Layer:**
+  - Created `App\Services\ClientSavingsPortalService.php`:
+    - `getSavingsOverview(User $user)`: Aggregates total balance, target savings, remaining balances, completion percentage, and category breakdown (`land_saving` vs `construction_saving`).
+    - `getSavingsAccountDetails(User $user, string $identifier)`: Resolves account by UUID or account number; fetches linked plot/unit, project, and 20 most recent transactions.
+    - `getTransactions(User $user, array $filters)`: Paginated, searchable statement history with date and type filters (`credit`, `debit`).
+    - `initiateDeposit(User $user, array $data, Request $request)`: Creates a `PaymentIntent` (status `requires_action`) linked to the savings account, returning gateway instructions and mobile push prompt details (min 1,000 UGX, supporting MTN MoMo, Airtel Money, Stanbic Visa, Flexipay).
+    - `confirmDeposit(User $user, string $intentIdentifier)`: Atomic DB transaction executing status update to `succeeded` on `PaymentIntent`, balance credit on `SavingsAccount`, auto-status progression to `completed` if target met, immutable audit `Transaction` (type `credit`), and confirmed `Payment` record with method mapping (`mobile_money`, `bank_transfer`, `card`).
+    - `getMilestoneProgressTrackers(User $user)`: Real-time calculation of physical completion percentage, active milestone status, planned completion dates, and latest QS inspection valuation.
+
+- **Controllers, Routes, & API Endpoints:**
+  - Created `App\Http\Controllers\Api\ClientPortalSavingsController.php` mounted at `/api/v1/client-portal/*`:
+    - `GET  /api/v1/client-portal/savings` - Aggregated savings summary & account cards.
+    - `GET  /api/v1/client-portal/savings/{identifier}` - Detailed scheme statement & plot metadata.
+    - `GET  /api/v1/client-portal/transactions` - Filterable transaction ledger.
+    - `POST /api/v1/client-portal/deposits/checkout` - Unified deposit checkout intent.
+    - `POST /api/v1/client-portal/deposits/{identifier}/confirm` - Instant deposit confirmation & balance credit.
+    - `GET  /api/v1/client-portal/milestone-trackers` - Physical construction milestone progress.
+
+- **Frontend PWA Components & UI/UX:**
+  - Types & Services: Created `src/types/client-portal-savings.types.ts` and `src/services/client-portal-savings.service.ts`.
+  - Styles: Created `src/pages/client-portal/components/ClientSavingsTab.css` with responsive savings cards, progress meters, checkout modal styling, and statement transaction drawers.
+  - UI Components:
+    - `ClientSavingsTab.tsx`: KPI cards with live progress bars, scheme category filters (`All`, `Land Savings`, `Construction Savings`), account cards with direct deposit checkout triggers, and statement drawer.
+    - `ClientMilestoneTrackerTab.tsx`: Circular physical progress gauge, active milestone card with target dates, and QS inspection valuation card.
+    - `ClientPortalDashboard.tsx`: Integrated 5-tab navigation (Home, Savings, Milestones, Security, Profile) across desktop top bar and mobile native bottom navigation bar.
+
+- **Verification & Testing:**
+  - Automated test script `test_phase_12_day_2.php` passed 24/24 assertions (100%), validating registration, account summaries, deposit checkout intents, double-entry credits, and milestone tracking.
+  - Production build (`npm run build`) passed with 0 TypeScript/lint errors in 2.27s.
+
+---
+
 **Phase 12: Client Portal PWA & Customer Self-Service Experience**
 1. ✅ **Day 1**: Client Authentication, Onboarding & Biometric/PIN PWA Security Profile (COMPLETED)
-2. ⏳ **Day 2**: Client Savings Dashboard, Milestone Progress Trackers & Deposit Checkout (NEXT)
-3. ⏳ **Day 3**: Plot Reservation, Deed Status & Interactive Estate Map Viewer
+2. ✅ **Day 2**: Client Savings Dashboard, Milestone Progress Trackers & Deposit Checkout (COMPLETED)
+3. ⏳ **Day 3**: Plot Reservation, Deed Status & Interactive Estate Map Viewer (NEXT)
 4. ⏳ **Day 4**: Progress Photo Verification, Defect Punch-List Reporting & Milestone Sign-Off
 5. ⏳ **Day 5**: Digital Document Vault, Statements Download & Customer Support Ticketing
 
@@ -3365,7 +3399,7 @@ Delivered robust external settlement statement reconciliation for client escrow 
 **Last Updated:** October 22, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 12 Day 1 Complete
+**Latest Commit:** Phase 12 Day 2 Complete
 
 
 

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClientPortalAuthController;
+use App\Http\Controllers\Api\ClientPortalSavingsController;
 use App\Http\Controllers\Api\UserManagementController;
 use App\Http\Controllers\Api\RoleManagementController;
 use App\Http\Controllers\Api\ActivityController;
@@ -443,7 +444,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/photos/{uuid}/flag', [ClientPortalMilestoneController::class, 'flagPhoto']);
     });
 
-    // Client Portal PWA Self-Service & Security Profile (Phase 12 Day 1)
+    // Client Portal PWA Self-Service & Security Profile (Phase 12 Day 1 & Day 2)
     Route::prefix('client-portal')->group(function () {
         Route::get('/profile', [ClientPortalAuthController::class, 'profile']);
         Route::put('/profile', [ClientPortalAuthController::class, 'updateProfile']);
@@ -454,6 +455,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::put('/security/preferences', [ClientPortalAuthController::class, 'updatePreferences']);
         Route::post('/security/pwa-install', [ClientPortalAuthController::class, 'recordPwaInstall']);
         Route::post('/security/revoke-others', [ClientPortalAuthController::class, 'revokeOtherSessions']);
+
+        // Client Savings Accounts, Deposit Checkouts & Milestone Trackers (Phase 12 Day 2)
+        Route::get('/savings', [ClientPortalSavingsController::class, 'overview']);
+        Route::get('/savings/{identifier}', [ClientPortalSavingsController::class, 'show']);
+        Route::get('/transactions', [ClientPortalSavingsController::class, 'transactions']);
+        Route::post('/deposits/checkout', [ClientPortalSavingsController::class, 'initiateDeposit']);
+        Route::post('/deposits/{identifier}/confirm', [ClientPortalSavingsController::class, 'confirmDeposit']);
+        Route::get('/milestone-trackers', [ClientPortalSavingsController::class, 'milestoneTrackers']);
     });
 
     // Subcontractor Milestone Valuation & Interim Payment Linkages (Phase 8 Day 3)

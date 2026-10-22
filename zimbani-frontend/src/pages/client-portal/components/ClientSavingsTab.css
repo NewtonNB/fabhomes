@@ -1,0 +1,313 @@
+/* Client Savings & Deposit Checkout Styles (Phase 12 Day 2) */
+
+.savings-kpi-banner {
+  background: linear-gradient(135deg, #131c31 0%, #0b1120 100%);
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.savings-kpi-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.savings-balance-hero {
+  display: flex;
+  flex-direction: column;
+}
+
+.savings-balance-hero .label {
+  font-size: 12px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.savings-balance-hero .amount {
+  font-size: 28px;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: -0.02em;
+}
+
+.savings-progress-track {
+  width: 100%;
+  height: 10px;
+  background: #1e293b;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.savings-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+.savings-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Category Filter Bar */
+.savings-filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.savings-filter-chip {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  color: #94a3b8;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.savings-filter-chip:hover {
+  background: #1e293b;
+  color: #fff;
+}
+
+.savings-filter-chip.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #3b82f6;
+}
+
+/* Accounts Grid */
+.savings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.savings-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.savings-card:hover {
+  border-color: #334155;
+  transform: translateY(-2px);
+}
+
+.savings-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.savings-scheme-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 4px 0;
+}
+
+.savings-acc-num {
+  font-size: 11px;
+  font-family: monospace;
+  color: #94a3b8;
+}
+
+.savings-metric-box {
+  background: #090d16;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 12px;
+  margin: 14px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.savings-metric-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.savings-metric-item .val-label {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+
+.savings-metric-item .val-num {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.savings-card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* Checkout Modal */
+.checkout-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(9, 13, 22, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.checkout-modal-panel {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
+}
+
+.checkout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.checkout-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.amount-chips {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.amount-chip {
+  background: #090d16;
+  border: 1px solid #1e293b;
+  color: #f8fafc;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+
+.amount-chip:hover {
+  background: #1e293b;
+}
+
+.amount-chip.active {
+  background: #1d4ed8;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+/* Gateway Picker */
+.gateway-picker {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.gateway-card-btn {
+  background: #090d16;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  color: #f8fafc;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.gateway-card-btn:hover {
+  border-color: #334155;
+  background: #17223b;
+}
+
+.gateway-card-btn.active {
+  background: rgba(37, 99, 235, 0.15);
+  border-color: #3b82f6;
+}
+
+.gateway-card-btn .gw-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.gateway-card-btn .gw-sub {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+/* Receipt Dialog */
+.receipt-box {
+  background: #090d16;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 18px;
+  margin: 16px 0;
+}
+
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px solid #131c31;
+}
+
+.receipt-row:last-child {
+  border-bottom: none;
+}
+
+.receipt-row .r-label {
+  color: #94a3b8;
+}
+
+.receipt-row .r-val {
+  color: #fff;
+  font-weight: 600;
+}
