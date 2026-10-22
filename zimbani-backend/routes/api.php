@@ -49,6 +49,7 @@ use App\Http\Controllers\Api\ProjectHandoverSettlementController;
 use App\Http\Controllers\Api\PaymentGatewayIntegrationController;
 use App\Http\Controllers\Api\PaymentRefundDisputeController;
 use App\Http\Controllers\Api\PaymentSimulationReconciliationController;
+use App\Http\Controllers\Api\ExecutiveReportingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -331,6 +332,13 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::get('/batches/{id}', [PaymentSimulationReconciliationController::class, 'showBatch']);
         Route::post('/batches/{id}/auto-reconcile', [PaymentSimulationReconciliationController::class, 'autoReconcile']);
         Route::post('/entries/{id}/match', [PaymentSimulationReconciliationController::class, 'manualMatch']);
+    });
+
+    // Executive BI Analytics & Advanced Reporting Engine (Phase 11 Day 1)
+    Route::prefix('reports')->group(function () {
+        Route::get('/financial-summary', [ExecutiveReportingController::class, 'financialSummary']);
+        Route::get('/cash-flow-breakdown', [ExecutiveReportingController::class, 'cashFlowBreakdown']);
+        Route::get('/executive-kpis', [ExecutiveReportingController::class, 'executiveKpis']);
     });
 
     // Financial Transactions & Immutable Ledger

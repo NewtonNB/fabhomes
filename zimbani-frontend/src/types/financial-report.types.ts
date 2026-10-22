@@ -135,3 +135,82 @@ export interface ComplianceAuditReport {
     float_risk_status: string
   }
 }
+
+
+// Phase 11 Executive BI Analytics & Reporting Types
+export interface FinancialSummaryFilters {
+  date_from?: string
+  date_to?: string
+  group_by?: 'day' | 'week' | 'month'
+  account_type?: string
+  gateway?: string
+}
+
+export interface FinancialSummaryReport {
+  period: {
+    from: string
+    to: string
+    group_by: string
+  }
+  summary: {
+    total_revenue: number
+    net_revenue: number
+    total_transactions: number
+    average_transaction_value: number
+    unique_clients: number
+    total_gateway_fees: number
+    total_refunded: number
+    fee_refunded: number
+    currency: string
+  }
+  by_account_type: Record<
+    string,
+    {
+      revenue: number
+      transactions: number
+      clients: number
+    }
+  >
+  by_payment_method: Record<
+    string,
+    {
+      revenue: number
+      transactions: number
+      percentage_of_volume: number
+    }
+  >
+  time_series_breakdown: {
+    date: string
+    revenue: number
+    transactions: number
+  }[]
+}
+
+export interface CashFlowBreakdownReport {
+  period: {
+    from: string
+    to: string
+  }
+  inflows: {
+    total: number
+    breakdown: Record<string, number>
+  }
+  outflows: {
+    total: number
+    breakdown: Record<string, number>
+  }
+  net_operating_cash_flow: number
+  liquidity_velocity_ratio: number
+  currency: string
+}
+
+export interface ExecutiveKpis {
+  month_to_date_revenue: number
+  year_to_date_revenue: number
+  savings_under_management: number
+  retention_warranty_reserves: number
+  active_clients_count: number
+  dispute_win_rate_percentage: number
+  currency: string
+  computed_at: string
+}

@@ -5,6 +5,10 @@ import {
   ProfitabilityReport,
   CashFlowForecast,
   ComplianceAuditReport,
+  FinancialSummaryReport,
+  FinancialSummaryFilters,
+  CashFlowBreakdownReport,
+  ExecutiveKpis,
 } from '../types/financial-report.types'
 
 class FinancialReportService {
@@ -79,6 +83,38 @@ class FinancialReportService {
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
+  }
+
+  // --- Executive BI Analytics & Advanced Reporting Engine (Phase 11 Day 1) ---
+
+  async getFinancialSummary(filters?: FinancialSummaryFilters): Promise<FinancialSummaryReport> {
+    const params = new URLSearchParams()
+    if (filters?.date_from) params.append('date_from', filters.date_from)
+    if (filters?.date_to) params.append('date_to', filters.date_to)
+    if (filters?.group_by) params.append('group_by', filters.group_by)
+    if (filters?.account_type) params.append('account_type', filters.account_type)
+    if (filters?.gateway) params.append('gateway', filters.gateway)
+
+    const response = await api.get<{ success: boolean; data: FinancialSummaryReport }>(
+      `/reports/financial-summary?${params.toString()}`
+    )
+    return response.data.data
+  }
+
+  async getCashFlowBreakdown(filters?: { date_from?: string; date_to?: string }): Promise<CashFlowBreakdownReport> {
+    const params = new URLSearchParams()
+    if (filters?.date_from) params.append('date_from', filters.date_from)
+    if (filters?.date_to) params.append('date_to', filters.date_to)
+
+    const response = await api.get<{ success: boolean; data: CashFlowBreakdownReport }>(
+      `/reports/cash-flow-breakdown?${params.toString()}`
+    )
+    return response.data.data
+  }
+
+  async getExecutiveKpis(): Promise<ExecutiveKpis> {
+    const response = await api.get<{ success: boolean; data: ExecutiveKpis }>('/reports/executive-kpis')
+    return response.data.data
   }
 }
 
