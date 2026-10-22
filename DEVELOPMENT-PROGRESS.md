@@ -10,8 +10,8 @@
 ## 🎯 Current Status
 
 **Phase:** 12 - Client Portal PWA & Customer Self-Service Experience  
-**Status:** ⏳ In Progress (Day 2 of 5 ✅ COMPLETED)  
-**Next:** Day 3 of 5 (Plot Reservation, Deed Status & Interactive Estate Map Viewer)
+**Status:** ⏳ In Progress (Day 3 of 5 ✅ COMPLETED)  
+**Next:** Day 4 of 5 (Progress Photo Verification, Defect Punch-List Reporting & Milestone Sign-Off)
 
 ---
 
@@ -3387,11 +3387,51 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+### Phase 12 Day 3: Plot Reservation, Deed Status & Interactive Estate Map Viewer ✅ (Oct 22, 2026)
+
+- **Database Schema Migration & Models:**
+  - Created migration `2026_10_22_170000_create_plot_reservations_and_land_title_deeds_tables.php`:
+    - Table `plot_reservations`: ADR-014 hybrid keys, unique reservation number (`RES-YYYY-XXXXXX`), links to `clients`, `users`, `units`, `sites`, `projects`, and `payment_intents`. Enforces 14-day hold period (`expires_at`), booking deposit (`reservation_fee`, `reservation_fee_paid`), and status lifecycle (`pending`, `confirmed`, `expired`, `cancelled`, `converted_to_sale`).
+    - Table `land_title_deeds`: Unique deed number (`DEED-YYYY-XXXXXX`), White page title certificate number, tenure type (`mailo`, `freehold`, `leasehold`), 5 statutory stages (`boundary_survey`, `ministry_mutation`, `deed_plan`, `title_registration`, `deed_handover`), licensed surveyor details, Ministry Zonal Office (MZO) reference, and GPS boundary beacon coordinates (B1-B4 corner pillars).
+  - Models: Created `PlotReservation.php` and `LandTitleDeed.php` with automatic progress % calculation and relationships in `Client.php` and `Unit.php`.
+
+- **Backend Architecture & Service Layer:**
+  - Created `App\Services\ClientPlotReservationService.php`:
+    - `getPlots()`: Formats plots with status, pricing, dimensions, tenure, soil classification, topography, infrastructure features, and deterministic/surveyed SVG canvas coordinates.
+    - `getEstateMap()`: Returns masterplan layout with styled roadways (Main Boulevard, Central Spine Avenue, Sunset Close) and community amenities (Clubhouse & Pool, Green Park, Gatehouse).
+    - `reservePlot()`: Atomic DB transaction enforcing plot availability, creating `PaymentIntent`, creating `PlotReservation` with 14-day lock, updating `Unit` status to `reserved`, creating immutable `Payment` (`booking_fee`), and `Transaction` (`credit`).
+    - `getClientReservations()`: Fetches client holds with countdown timers and details.
+    - `cancelReservation()`: Reverts unit status to `available` and marks reservation as `cancelled`.
+    - `getLandTitleDeeds()`: Formats 5-step stepper pipelines with surveyor certifications, MZO reference numbers, and GPS beacon coordinates.
+
+- **Controllers, Routes, & API Endpoints:**
+  - Created `App\Http\Controllers\Api\ClientPortalPlotController.php` mounted at `/api/v1/client-portal/*`:
+    - `GET  /api/v1/client-portal/plots`
+    - `GET  /api/v1/client-portal/estate-map`
+    - `POST /api/v1/client-portal/plots/reserve`
+    - `GET  /api/v1/client-portal/reservations`
+    - `POST /api/v1/client-portal/reservations/{uuid}/cancel`
+    - `GET  /api/v1/client-portal/deeds`
+
+- **Frontend PWA Components & Interactive UI:**
+  - Types & Services: Created `src/types/client-portal-plots.types.ts` and `src/services/client-portal-plots.service.ts`.
+  - Styles: Created `src/pages/client-portal/components/ClientPlotsTab.css`.
+  - UI Components:
+    - `ClientInteractiveEstateMapTab.tsx`: Interactive SVG canvas with roadways, community facilities, color-coded plot blocks (Available=Green, Reserved=Amber, Sold=Slate, Mine=Pulsating Gold), plot inspector side drawer, booking checkout modal with mobile money USSD prompt, and printable receipt.
+    - `ClientLandTitleDeedsTab.tsx`: 5-step statutory deed pipeline stepper (Cadastral Survey, Ministry Mutation, Deed Plan, Title Registration, Vault Custody / Handover), GPS boundary beacon coordinate table, and active 14-day hold countdown manager with 1-tap release.
+    - `ClientPortalDashboard.tsx`: Integrated navigation with **Plots** and **Deeds** tabs on desktop and mobile bottom navigation.
+
+- **Verification & Testing:**
+  - Automated test script `test_phase_12_day_3.php` passed 31/31 assertions (100%), verifying registration, plots listing, estate map roadways & amenities, reservation creation, double reservation conflict prevention, 14-day hold validation, receipt generation, title deed 5-step pipeline, GPS beacon coordinates, and reservation cancellation plot release.
+  - Production build (`npm run build`) passed with 0 TypeScript/lint errors in 1.52s.
+
+---
+
 **Phase 12: Client Portal PWA & Customer Self-Service Experience**
 1. ✅ **Day 1**: Client Authentication, Onboarding & Biometric/PIN PWA Security Profile (COMPLETED)
 2. ✅ **Day 2**: Client Savings Dashboard, Milestone Progress Trackers & Deposit Checkout (COMPLETED)
-3. ⏳ **Day 3**: Plot Reservation, Deed Status & Interactive Estate Map Viewer (NEXT)
-4. ⏳ **Day 4**: Progress Photo Verification, Defect Punch-List Reporting & Milestone Sign-Off
+3. ✅ **Day 3**: Plot Reservation, Deed Status & Interactive Estate Map Viewer (COMPLETED)
+4. ⏳ **Day 4**: Progress Photo Verification, Defect Punch-List Reporting & Milestone Sign-Off (NEXT)
 5. ⏳ **Day 5**: Digital Document Vault, Statements Download & Customer Support Ticketing
 
 ---
@@ -3399,7 +3439,7 @@ Delivered robust external settlement statement reconciliation for client escrow 
 **Last Updated:** October 22, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 12 Day 2 Complete
+**Latest Commit:** Phase 12 Day 3 Complete
 
 
 

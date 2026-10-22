@@ -169,6 +169,16 @@ class Unit extends Model
         return $this->belongsTo(User::class, 'client_id');
     }
 
+    public function reservations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PlotReservation::class, 'unit_id');
+    }
+
+    public function titleDeeds(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(LandTitleDeed::class, 'unit_id');
+    }
+
     public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');

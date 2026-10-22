@@ -163,6 +163,16 @@ class Client extends Model
         return $this->hasOne(ClientSecurityProfile::class, 'client_id');
     }
 
+    public function plotReservations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PlotReservation::class, 'client_id')->latest();
+    }
+
+    public function landTitleDeeds(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(LandTitleDeed::class, 'client_id')->latest();
+    }
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');

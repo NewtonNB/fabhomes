@@ -18,19 +18,23 @@ import {
   MdCloudUpload,
   MdRefresh,
   MdArrowForward,
+  MdMap,
+  MdDescription,
 } from 'react-icons/md'
 import { clientPortalAuthService } from '../../services/client-portal-auth.service'
 import { ClientPortalProfileResponse, ClientSessionItem } from '../../types/client-portal-auth.types'
 import { useAuth } from '../../contexts/AuthContext'
 import { ClientSavingsTab } from './components/ClientSavingsTab'
 import { ClientMilestoneTrackerTab } from './components/ClientMilestoneTrackerTab'
+import { ClientInteractiveEstateMapTab } from './components/ClientInteractiveEstateMapTab'
+import { ClientLandTitleDeedsTab } from './components/ClientLandTitleDeedsTab'
 import './ClientPortalLayout.css'
 
 export const ClientPortalDashboard: React.FC = () => {
   const { user, logout } = useAuth()
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'overview' | 'savings' | 'milestones' | 'security' | 'profile'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'savings' | 'plots' | 'deeds' | 'milestones' | 'security' | 'profile'>('overview')
   const [profileData, setProfileData] = useState<ClientPortalProfileResponse | null>(null)
   const [sessions, setSessions] = useState<ClientSessionItem[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -464,7 +468,10 @@ export const ClientPortalDashboard: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button className="portal-btn-primary" onClick={() => setActiveTab('savings')}>
+            <button className="portal-btn-primary" onClick={() => setActiveTab('plots')}>
+              <MdMap /> Explore Estate Plots
+            </button>
+            <button className="portal-btn-secondary" onClick={() => setActiveTab('savings')}>
               <MdSavings /> Savings Schemes
             </button>
             <button className="portal-btn-secondary" onClick={() => setActiveTab('milestones')}>
@@ -483,6 +490,18 @@ export const ClientPortalDashboard: React.FC = () => {
             onClick={() => setActiveTab('overview')}
           >
             <MdHome /> Overview
+          </button>
+          <button
+            className={`portal-nav-tab ${activeTab === 'plots' ? 'active' : ''}`}
+            onClick={() => setActiveTab('plots')}
+          >
+            <MdMap /> Estate Map & Plots
+          </button>
+          <button
+            className={`portal-nav-tab ${activeTab === 'deeds' ? 'active' : ''}`}
+            onClick={() => setActiveTab('deeds')}
+          >
+            <MdDescription /> Title Deeds & Holds
           </button>
           <button
             className={`portal-nav-tab ${activeTab === 'savings' ? 'active' : ''}`}
@@ -535,7 +554,12 @@ export const ClientPortalDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="portal-kpi-card">
+              <div
+                className="portal-kpi-card"
+                style={{ cursor: 'pointer' }}
+                onClick={() => setActiveTab('plots')}
+                title="Click to view estate map & plot allocations"
+              >
                 <div className="portal-kpi-icon plots">
                   <MdLocationOn />
                 </div>
@@ -543,7 +567,7 @@ export const ClientPortalDashboard: React.FC = () => {
                   <span className="portal-kpi-label">Allocated Plots / Units</span>
                   <span className="portal-kpi-value">{portfolio?.plots_count || 0} Plot(s)</span>
                   <span className="portal-kpi-subtitle">
-                    Across {portfolio?.projects_count || 0} Registered Estate(s)
+                    Across {portfolio?.projects_count || 0} Registered Estate(s) • Click to view
                   </span>
                 </div>
               </div>
@@ -1015,7 +1039,23 @@ export const ClientPortalDashboard: React.FC = () => {
           <ClientSavingsTab onNotify={handleNotify} />
         )}
 
-        {/* TAB 5: CONSTRUCTION MILESTONES & REAL-TIME TRACKERS */}
+        {/* TAB 5: ESTATE MASTERPLAN & PLOTS */}
+        {activeTab === 'plots' && (
+          <ClientInteractiveEstateMapTab
+            onNotify={handleNotify}
+            onOpenDeeds={() => setActiveTab('deeds')}
+          />
+        )}
+
+        {/* TAB 6: TITLE DEEDS & STATUTORY HOLDS */}
+        {activeTab === 'deeds' && (
+          <ClientLandTitleDeedsTab
+            onNotify={handleNotify}
+            onExplorePlots={() => setActiveTab('plots')}
+          />
+        )}
+
+        {/* TAB 7: CONSTRUCTION MILESTONES & REAL-TIME TRACKERS */}
         {activeTab === 'milestones' && (
           <ClientMilestoneTrackerTab onNotify={handleNotify} />
         )}
@@ -1114,6 +1154,20 @@ export const ClientPortalDashboard: React.FC = () => {
           <span>Home</span>
         </button>
         <button
+          className={`portal-bottom-nav-item ${activeTab === 'plots' ? 'active' : ''}`}
+          onClick={() => setActiveTab('plots')}
+        >
+          <MdMap />
+          <span>Plots</span>
+        </button>
+        <button
+          className={`portal-bottom-nav-item ${activeTab === 'deeds' ? 'active' : ''}`}
+          onClick={() => setActiveTab('deeds')}
+        >
+          <MdDescription />
+          <span>Deeds</span>
+        </button>
+        <button
           className={`portal-bottom-nav-item ${activeTab === 'savings' ? 'active' : ''}`}
           onClick={() => setActiveTab('savings')}
         >
@@ -1126,13 +1180,6 @@ export const ClientPortalDashboard: React.FC = () => {
         >
           <MdConstruction />
           <span>Milestones</span>
-        </button>
-        <button
-          className={`portal-bottom-nav-item ${activeTab === 'security' ? 'active' : ''}`}
-          onClick={() => setActiveTab('security')}
-        >
-          <MdSecurity />
-          <span>Security</span>
         </button>
         <button
           className={`portal-bottom-nav-item ${activeTab === 'profile' ? 'active' : ''}`}

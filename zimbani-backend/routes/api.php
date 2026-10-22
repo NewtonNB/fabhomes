@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClientPortalAuthController;
 use App\Http\Controllers\Api\ClientPortalSavingsController;
+use App\Http\Controllers\Api\ClientPortalPlotController;
 use App\Http\Controllers\Api\UserManagementController;
 use App\Http\Controllers\Api\RoleManagementController;
 use App\Http\Controllers\Api\ActivityController;
@@ -463,6 +464,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/deposits/checkout', [ClientPortalSavingsController::class, 'initiateDeposit']);
         Route::post('/deposits/{identifier}/confirm', [ClientPortalSavingsController::class, 'confirmDeposit']);
         Route::get('/milestone-trackers', [ClientPortalSavingsController::class, 'milestoneTrackers']);
+
+        // Plot Reservations, Interactive Estate Map & Deed Status (Phase 12 Day 3)
+        Route::get('/plots', [ClientPortalPlotController::class, 'getPlots']);
+        Route::get('/estate-map', [ClientPortalPlotController::class, 'getEstateMap']);
+        Route::post('/plots/reserve', [ClientPortalPlotController::class, 'reservePlot']);
+        Route::get('/reservations', [ClientPortalPlotController::class, 'getClientReservations']);
+        Route::post('/reservations/{uuid}/cancel', [ClientPortalPlotController::class, 'cancelReservation']);
+        Route::get('/deeds', [ClientPortalPlotController::class, 'getLandTitleDeeds']);
     });
 
     // Subcontractor Milestone Valuation & Interim Payment Linkages (Phase 8 Day 3)

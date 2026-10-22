@@ -1,0 +1,378 @@
+/* ClientPlotsTab.css - Phase 12 Day 3: Interactive Estate Map & Deed Status */
+
+.plots-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Header & Controls Toolbar */
+.plots-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: var(--portal-bg-card);
+  border: 1px solid var(--portal-border);
+  border-radius: 14px;
+  padding: 16px 20px;
+}
+
+.plots-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.plots-filter-select {
+  background: var(--portal-bg-card-subtle);
+  border: 1px solid var(--portal-border);
+  color: var(--portal-text-main);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.plots-view-toggle {
+  display: flex;
+  background: var(--portal-bg-card-subtle);
+  border: 1px solid var(--portal-border);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.plots-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--portal-text-muted);
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.plots-toggle-btn.active {
+  background: var(--portal-primary);
+  color: white;
+}
+
+/* Map Viewer Layout */
+.estate-map-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .estate-map-wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+
+.estate-map-card {
+  background: #090d16;
+  border: 1px solid var(--portal-border);
+  border-radius: 14px;
+  padding: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.estate-map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.estate-map-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Map Legend */
+.estate-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--portal-text-muted);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.legend-dot.available { background: #10b981; }
+.legend-dot.reserved { background: #f59e0b; }
+.legend-dot.sold { background: #475569; }
+.legend-dot.mine { background: #fbbf24; box-shadow: 0 0 8px #fbbf24; }
+
+/* Interactive SVG Map Canvas */
+.interactive-svg-canvas {
+  width: 100%;
+  height: auto;
+  min-height: 440px;
+  background: radial-gradient(circle at 50% 50%, #131c31 0%, #090d16 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.svg-plot-rect {
+  cursor: pointer;
+  transition: all 0.25s ease;
+  rx: 6px;
+  ry: 6px;
+}
+
+.svg-plot-rect:hover {
+  filter: brightness(1.25);
+  stroke-width: 2.5px;
+}
+
+.svg-plot-rect.selected {
+  stroke: #38bdf8 !important;
+  stroke-width: 3.5px !important;
+  filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.6));
+}
+
+.svg-plot-rect.mine {
+  animation: pulse-mine 2s infinite ease-in-out;
+}
+
+@keyframes pulse-mine {
+  0%, 100% { filter: drop-shadow(0 0 4px #fbbf24); }
+  50% { filter: drop-shadow(0 0 12px #f59e0b); }
+}
+
+.svg-plot-label {
+  fill: #f8fafc;
+  font-size: 11px;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.svg-plot-sub {
+  fill: rgba(255, 255, 255, 0.7);
+  font-size: 9px;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+/* Plot Inspector Drawer / Sidebar */
+.plot-inspector-card {
+  background: var(--portal-bg-card);
+  border: 1px solid var(--portal-border);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.plot-inspector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.plot-inspector-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.plot-inspector-badge.available { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.plot-inspector-badge.reserved { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.plot-inspector-badge.sold { background: rgba(100, 116, 139, 0.3); color: #cbd5e1; }
+.plot-inspector-badge.mine { background: rgba(251, 191, 36, 0.3); color: #fef08a; }
+
+.spec-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.spec-item {
+  background: var(--portal-bg-card-subtle);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.spec-label {
+  font-size: 11px;
+  color: var(--portal-text-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.spec-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* Grid Cards Mode */
+.plots-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
+}
+
+.plot-card {
+  background: var(--portal-bg-card);
+  border: 1px solid var(--portal-border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.plot-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.plot-card.is-mine {
+  border-color: rgba(251, 191, 36, 0.6);
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.05) 0%, var(--portal-bg-card) 100%);
+}
+
+/* Deed Pipeline Tracker Styles */
+.deed-card {
+  background: var(--portal-bg-card);
+  border: 1px solid var(--portal-border);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.deed-pipeline-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 20px 0;
+  position: relative;
+}
+
+.pipeline-step {
+  display: flex;
+  gap: 16px;
+  position: relative;
+}
+
+.pipeline-step::before {
+  content: '';
+  position: absolute;
+  top: 32px;
+  left: 17px;
+  bottom: -16px;
+  width: 2px;
+  background: var(--portal-border);
+  z-index: 1;
+}
+
+.pipeline-step:last-child::before {
+  display: none;
+}
+
+.pipeline-step.completed::before {
+  background: #10b981;
+}
+
+.step-indicator {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.pipeline-step.completed .step-indicator {
+  background: #10b981;
+  color: white;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.pipeline-step.in_progress .step-indicator {
+  background: #3b82f6;
+  color: white;
+  animation: pulse-step 2s infinite ease-in-out;
+}
+
+.pipeline-step.pending .step-indicator {
+  background: #334155;
+  color: #94a3b8;
+}
+
+@keyframes pulse-step {
+  0%, 100% { box-shadow: 0 0 4px #3b82f6; }
+  50% { box-shadow: 0 0 14px #60a5fa; }
+}
+
+.step-content {
+  flex: 1;
+  background: var(--portal-bg-card-subtle);
+  border: 1px solid var(--portal-border);
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
+.step-content-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+/* Beacon Coordinates Table */
+.beacon-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.beacon-table th, .beacon-table td {
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--portal-border);
+}
+
+.beacon-table th {
+  color: var(--portal-text-muted);
+}
