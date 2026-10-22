@@ -183,6 +183,16 @@ class Client extends Model
         return $this->hasMany(ProjectFinalSettlement::class, 'client_id');
     }
 
+    public function refunds(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PaymentRefund::class, 'client_id');
+    }
+
+    public function disputes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PaymentDispute::class, 'client_id');
+    }
+
     /**
      * Scopes
      */

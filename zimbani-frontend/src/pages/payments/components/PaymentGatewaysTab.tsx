@@ -10,6 +10,7 @@ import {
   MdOpenInNew,
   MdCancel,
   MdSecurity,
+  MdAssignmentReturn,
 } from 'react-icons/md'
 import paymentIntegrationService from '../../../services/payment-integration.service'
 import {
@@ -19,10 +20,11 @@ import {
   CreatePaymentIntentPayload,
 } from '../../../types/payment-integration.types'
 import WebhookTelemetryTab from './WebhookTelemetryTab'
+import PaymentRefundsDisputesTab from './PaymentRefundsDisputesTab'
 import './PaymentGatewaysTab.css'
 
 export const PaymentGatewaysTab: React.FC = () => {
-  const [subtab, setSubtab] = useState<'checkout' | 'webhooks'>('checkout')
+  const [subtab, setSubtab] = useState<'checkout' | 'webhooks' | 'refunds_disputes'>('checkout')
   const [gateways, setGateways] = useState<PaymentGatewayConfig[]>([])
   const [intents, setIntents] = useState<PaymentIntent[]>([])
   const [stats, setStats] = useState<PaymentStatistics | null>(null)
@@ -249,6 +251,26 @@ export const PaymentGatewaysTab: React.FC = () => {
         >
           <MdSecurity size={18} /> Universal Webhook Ingestion & Cryptographic Security
         </button>
+
+        <button
+          onClick={() => setSubtab('refunds_disputes')}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '10px 14px',
+            fontSize: '14px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            color: subtab === 'refunds_disputes' ? '#0284c7' : '#64748b',
+            borderBottom: subtab === 'refunds_disputes' ? '2px solid #0284c7' : '2px solid transparent',
+            marginBottom: '-6px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <MdAssignmentReturn size={18} /> Refunds & Dispute Resolution Ledger
+        </button>
       </div>
 
       {subtab === 'checkout' ? (
@@ -440,8 +462,10 @@ export const PaymentGatewaysTab: React.FC = () => {
         </div>
       </div>
     </>
-  ) : (
+  ) : subtab === 'webhooks' ? (
     <WebhookTelemetryTab />
+  ) : (
+    <PaymentRefundsDisputesTab />
   )}
 
   {/* Checkout Modal */}

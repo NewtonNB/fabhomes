@@ -2978,11 +2978,76 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+### Phase 10 Day 3: Automated Refunds, Reversals & Dispute Resolution Ledger ✅ (Oct 22, 2026)
+
+- **Database Architecture & Schema Migration:**
+  - Created migration `2026_10_22_103000_create_payment_refunds_and_disputes_tables.php`:
+    - `payment_refunds`: Complete audit ledger for financial reversals (`REF-YYYYMM-XXXX`) tracking `payment_id`, `payment_intent_id`, `client_id`, `savings_account_id`, `reversal_transaction_id` (foreign key to `transactions`), `amount`, `currency`, `fee_refunded`, `reason_category` (`escrow_surplus`, `duplicate_payment`, `client_cancellation`, `milestone_variation`, `disputed_chargeback`, `other`), `reason_description`, lifecycle `status` (`requested`, `approved`, `processing`, `completed`, `rejected`), multi-step audit stamps (`requested_by`, `approved_by`, `approved_at`, `rejected_by`, `rejected_at`, `rejection_reason`, `processed_at`), and `gateway_refund_reference` / `gateway_response` JSON payloads.
+    - `payment_disputes`: Formal dispute & chargeback arbitration ledger (`DSP-YYYYMM-XXXX`) tracking `payment_id`, `payment_intent_id`, `client_id`, `refund_id`, `dispute_source` (`chargeback_visa_mc`, `momo_fraud_claim`, `client_portal_inquiry`), `disputed_amount`, `currency`, `reason`, `evidence_deadline`, lifecycle `status` (`opened`, `evidence_submitted`, `under_review`, `won`, `lost`, `settled`), `evidence_files` JSON array, `resolution_notes`, `resolved_at`, and `resolved_by`.
+
+- **Eloquent Models & Domain Relationships:**
+  - `PaymentRefund.php`: Implements ADR-014 hybrid keys (`id` + `uuid`), auto-generates `refund_number`, defines relationships (`payment`, `paymentIntent`, `client`, `savingsAccount`, `reversalTransaction`, `requestedByUser`, `approvedByUser`, `rejectedByUser`, `disputes`), and casts JSON payloads and timestamps.
+  - `PaymentDispute.php`: Implements hybrid keys, auto-generates `dispute_number`, defines relationships (`payment`, `paymentIntent`, `client`, `refund`, `resolvedByUser`), and casts `evidence_files` and timestamps.
+  - `Payment.php`, `Client.php`, and `PaymentIntent.php`: Added bidirectional `refunds()` and `disputes()` relationships.
+
+- **Backend Business Logic Services:**
+  - `PaymentRefundDisputeService.php`:
+    - `requestRefund`: Verifies payment eligibility (`confirmed` or `verified`), enforces over-refund ceiling checks (`requested_amount <= eligible_remaining_balance`), associates client savings account, and queues request.
+    - `approveRefund`: Transitions request to `approved` and immediately triggers double-entry ledger execution.
+    - `rejectRefund`: Flags request as `rejected` with mandatory reason documentation.
+    - `executeRefund`: Atomic database transaction invoking payment gateway adapter `processRefund()` for external gateways, debiting client `savings_accounts.current_balance`, posting an immutable negative debit record (`amount < 0`, `transaction_type = 'refund'`) to the `transactions` table, linking `reversal_transaction_id`, and marking original `Payment` status as `refunded` when fully reversed.
+    - `openDispute`: Ingests chargeback and fraud dispute claims with evidence deadlines.
+    - `submitDisputeEvidence`: Records signed milestone inspection certificates, delivery receipts, GPS logs, and arbitration notes into `evidence_files`.
+    - `resolveDispute`: Concludes dispute as `won` (funds retained, 0 merchant loss), `lost`, or `settled` (with optional automatic reversal refund trigger and ledger debit).
+    - `getStatistics`: Aggregates refund volumes, pending approvals, win rate percentages, and breakdown metrics.
+
+- **Controllers, Policies, & API Endpoints:**
+  - `PaymentRefundDisputeController.php`: Exposes RESTful endpoints in `routes/api.php`:
+    - `GET /api/v1/payment-refunds-disputes/statistics` - Real-time refund and dispute telemetry
+    - `GET /api/v1/payment-refunds` - Paginated and searchable refunds ledger
+    - `POST /api/v1/payment-refunds` - Initiate a refund request
+    - `GET /api/v1/payment-refunds/{id}` - Full refund record with reversal transaction and gateway audit
+    - `POST /api/v1/payment-refunds/{id}/approve` - Approve and execute refund
+    - `POST /api/v1/payment-refunds/{id}/reject` - Reject refund with reason
+    - `POST /api/v1/payment-refunds/{id}/execute` - Manually execute approved refund
+    - `GET /api/v1/payment-disputes` - Paginated and filtered dispute cases
+    - `POST /api/v1/payment-disputes` - Log dispute / chargeback
+    - `GET /api/v1/payment-disputes/{id}` - Dispute case details with evidence audit
+    - `POST /api/v1/payment-disputes/{id}/evidence` - Submit arbitration evidence
+    - `POST /api/v1/payment-disputes/{id}/resolve` - Finalize resolution (`won`, `lost`, `settled`)
+
+- **Frontend Architecture & Ledger Interface Integration:**
+  - TypeScript types: Enhanced `payment-integration.types.ts` with `PaymentRefund`, `PaymentDispute`, `RefundsDisputesStatistics`, `CreateRefundPayload`, `OpenDisputePayload`, `SubmitEvidencePayload`, and `ResolveDisputePayload`.
+  - Client Service Layer: Enhanced `payment-integration.service.ts` with 12 API methods for refunds and disputes management.
+  - UI Component: `PaymentRefundsDisputesTab.tsx` & `.css`:
+    - Top KPI Telemetry Grid: Total Refunded Volume, Pending Finance Approvals, Active Disputes, and Dispute Win Rate %.
+    - Dual Section View: Interactive toggle between **Refunds Ledger** and **Dispute Resolution & Chargebacks**.
+    - Advanced Filtering & Search: Filter by status, category, dispute source, and keyword search.
+    - Interactive Modals: Request Refund Modal (with category selection & validation), Log Dispute Modal, Submit Evidence Modal, Resolve Dispute Modal (with auto-refund option), and Case Detail Viewers with JSON payload displays.
+    - Action Workflow: Inline "Approve & Execute" and "Reject" buttons for finance officers with real-time toast feedback.
+  - Subtab Integration: Embedded into `PaymentGatewaysTab.tsx` as the third dedicated tab ("Refunds & Dispute Resolution Ledger").
+
+- **Verification & Testing:**
+  - 10-step backend verification test suite passed all assertions:
+    1. Client and savings account setup (initial balance: 10,000,000 UGX).
+    2. Confirmed payment creation (5,000,000 UGX).
+    3. Refund request generation (`REF-202610-0001` for 1,500,000 UGX).
+    4. Over-refund validation blocking excess refund requests.
+    5. Approval and execution posting reversing debit transaction (`TXN-202610-0004`, -1,500,000 UGX) and updating savings balance to 8,500,000 UGX.
+    6. Dispute case logging (`DSP-202610-0001` for 1,000,000 UGX via Visa/Mastercard 3DS).
+    7. Structural engineer inspection evidence submission.
+    8. Dispute resolution as `won` with 0 merchant loss.
+    9. Telco mobile money fraud claim settlement with automated refund trigger (`REF-202610-0002`) debiting savings account to 8,000,000 UGX.
+    10. Real-time statistics telemetry aggregation (2 refunds, 2 disputes, 50% win rate).
+  - Frontend production build passed cleanly (`npm run build` in 1.51s, 0 errors).
+
+---
+
 **Phase 10: Payment Integration (Production Gateways, Adapter Architecture, Webhooks)**
 1. ✅ **Day 1**: Unified Gateway Adapter Architecture & Dynamic PaymentIntents Engine (COMPLETED)
 2. ✅ **Day 2**: Universal Webhook Ingestion, Cryptographic Verification & Replay Protection (COMPLETED)
-3. ⏳ **Day 3**: Automated Refunds, Reversals & Dispute Resolution Ledger (NEXT)
-4. ⏳ **Day 4**: Frontend Multi-Channel Unified Checkout Modal & Gateway Health Monitor
+3. ✅ **Day 3**: Automated Refunds, Reversals & Dispute Resolution Ledger (COMPLETED)
+4. ⏳ **Day 4**: Frontend Multi-Channel Unified Checkout Modal & Gateway Health Monitor (NEXT)
 5. ⏳ **Day 5**: End-to-End Payment Simulation, Sandbox Gateway Tests & Bank Reconciliation Staging
 
 ---
@@ -2990,7 +3055,7 @@ Delivered robust external settlement statement reconciliation for client escrow 
 **Last Updated:** October 22, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 10 Day 2 Complete
+**Latest Commit:** Phase 10 Day 3 Complete
 
 
 

@@ -142,6 +142,16 @@ class Payment extends Model
         return $this->hasMany(Transaction::class, 'payment_id')->latest('transaction_date');
     }
 
+    public function refunds(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PaymentRefund::class, 'payment_id');
+    }
+
+    public function disputes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PaymentDispute::class, 'payment_id');
+    }
+
     // Scopes
 
     public function scopeConfirmed($query)

@@ -47,6 +47,7 @@ use App\Http\Controllers\Api\SiteAuditSyncController;
 use App\Http\Controllers\Api\MultiCurrencyEscalationController;
 use App\Http\Controllers\Api\ProjectHandoverSettlementController;
 use App\Http\Controllers\Api\PaymentGatewayIntegrationController;
+use App\Http\Controllers\Api\PaymentRefundDisputeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -291,6 +292,26 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::get('/logs', [PaymentGatewayIntegrationController::class, 'webhookLogs']);
         Route::get('/metrics', [PaymentGatewayIntegrationController::class, 'webhookMetrics']);
         Route::post('/logs/{id}/retry', [PaymentGatewayIntegrationController::class, 'retryWebhook']);
+    });
+
+    // Automated Refunds & Dispute Resolution Ledger (Phase 10 Day 3)
+    Route::get('/payment-refunds-disputes/statistics', [PaymentRefundDisputeController::class, 'statistics']);
+
+    Route::prefix('payment-refunds')->group(function () {
+        Route::get('/', [PaymentRefundDisputeController::class, 'refunds']);
+        Route::post('/', [PaymentRefundDisputeController::class, 'requestRefund']);
+        Route::get('/{identifier}', [PaymentRefundDisputeController::class, 'showRefund']);
+        Route::post('/{identifier}/approve', [PaymentRefundDisputeController::class, 'approveRefund']);
+        Route::post('/{identifier}/reject', [PaymentRefundDisputeController::class, 'rejectRefund']);
+        Route::post('/{identifier}/execute', [PaymentRefundDisputeController::class, 'executeRefund']);
+    });
+
+    Route::prefix('payment-disputes')->group(function () {
+        Route::get('/', [PaymentRefundDisputeController::class, 'disputes']);
+        Route::post('/', [PaymentRefundDisputeController::class, 'openDispute']);
+        Route::get('/{identifier}', [PaymentRefundDisputeController::class, 'showDispute']);
+        Route::post('/{identifier}/evidence', [PaymentRefundDisputeController::class, 'submitEvidence']);
+        Route::post('/{identifier}/resolve', [PaymentRefundDisputeController::class, 'resolveDispute']);
     });
 
     // Financial Transactions & Immutable Ledger

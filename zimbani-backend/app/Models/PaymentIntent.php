@@ -118,6 +118,16 @@ class PaymentIntent extends Model
         return $this->belongsTo(Payment::class);
     }
 
+    public function refunds(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PaymentRefund::class, 'payment_intent_id');
+    }
+
+    public function disputes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PaymentDispute::class, 'payment_intent_id');
+    }
+
     public function isExpired(): bool
     {
         return $this->expires_at && Carbon::now()->greaterThan($this->expires_at);
