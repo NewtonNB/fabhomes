@@ -20,6 +20,8 @@ import {
   MdArrowForward,
   MdMap,
   MdDescription,
+  MdFolder,
+  MdHelpOutline,
 } from 'react-icons/md'
 import { clientPortalAuthService } from '../../services/client-portal-auth.service'
 import { ClientPortalProfileResponse, ClientSessionItem } from '../../types/client-portal-auth.types'
@@ -28,13 +30,15 @@ import { ClientSavingsTab } from './components/ClientSavingsTab'
 import { ClientMilestoneTrackerTab } from './components/ClientMilestoneTrackerTab'
 import { ClientInteractiveEstateMapTab } from './components/ClientInteractiveEstateMapTab'
 import { ClientLandTitleDeedsTab } from './components/ClientLandTitleDeedsTab'
+import { ClientDocumentVaultTab } from './components/ClientDocumentVaultTab'
+import { ClientSupportTicketsTab } from './components/ClientSupportTicketsTab'
 import './ClientPortalLayout.css'
 
 export const ClientPortalDashboard: React.FC = () => {
   const { user, logout } = useAuth()
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'overview' | 'savings' | 'plots' | 'deeds' | 'milestones' | 'security' | 'profile'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'savings' | 'plots' | 'deeds' | 'milestones' | 'vault' | 'support' | 'security' | 'profile'>('overview')
   const [profileData, setProfileData] = useState<ClientPortalProfileResponse | null>(null)
   const [sessions, setSessions] = useState<ClientSessionItem[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -516,6 +520,18 @@ export const ClientPortalDashboard: React.FC = () => {
             <MdConstruction /> Milestones & Progress
           </button>
           <button
+            className={`portal-nav-tab ${activeTab === 'vault' ? 'active' : ''}`}
+            onClick={() => setActiveTab('vault')}
+          >
+            <MdFolder /> Document Vault & Ledger
+          </button>
+          <button
+            className={`portal-nav-tab ${activeTab === 'support' ? 'active' : ''}`}
+            onClick={() => setActiveTab('support')}
+          >
+            <MdHelpOutline /> Customer Support
+          </button>
+          <button
             className={`portal-nav-tab ${activeTab === 'security' ? 'active' : ''}`}
             onClick={() => setActiveTab('security')}
           >
@@ -646,6 +662,46 @@ export const ClientPortalDashboard: React.FC = () => {
                     onClick={() => setActiveTab('security')}
                   >
                     Manage PIN & Biometrics <MdVpnKey />
+                  </button>
+                </div>
+              </div>
+
+              <div className="portal-card">
+                <div className="portal-card-header">
+                  <h3 className="portal-card-title">
+                    <MdFolder style={{ color: '#38bdf8' }} /> Digital Vault & Statements
+                  </h3>
+                </div>
+                <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.5 }}>
+                  Access all verified deeds, contracts, survey maps, and generate printable running balance account statements on demand.
+                </p>
+                <div style={{ marginTop: 16 }}>
+                  <button
+                    className="portal-btn-secondary"
+                    style={{ width: '100%' }}
+                    onClick={() => setActiveTab('vault')}
+                  >
+                    Open Document Vault <MdArrowForward />
+                  </button>
+                </div>
+              </div>
+
+              <div className="portal-card">
+                <div className="portal-card-header">
+                  <h3 className="portal-card-title">
+                    <MdHelpOutline style={{ color: '#a78bfa' }} /> Concierge Support Desk
+                  </h3>
+                </div>
+                <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.5 }}>
+                  Submit snags, payment queries, or deed transfer inquiries directly to your assigned estate manager and track real-time resolution.
+                </p>
+                <div style={{ marginTop: 16 }}>
+                  <button
+                    className="portal-btn-secondary"
+                    style={{ width: '100%' }}
+                    onClick={() => setActiveTab('support')}
+                  >
+                    Open Support Desk <MdArrowForward />
                   </button>
                 </div>
               </div>
@@ -1059,6 +1115,16 @@ export const ClientPortalDashboard: React.FC = () => {
         {activeTab === 'milestones' && (
           <ClientMilestoneTrackerTab onNotify={handleNotify} />
         )}
+
+        {/* TAB 8: DIGITAL DOCUMENT VAULT & FINANCIAL STATEMENTS */}
+        {activeTab === 'vault' && (
+          <ClientDocumentVaultTab onNotify={handleNotify} />
+        )}
+
+        {/* TAB 9: CUSTOMER SUPPORT & TICKETING */}
+        {activeTab === 'support' && (
+          <ClientSupportTicketsTab onNotify={handleNotify} />
+        )}
       </main>
 
       {/* Quick-PIN Lock Screen Modal (When Locked) */}
@@ -1180,6 +1246,20 @@ export const ClientPortalDashboard: React.FC = () => {
         >
           <MdConstruction />
           <span>Milestones</span>
+        </button>
+        <button
+          className={`portal-bottom-nav-item ${activeTab === 'vault' ? 'active' : ''}`}
+          onClick={() => setActiveTab('vault')}
+        >
+          <MdFolder />
+          <span>Vault</span>
+        </button>
+        <button
+          className={`portal-bottom-nav-item ${activeTab === 'support' ? 'active' : ''}`}
+          onClick={() => setActiveTab('support')}
+        >
+          <MdHelpOutline />
+          <span>Support</span>
         </button>
         <button
           className={`portal-bottom-nav-item ${activeTab === 'profile' ? 'active' : ''}`}

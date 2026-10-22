@@ -3456,19 +3456,66 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+### Phase 12 Day 5: Digital Document Vault, Statements Download & Customer Support Ticketing ✅ (Oct 22, 2026)
+
+- **Database Schema Migration:**
+  - Created migration `2026_10_22_180000_create_support_tickets_and_messages_tables.php`:
+    - `support_tickets`: Hybrid keys (`id`, `uuid`), auto-generated ticket number (`TCK-YYYY-XXXXXX`), `client_id`, `user_id`, `subject`, `category` (`savings_query`, `plot_reservation`, `title_deed`, `construction_snag`, `payment_issue`, `general`), `priority` (`low`, `medium`, `high`, `urgent`), `status` (`open`, `in_progress`, `waiting_client`, `resolved`, `closed`), `assigned_to`, `resolved_at`, and `closed_at`.
+    - `support_ticket_messages`: Hybrid keys (`id`, `uuid`), `support_ticket_id`, `user_id`, `sender_type` (`client`, `agent`, `system`), `message`, `attachments` (JSON), `read_at`.
+  - Models: `App\Models\SupportTicket.php` and `App\Models\SupportTicketMessage.php` with polymorphic relationships, eager scopes, and activity logging.
+
+- **Backend Architecture & Service Layer:**
+  - Created `App\Services\ClientDocumentSupportService.php`:
+    - `getClientDocuments(User $user, array $filters)`: Categorized vault retrieval (contracts, receipts, title deeds, deed plans, surveys, KYC documents) with count aggregation.
+    - `uploadClientDocument(User $user, Request $request)`: Secure file upload to public storage linked polymorphically to client entity.
+    - `generateAccountStatement(User $user, array $filters)`: Detailed financial statement generation with running balance ledger calculations, debit/credit tracking, and client account header.
+    - `createTicket(User $user, array $data)`: Ticket auto-numbering (`TCK-YYYY-XXXXXX`) and initial client message thread creation.
+    - `getClientTickets(User $user)`: Open vs resolved counters and message listings.
+    - `getTicketDetails(User $user, string $ticketIdentifier)`: Full conversation thread with agent/client messages.
+    - `replyToTicket(User $user, string $ticketIdentifier, string $message, array $attachments)`: Appends client reply, re-opens ticket if closed.
+    - `closeTicket(User $user, string $ticketIdentifier)`: Resolves ticket with `resolved_at` timestamp.
+
+- **Controllers, Routes, & API Endpoints:**
+  - Created `App\Http\Controllers\Api\ClientPortalDocumentController.php` mounted at `/api/v1/client-portal/*`:
+    - `GET  /api/v1/client-portal/documents` - Retrieve categorized digital document vault.
+    - `POST /api/v1/client-portal/documents/upload` - Client self-upload of receipts and KYC documents.
+    - `GET  /api/v1/client-portal/statements` - Printable ledger statement with running balance calculations.
+    - `GET  /api/v1/client-portal/support/tickets` - List customer support tickets with status metrics.
+    - `POST /api/v1/client-portal/support/tickets` - Open a new customer support ticket.
+    - `GET  /api/v1/client-portal/support/tickets/{identifier}` - Conversation thread details.
+    - `POST /api/v1/client-portal/support/tickets/{identifier}/reply` - Append client reply to ticket.
+    - `POST /api/v1/client-portal/support/tickets/{identifier}/close` - Close and resolve ticket.
+
+- **Frontend Architecture & Components:**
+  - Types: `src/types/client-portal-vault.types.ts` defining vault documents, statements, tickets, and thread messages.
+  - Service: `src/services/client-portal-vault.service.ts` connecting all 8 API endpoints.
+  - Styles: `src/pages/client-portal/components/ClientVaultTab.css` with responsive cards, printable media queries, and chat bubbles.
+  - UI Components:
+    - `ClientDocumentVaultTab.tsx`: Document category filtering (Contracts, Receipts, Title Deeds, Surveys, KYC), upload modal, and printable bank-grade financial statement with running balance table.
+    - `ClientSupportTicketsTab.tsx`: Ticket listing with priority badges, open ticket modal with category assignment, and real-time conversation drawer with client reply composer.
+    - `ClientPortalDashboard.tsx`: Integrated both tabs in desktop navigation, mobile bottom navigation, and dashboard overview quick action cards.
+
+- **Verification & Testing:**
+  - Automated test script `test_phase_12_day_5.php` passed 28/28 assertions (100%), verifying document vault categories, filtering, statement running balances, ticket creation, message threading, client replies, and ticket closing.
+  - Production build (`npm run build`) passed with 0 TypeScript/lint errors in 1.29s.
+
+---
+
 **Phase 12: Client Portal PWA & Customer Self-Service Experience**
 1. ✅ **Day 1**: Client Authentication, Onboarding & Biometric/PIN PWA Security Profile (COMPLETED)
 2. ✅ **Day 2**: Client Savings Dashboard, Milestone Progress Trackers & Deposit Checkout (COMPLETED)
 3. ✅ **Day 3**: Plot Reservation, Deed Status & Interactive Estate Map Viewer (COMPLETED)
 4. ✅ **Day 4**: Progress Photo Verification, Defect Punch-List Reporting & Milestone Sign-Off (COMPLETED)
-5. ⏳ **Day 5**: Digital Document Vault, Statements Download & Customer Support Ticketing (NEXT)
+5. ✅ **Day 5**: Digital Document Vault, Statements Download & Customer Support Ticketing (COMPLETED)
+
+🎉 **PHASE 12 COMPLETED (100%)**
 
 ---
 
 **Last Updated:** October 22, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 12 Day 4 Complete
+**Latest Commit:** Phase 12 Day 5 Complete (Phase 12 100% Complete)
 
 
 

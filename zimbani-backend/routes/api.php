@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClientPortalAuthController;
 use App\Http\Controllers\Api\ClientPortalSavingsController;
 use App\Http\Controllers\Api\ClientPortalPlotController;
+use App\Http\Controllers\Api\ClientPortalDocumentController;
 use App\Http\Controllers\Api\UserManagementController;
 use App\Http\Controllers\Api\RoleManagementController;
 use App\Http\Controllers\Api\ActivityController;
@@ -474,6 +475,16 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::get('/reservations', [ClientPortalPlotController::class, 'getClientReservations']);
         Route::post('/reservations/{uuid}/cancel', [ClientPortalPlotController::class, 'cancelReservation']);
         Route::get('/deeds', [ClientPortalPlotController::class, 'getLandTitleDeeds']);
+
+        // Digital Document Vault, Statements & Support Tickets (Phase 12 Day 5)
+        Route::get('/documents', [ClientPortalDocumentController::class, 'documents']);
+        Route::post('/documents/upload', [ClientPortalDocumentController::class, 'uploadDocument']);
+        Route::get('/statements', [ClientPortalDocumentController::class, 'generateStatement']);
+        Route::get('/support/tickets', [ClientPortalDocumentController::class, 'getTickets']);
+        Route::post('/support/tickets', [ClientPortalDocumentController::class, 'createTicket']);
+        Route::get('/support/tickets/{identifier}', [ClientPortalDocumentController::class, 'getTicketDetails']);
+        Route::post('/support/tickets/{identifier}/reply', [ClientPortalDocumentController::class, 'replyTicket']);
+        Route::post('/support/tickets/{identifier}/close', [ClientPortalDocumentController::class, 'closeTicket']);
     });
 
     // Subcontractor Milestone Valuation & Interim Payment Linkages (Phase 8 Day 3)
