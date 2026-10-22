@@ -143,9 +143,12 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/payments/{payment}/refund', [PaymentController::class, 'refund']);
     Route::post('/payments/{payment}/cancel', [PaymentController::class, 'cancel']);
 
-    // Document Management routes
+    // Document Management System (DMS) & Secure Repository (Phase 11 Day 3)
+    Route::get('/documents/expiring', [DocumentController::class, 'expiring']);
+    Route::get('/documents/vault-summary', [DocumentController::class, 'vaultSummary']);
     Route::apiResource('documents', DocumentController::class);
     Route::get('/documents/{document}/download', [DocumentController::class, 'download']);
+    Route::get('/documents/{document}/preview-url', [DocumentController::class, 'previewUrl']);
     Route::post('/documents/{document}/verify', [DocumentController::class, 'verify']);
 
     // Task Management routes

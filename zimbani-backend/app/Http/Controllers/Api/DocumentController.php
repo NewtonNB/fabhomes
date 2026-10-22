@@ -251,4 +251,111 @@ class DocumentController extends Controller
             'data' => $stats,
         ]);
     }
+
+    /**
+     * Get documents expiring soon (within 30/60/90 days)
+     * GET /api/v1/documents/expiring
+     */
+    public function expiring(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', Document::class);
+
+        $days = (int) $request->input('days', 60);
+        $deadline = \Carbon\Carbon::now()->addDays($days);
+
+        $documents = Document::with(['uploadedBy', 'documentable'])
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '<=', $deadline)
+            ->where('status', 'active')
+            ->orderBy('expiry_date', 'asc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => DocumentResource::collection($documents),
+            'meta' => [
+                'expiring_within_days' => $days,
+                'count' => $documents->count(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get secure inline preview URL for a document
+     * GET /api/v1/documents/{document}/preview-url
+     */
+    public function previewUrl(Document $document): JsonResponse
+    {
+        $this->authorize('view', $document);
+
+        $exists = Storage::disk('public')->exists($document->file_path);
+        $previewUrl = $exists ? Storage::disk('public')->url($document->file_path) : null;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'document_id' => $document->id,
+                'uuid' => $document->uuid,
+                'file_name' => $document->file_name,
+                'mime_type' => $document->mime_type,
+                'preview_url' => $previewUrl,
+                'is_inline_viewable' => in_array($document->mime_type, [
+                    'application/pdf',
+                    'image/jpeg',
+                    'image/png',
+                    'image/webp',
+                    'image/svg+xml',
+                ]),
+            ],
+        ]);
+    }
+
+    /**
+     * Get enterprise Document Vault summary
+     * GET /api/v1/documents/vault-summary
+     */
+    public function vaultSummary(): JsonResponse
+    {
+        $this->authorize('viewAny', Document::class);
+
+        $totalDocs = Document::count();
+        $totalBytes = (int) Document::sum('file_size');
+        $verifiedCount = Document::where('is_verified', true)->count();
+        $verificationRate = $totalDocs > 0 ? round(($verifiedCount / $totalDocs) * 100, 1) : 0.0;
+
+        $byType = Document::select('document_type', DB::raw('count(*) as count'), DB::raw('sum(file_size) as total_bytes'))
+            ->groupBy('document_type')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'document_type' => $item->document_type,
+                    'count' => (int) $item->count,
+                    'total_size_mb' => round($item->total_bytes / (1024 * 1024), 2),
+                ];
+            });
+
+        $byEntity = Document::select('documentable_type', DB::raw('count(*) as count'))
+            ->whereNotNull('documentable_type')
+            ->groupBy('documentable_type')
+            ->get()
+            ->map(function ($item) {
+                $short = class_basename($item->documentable_type);
+                return [
+                    'entity_type' => $short,
+                    'count' => (int) $item->count,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total_documents' => $totalDocs,
+                'total_storage_mb' => round($totalBytes / (1024 * 1024), 2),
+                'verified_documents' => $verifiedCount,
+                'verification_rate_percentage' => $verificationRate,
+                'by_document_type' => $byType,
+                'by_entity_type' => $byEntity,
+            ],
+        ]);
+    }
 }

@@ -5,6 +5,8 @@ import {
   DocumentStatistics,
   CreateDocumentInput,
   UpdateDocumentInput,
+  DocumentVaultSummary,
+  DocumentPreviewResponse,
 } from '../types/document.types'
 import { ApiResponse, PaginatedResponse } from '../types/common.types'
 
@@ -109,6 +111,30 @@ class DocumentService {
    */
   async getStatistics(): Promise<DocumentStatistics> {
     const response = await api.get<ApiResponse<DocumentStatistics>>('/admin/documents/statistics')
+    return response.data.data
+  }
+
+  /**
+   * Get Document Vault enterprise summary
+   */
+  async getVaultSummary(): Promise<DocumentVaultSummary> {
+    const response = await api.get<ApiResponse<DocumentVaultSummary>>('/documents/vault-summary')
+    return response.data.data
+  }
+
+  /**
+   * Get documents expiring soon
+   */
+  async getExpiringDocuments(days: number = 60): Promise<Document[]> {
+    const response = await api.get<ApiResponse<Document[]>>(`/documents/expiring?days=${days}`)
+    return response.data.data
+  }
+
+  /**
+   * Get secure inline preview URL
+   */
+  async getPreviewUrl(uuid: string): Promise<DocumentPreviewResponse> {
+    const response = await api.get<ApiResponse<DocumentPreviewResponse>>(`/documents/${uuid}/preview-url`)
     return response.data.data
   }
 }

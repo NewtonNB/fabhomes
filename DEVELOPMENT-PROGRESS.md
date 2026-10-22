@@ -3214,11 +3214,36 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+---
+
+### Phase 11 Day 3: Document Management System (DMS) & Secure File Repository ✅ (Oct 22, 2026)
+
+- **Domain Categorization & Upload Validation Pipeline:**
+  - Enhanced `StoreDocumentRequest.php`: Expanded `document_type` validation rule to cover all domain and statutory categories (`contract`, `id_proof`, `receipt`, `floor_plan`, `permit`, `survey`, `inspection_report`, `kyc`, `title_deed`, `invoice`, `other`, `land_title_deed`, `architectural_blueprint`, `milestone_completion_certificate`, `defect_liability_warranty`, `tax_clearance_certificate`, `identification_kyc`, `general`).
+  - Automatic directory partitioning by upload date (`documents/YYYY/MM`) on public storage disk.
+
+- **Controllers, Policies, & API Endpoints:**
+  - Enhanced `DocumentController.php` with 3 new endpoints in `routes/api.php` under `auth:sanctum`:
+    - `GET /api/v1/documents/vault-summary`: Aggregates storage consumption (MB), verification rate percentage, and breakdowns by document type and polymorphic parent model (`Client`, `Unit`, `Project`, etc.).
+    - `GET /api/v1/documents/expiring`: Real-time query filtering active documents with expiration dates within a configurable deadline (30/60/90 days).
+    - `GET /api/v1/documents/{document}/preview-url`: Generates secure asset URL with MIME type verification for inline viewing of PDFs and image assets.
+  - Preserved standard document lifecycle: `index`, `store` (multipart file upload), `show`, `update`, `destroy`, `download` (streamed file response), `verify` (compliance audit sign-off), and `statistics`.
+
+- **Frontend Types & Service Layer:**
+  - TypeScript types: Expanded `DocumentType` union with new domain categories and added `DocumentVaultSummary` and `DocumentPreviewResponse` to `src/types/document.types.ts`.
+  - Service methods: Added `getVaultSummary()`, `getExpiringDocuments()`, and `getPreviewUrl()` to `src/services/document.service.ts`.
+
+- **Verification & Testing:**
+  - Automated test script `test_phase_11_day_3.php` verified vault summary metrics, expiring document detection, multipart PDF upload, inline preview URL generation, and compliance audit verification with 100% assertions passed.
+  - Frontend production build (`npm run build`) passed with 0 errors in 1.33s.
+
+---
+
 **Phase 11: Advanced Reporting, BI Analytics, Document Management & Export Engine**
 1. ✅ **Day 1**: Comprehensive Financial Reports & Executive BI Aggregation Engine (COMPLETED)
 2. ✅ **Day 2**: Client Activity, Plot Allocation & Construction Milestone Analytics (COMPLETED)
-3. ⏳ **Day 3**: Document Management System (DMS) & Secure File Repository (NEXT)
-4. ⏳ **Day 4**: Multi-Format Report Export Engine (PDF, Excel/CSV) & Scheduled Delivery
+3. ✅ **Day 3**: Document Management System (DMS) & Secure File Repository (COMPLETED)
+4. ⏳ **Day 4**: Multi-Format Report Export Engine (PDF, Excel/CSV) & Scheduled Delivery (NEXT)
 5. ⏳ **Day 5**: Executive Management Dashboard & Interactive BI Visualization Frontend
 
 ---
@@ -3226,7 +3251,7 @@ Delivered robust external settlement statement reconciliation for client escrow 
 **Last Updated:** October 22, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 11 Day 2 Complete
+**Latest Commit:** Phase 11 Day 3 Complete
 
 
 

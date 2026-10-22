@@ -16,7 +16,7 @@ class StoreDocumentRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
-            'document_type' => 'required|string|in:contract,id_proof,receipt,floor_plan,permit,survey,inspection_report,kyc,title_deed,invoice,other',
+            'document_type' => 'required|string|in:contract,id_proof,receipt,floor_plan,permit,survey,inspection_report,kyc,title_deed,invoice,other,land_title_deed,architectural_blueprint,milestone_completion_certificate,defect_liability_warranty,tax_clearance_certificate,identification_kyc,general',
             'file' => 'required|file|max:20480', // 20 MB max
             'documentable_type' => 'nullable|string',
             'documentable_id' => 'nullable|string',

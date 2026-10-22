@@ -12,6 +12,13 @@ export type DocumentType =
   | 'title_deed'
   | 'invoice'
   | 'other'
+  | 'land_title_deed'
+  | 'architectural_blueprint'
+  | 'milestone_completion_certificate'
+  | 'defect_liability_warranty'
+  | 'tax_clearance_certificate'
+  | 'identification_kyc'
+  | 'general'
 
 export type DocumentStatus = 'active' | 'archived' | 'expired'
 
@@ -88,4 +95,23 @@ export interface DocumentStatistics {
   archived_documents: number
   total_storage_bytes: number
   by_type: Record<string, number>
+}
+
+
+export interface DocumentVaultSummary {
+  total_documents: number
+  total_storage_mb: number
+  verified_documents: number
+  verification_rate_percentage: number
+  by_document_type: { document_type: string; count: number; total_size_mb: number }[]
+  by_entity_type: { entity_type: string; count: number }[]
+}
+
+export interface DocumentPreviewResponse {
+  document_id: number
+  uuid: string
+  file_name: string
+  mime_type: string
+  preview_url?: string | null
+  is_inline_viewable: boolean
 }
