@@ -278,6 +278,9 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::prefix('payment-gateways')->group(function () {
         Route::get('/', [PaymentGatewayIntegrationController::class, 'gateways']);
         Route::get('/statistics', [PaymentGatewayIntegrationController::class, 'statistics']);
+        Route::get('/health', [PaymentGatewayIntegrationController::class, 'health']);
+        Route::post('/ping-all', [PaymentGatewayIntegrationController::class, 'pingAll']);
+        Route::post('/{name}/ping', [PaymentGatewayIntegrationController::class, 'ping']);
     });
 
     Route::prefix('payment-intents')->group(function () {

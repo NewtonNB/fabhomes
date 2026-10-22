@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\PaymentIntent;
+use App\Services\PaymentGatewayHealthService;
 use App\Services\PaymentProcessingService;
 use App\Services\WebhookVerificationService;
 use Illuminate\Http\JsonResponse;
@@ -13,7 +14,8 @@ class PaymentGatewayIntegrationController extends Controller
 {
     public function __construct(
         protected PaymentProcessingService $service,
-        protected WebhookVerificationService $webhookService
+        protected WebhookVerificationService $webhookService,
+        protected PaymentGatewayHealthService $healthService
     ) {}
 
     /**
@@ -206,6 +208,46 @@ class PaymentGatewayIntegrationController extends Controller
         return response()->json([
             'success' => true,
             'data' => $stats,
+        ]);
+    }
+
+    /**
+     * Get real-time gateway health monitor summary.
+     */
+    public function health(): JsonResponse
+    {
+        $this->service->seedInitialGateways();
+        $summary = $this->healthService->getHealthSummary();
+
+        return response()->json([
+            'success' => true,
+            'data' => $summary,
+        ]);
+    }
+
+    /**
+     * Ping a specific gateway adapter.
+     */
+    public function ping(string $name): JsonResponse
+    {
+        $result = $this->healthService->pingGateway($name);
+
+        return response()->json([
+            'success' => true,
+            'data' => $result,
+        ]);
+    }
+
+    /**
+     * Ping all active gateways.
+     */
+    public function pingAll(): JsonResponse
+    {
+        $results = $this->healthService->pingAllGateways();
+
+        return response()->json([
+            'success' => true,
+            'data' => $results,
         ]);
     }
 }

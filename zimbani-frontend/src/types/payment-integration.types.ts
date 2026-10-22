@@ -299,3 +299,39 @@ export interface ResolveDisputePayload {
   resolution_notes?: string
   create_refund?: boolean
 }
+
+export interface GatewayHealthItem {
+  id: number
+  uuid: string
+  name: string
+  display_name: string
+  provider_type: string
+  environment: string
+  is_default: boolean
+  status: 'operational' | 'degraded' | 'outage'
+  latency_ms: number
+  uptime_percentage: number
+  last_ping_at?: string
+  supported_methods: string[]
+  supported_currencies: string[]
+}
+
+export interface GatewayHealthCheckLog {
+  id: number
+  uuid: string
+  gateway_name: string
+  status: 'operational' | 'degraded' | 'outage'
+  latency_ms: number
+  http_status?: number
+  endpoint_tested?: string
+  message?: string
+  checked_at: string
+}
+
+export interface GatewayHealthSummary {
+  overall_status: 'operational' | 'degraded' | 'outage'
+  average_latency_ms: number
+  monitored_gateways_count: number
+  gateways: GatewayHealthItem[]
+  recent_logs: GatewayHealthCheckLog[]
+}

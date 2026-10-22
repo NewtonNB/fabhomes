@@ -40,4 +40,9 @@ interface PaymentGatewayInterface
      * Parse webhook payload into standardized result structure.
      */
     public function parseWebhookPayload(array $payload): array;
+
+    /**
+     * Check gateway operational health, endpoint ping latency, and API readiness.
+     */
+    public function pingHealth(): array;
 }

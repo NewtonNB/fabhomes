@@ -6,25 +6,26 @@ import {
   MdCheckCircle,
   MdRefresh,
   MdAdd,
-  MdClose,
   MdOpenInNew,
   MdCancel,
   MdSecurity,
   MdAssignmentReturn,
+  MdSensors,
 } from 'react-icons/md'
 import paymentIntegrationService from '../../../services/payment-integration.service'
 import {
   PaymentGatewayConfig,
   PaymentIntent,
   PaymentStatistics,
-  CreatePaymentIntentPayload,
 } from '../../../types/payment-integration.types'
 import WebhookTelemetryTab from './WebhookTelemetryTab'
 import PaymentRefundsDisputesTab from './PaymentRefundsDisputesTab'
+import GatewayHealthMonitor from './GatewayHealthMonitor'
+import UnifiedCheckoutModal from './UnifiedCheckoutModal'
 import './PaymentGatewaysTab.css'
 
 export const PaymentGatewaysTab: React.FC = () => {
-  const [subtab, setSubtab] = useState<'checkout' | 'webhooks' | 'refunds_disputes'>('checkout')
+  const [subtab, setSubtab] = useState<'checkout' | 'health' | 'webhooks' | 'refunds_disputes'>('checkout')
   const [gateways, setGateways] = useState<PaymentGatewayConfig[]>([])
   const [intents, setIntents] = useState<PaymentIntent[]>([])
   const [stats, setStats] = useState<PaymentStatistics | null>(null)
@@ -32,18 +33,8 @@ export const PaymentGatewaysTab: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<boolean>(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
-  // New Intent Modal State
+  // Checkout Modal State
   const [showCheckoutModal, setShowCheckoutModal] = useState<boolean>(false)
-  const [createdIntent, setCreatedIntent] = useState<PaymentIntent | null>(null)
-  const [checkoutForm, setCheckoutForm] = useState<CreatePaymentIntentPayload>({
-    amount: 1500000,
-    currency: 'UGX',
-    gateway_name: 'flutterwave',
-    payment_method: 'card',
-    client_phone: '+256772123456',
-    client_email: 'homebuilder@fabhomes.ug',
-    client_name: 'Uganda Diaspora Client',
-  })
 
   // Load Gateways, Intents, and Stats
   const loadData = useCallback(async () => {
@@ -77,22 +68,6 @@ export const PaymentGatewaysTab: React.FC = () => {
     }
   }, [feedback])
 
-  // Handle Intent Creation
-  const handleCreateIntent = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      setActionLoading(true)
-      const res = await paymentIntegrationService.createPaymentIntent(checkoutForm)
-      setCreatedIntent(res)
-      setFeedback({ type: 'success', text: `Payment Intent ${res.intent_reference} generated successfully!` })
-      loadData()
-    } catch (err: any) {
-      setFeedback({ type: 'error', text: err.response?.data?.message || err.message || 'Payment initiation failed' })
-    } finally {
-      setActionLoading(false)
-    }
-  }
-
   // Handle Confirm Intent (Simulate Webhook / Direct Success)
   const handleConfirmIntent = async (identifier: string | number) => {
     try {
@@ -101,10 +76,6 @@ export const PaymentGatewaysTab: React.FC = () => {
         simulated_by: 'Dashboard Quick Action',
       })
       setFeedback({ type: 'success', text: 'Payment intent confirmed and posted to ledger!' })
-      if (createdIntent && (createdIntent.id === identifier || createdIntent.uuid === identifier)) {
-        setCreatedIntent(null)
-        setShowCheckoutModal(false)
-      }
       loadData()
     } catch (err: any) {
       setFeedback({ type: 'error', text: err.response?.data?.message || err.message || 'Confirmation failed' })
@@ -233,6 +204,26 @@ export const PaymentGatewaysTab: React.FC = () => {
         </button>
 
         <button
+          onClick={() => setSubtab('health')}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '10px 14px',
+            fontSize: '14px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            color: subtab === 'health' ? '#0284c7' : '#64748b',
+            borderBottom: subtab === 'health' ? '2px solid #0284c7' : '2px solid transparent',
+            marginBottom: '-6px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <MdSensors size={18} /> Gateway Health & SLA Monitor
+        </button>
+
+        <button
           onClick={() => setSubtab('webhooks')}
           style={{
             background: 'none',
@@ -298,13 +289,10 @@ export const PaymentGatewaysTab: React.FC = () => {
 
               <button
                 className="btn-primary"
-                onClick={() => {
-                  setCreatedIntent(null)
-                  setShowCheckoutModal(true)
-                }}
+                onClick={() => setShowCheckoutModal(true)}
                 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
               >
-                <MdAdd /> Initiate Payment Intent
+                <MdAdd /> Unified Multi-Channel Checkout
               </button>
             </div>
           </div>
@@ -462,203 +450,31 @@ export const PaymentGatewaysTab: React.FC = () => {
         </div>
       </div>
     </>
+  ) : subtab === 'health' ? (
+    <GatewayHealthMonitor />
   ) : subtab === 'webhooks' ? (
     <WebhookTelemetryTab />
   ) : (
     <PaymentRefundsDisputesTab />
   )}
 
-  {/* Checkout Modal */}
-      {showCheckoutModal && (
-        <div className="checkout-modal-overlay">
-          <div className="checkout-modal-card">
-            <div className="checkout-modal-header">
-              <h3 style={{ margin: 0, fontSize: '16px' }}>
-                {createdIntent ? 'Payment Intent Initialized' : 'Initiate Multi-Channel Payment'}
-              </h3>
-              <button
-                style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', fontSize: '20px' }}
-                onClick={() => {
-                  setShowCheckoutModal(false)
-                  setCreatedIntent(null)
-                }}
-              >
-                <MdClose />
-              </button>
-            </div>
-
-            {!createdIntent ? (
-              <form onSubmit={handleCreateIntent}>
-                <div className="checkout-modal-body">
-                  <div className="filter-group">
-                    <label>Select Payment Gateway Provider</label>
-                    <select
-                      className="dossier-input"
-                      value={checkoutForm.gateway_name}
-                      onChange={(e) =>
-                        setCheckoutForm({ ...checkoutForm, gateway_name: e.target.value })
-                      }
-                    >
-                      {gateways.map((g) => (
-                        <option key={g.name} value={g.name}>
-                          {g.display_name} ({g.transaction_fee_percentage}%)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="filter-group">
-                    <label>Payment Method</label>
-                    <select
-                      className="dossier-input"
-                      value={checkoutForm.payment_method}
-                      onChange={(e) =>
-                        setCheckoutForm({ ...checkoutForm, payment_method: e.target.value })
-                      }
-                    >
-                      <option value="card">Credit / Debit Card (Visa, Mastercard)</option>
-                      <option value="mobile_money">Mobile Money (MTN, Airtel)</option>
-                      <option value="bank_transfer">Stanbic Direct Bank Transfer</option>
-                    </select>
-                  </div>
-
-                  <div className="filter-group">
-                    <label>Amount (UGX)</label>
-                    <input
-                      type="number"
-                      min="1000"
-                      step="1000"
-                      required
-                      className="dossier-input"
-                      value={checkoutForm.amount}
-                      onChange={(e) =>
-                        setCheckoutForm({ ...checkoutForm, amount: Number(e.target.value) })
-                      }
-                    />
-                  </div>
-
-                  <div className="filter-group">
-                    <label>Client Payer Name</label>
-                    <input
-                      type="text"
-                      required
-                      className="dossier-input"
-                      value={checkoutForm.client_name}
-                      onChange={(e) =>
-                        setCheckoutForm({ ...checkoutForm, client_name: e.target.value })
-                      }
-                    />
-                  </div>
-
-                  <div className="filter-group">
-                    <label>Client Mobile Phone Number</label>
-                    <input
-                      type="text"
-                      className="dossier-input"
-                      value={checkoutForm.client_phone}
-                      onChange={(e) =>
-                        setCheckoutForm({ ...checkoutForm, client_phone: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="checkout-modal-footer">
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => setShowCheckoutModal(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn-primary" disabled={actionLoading}>
-                    {actionLoading ? 'Initializing...' : 'Generate Payment Intent'}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="checkout-modal-body">
-                <div style={{ textAlign: 'center', padding: '10px 0' }}>
-                  <MdCheckCircle style={{ fontSize: '48px', color: '#16a34a', margin: '0 auto' }} />
-                  <h4 style={{ margin: '10px 0 4px 0', fontSize: '18px', color: '#0f172a' }}>
-                    {createdIntent.intent_reference}
-                  </h4>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
-                    Gateway Reference: <code>{createdIntent.gateway_reference}</code>
-                  </p>
-                </div>
-
-                <div
-                  style={{
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                    padding: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px',
-                    fontSize: '13px',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Amount:</span>
-                    <strong>{formatUGX(createdIntent.amount)}</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Processing Fee:</span>
-                    <span>{formatUGX(createdIntent.fee_amount)}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: '6px' }}>
-                    <span>Total Charge:</span>
-                    <strong style={{ color: '#0f172a' }}>{formatUGX(createdIntent.total_charge_amount)}</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Prompt Action:</span>
-                    <span style={{ textTransform: 'capitalize' }}>
-                      {createdIntent.gateway_response?.action_type || 'Prompt sent'}
-                    </span>
-                  </div>
-                </div>
-
-                {createdIntent.gateway_checkout_url && (
-                  <div style={{ textAlign: 'center' }}>
-                    <a
-                      href={createdIntent.gateway_checkout_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-primary"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
-                    >
-                      <MdOpenInNew /> Proceed to Hosted Checkout
-                    </a>
-                  </div>
-                )}
-
-                <div className="checkout-modal-footer" style={{ margin: '-16px -24px -24px -24px' }}>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => {
-                      setShowCheckoutModal(false)
-                      setCreatedIntent(null)
-                    }}
-                  >
-                    Close
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    onClick={() => handleConfirmIntent(createdIntent.id)}
-                    disabled={actionLoading}
-                  >
-                    {actionLoading ? 'Simulating...' : 'Simulate Instant Webhook Success'}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+  {/* Unified Multi-Channel Checkout Modal */}
+  <UnifiedCheckoutModal
+    isOpen={showCheckoutModal}
+    onClose={() => setShowCheckoutModal(false)}
+    initialAmount={1500000}
+    currency="UGX"
+    clientName="Uganda Diaspora Client"
+    clientPhone="+256772123456"
+    clientEmail="homebuilder@fabhomes.ug"
+    onPaymentSuccess={() => {
+      loadData()
+      setFeedback({
+        type: 'success',
+        text: 'Payment completed successfully through Unified Checkout!',
+      })
+    }}
+  />
     </div>
   )
 }

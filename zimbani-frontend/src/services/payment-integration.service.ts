@@ -13,6 +13,7 @@ import {
   OpenDisputePayload,
   SubmitEvidencePayload,
   ResolveDisputePayload,
+  GatewayHealthSummary,
 } from '../types/payment-integration.types'
 
 const API_BASE = '/api/v1'
@@ -190,6 +191,26 @@ export const paymentIntegrationService = {
     payload: ResolveDisputePayload
   ): Promise<PaymentDispute> {
     const response = await axios.post(`${API_BASE}/payment-disputes/${identifier}/resolve`, payload)
+    return response.data.data
+  },
+
+  // --- Gateway Health & Uptime Monitoring (Phase 10 Day 4) ---
+
+  // Get real-time health summary for all gateways
+  async getGatewayHealth(): Promise<GatewayHealthSummary> {
+    const response = await axios.get(`${API_BASE}/payment-gateways/health`)
+    return response.data.data
+  },
+
+  // Ping a single gateway
+  async pingGateway(name: string): Promise<any> {
+    const response = await axios.post(`${API_BASE}/payment-gateways/${name}/ping`)
+    return response.data.data
+  },
+
+  // Ping all gateways simultaneously
+  async pingAllGateways(): Promise<Record<string, any>> {
+    const response = await axios.post(`${API_BASE}/payment-gateways/ping-all`)
     return response.data.data
   },
 }

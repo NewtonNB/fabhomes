@@ -40,6 +40,10 @@ class PaymentGatewayConfig extends Model
         'max_transaction_amount',
         'display_order',
         'instructions',
+        'last_health_status',
+        'last_ping_ms',
+        'last_ping_at',
+        'uptime_percentage',
     ];
 
     protected $casts = [
@@ -55,6 +59,9 @@ class PaymentGatewayConfig extends Model
         'flat_fee' => 'decimal:2',
         'min_transaction_amount' => 'decimal:2',
         'max_transaction_amount' => 'decimal:2',
+        'last_ping_ms' => 'integer',
+        'last_ping_at' => 'datetime',
+        'uptime_percentage' => 'decimal:2',
     ];
 
     protected static function boot()
@@ -83,5 +90,10 @@ class PaymentGatewayConfig extends Model
     {
         $percentageFee = round(($amount * (float) $this->transaction_fee_percentage) / 100, 2);
         return round($percentageFee + (float) $this->flat_fee, 2);
+    }
+
+    public function healthChecks(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PaymentGatewayHealthCheck::class, 'gateway_name', 'name')->latest('checked_at');
     }
 }

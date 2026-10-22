@@ -3043,19 +3043,73 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+### Phase 10 Day 4: Frontend Multi-Channel Unified Checkout Modal & Gateway Health Monitor ✅ (Oct 22, 2026)
+
+- **Database Architecture & Schema Migration:**
+  - Created migration `2026_10_22_120000_create_payment_gateway_health_checks_table.php`:
+    - Enhanced `payment_gateway_configs`: Added `last_health_status` (`operational`, `degraded`, `outage`), `last_ping_ms` (integer roundtrip latency), `last_ping_at` (timestamp), and `uptime_percentage` (decimal(5,2), rolling calculation).
+    - `payment_gateway_health_checks`: Real-time probe telemetry ledger tracking `gateway_name`, `status`, `latency_ms`, `http_status`, `endpoint_tested`, `message`, `checked_at`, with composite indexes on `['gateway_name', 'checked_at']` and `status`.
+
+- **Eloquent Models & Gateway Contract Extensions:**
+  - `PaymentGatewayHealthCheck.php`: Implements ADR-014 hybrid keys (`id` + `uuid`), casts latency and timestamps, and establishes `gatewayConfig()` relationship.
+  - `PaymentGatewayConfig.php`: Added `healthChecks()` relationship and casts for SLA metrics.
+  - `PaymentGatewayInterface.php`: Added `pingHealth(): array` contract method.
+  - Implemented `pingHealth()` across all adapters (`FlutterwaveAdapter.php`, `PesapalAdapter.php`, `DirectMobileMoneyAdapter.php`, `BankTransferAdapter.php`) measuring network roundtrip latency and testing endpoint readiness.
+
+- **Backend Business Logic Services:**
+  - `PaymentGatewayHealthService.php`:
+    - `pingGateway(string $gatewayName)`: Invokes gateway adapter `pingHealth()`, stores probe in `payment_gateway_health_checks`, updates `payment_gateway_configs.last_health_status`, `last_ping_ms`, `last_ping_at`, and computes rolling 20-check uptime percentage.
+    - `pingAllGateways()`: Simultaneously tests all configured and active payment gateways.
+    - `getHealthSummary()`: Aggregates overall platform payment health (`operational`, `degraded`, `outage`), average platform latency, gateway status cards, and the 15 most recent telemetry logs.
+
+- **Controllers, Policies, & API Endpoints:**
+  - `PaymentGatewayIntegrationController.php`: Added endpoints in `routes/api.php`:
+    - `GET /api/v1/payment-gateways/health` - Real-time gateway SLA and uptime summary
+    - `POST /api/v1/payment-gateways/{name}/ping` - Manually probe a specific gateway
+    - `POST /api/v1/payment-gateways/ping-all` - Simultaneously probe all registered gateways
+
+- **Frontend Architecture & Unified Checkout Component:**
+  - TypeScript types: Enhanced `payment-integration.types.ts` with `GatewayHealthSummary`, `GatewayHealthItem`, and `GatewayHealthCheckLog`.
+  - Client Service Layer: Enhanced `payment-integration.service.ts` with `getGatewayHealth()`, `pingGateway()`, and `pingAllGateways()`.
+  - UI Component 1: `GatewayHealthMonitor.tsx` & `.css`:
+    - Real-time SLA monitor header with overall health status pill (`All Gateways Operational`, `Degraded Performance`, `Critical Outage`) and average platform roundtrip latency gauge.
+    - Gateway cards grid displaying status badges, latency meters (<150ms green, 150-350ms yellow), rolling uptime SLAs (99.90%), last probe time, and individual "Test Connection" buttons.
+    - Recent telemetry log table displaying HTTP codes, endpoints, and diagnostic responses.
+  - UI Component 2: `UnifiedCheckoutModal.tsx` & `.css`:
+    - Multi-channel embedded checkout popup modal supporting:
+      1. **Credit / Debit Cards**: Visa/Mastercard formatting, CVV, expiry, cardholder name, and 3D Secure 2.0 Strong Customer Authentication progress.
+      2. **Mobile Money STK Push**: MTN MoMo and Airtel Money network toggles, +256 phone formatting, and interactive phone screen waiting for user's PIN entry with a 45s countdown timer and simulated handset confirmation.
+      3. **Bank Transfer / Wire**: Stanbic Bank Uganda account details, unique auto-generated payment narration reference (`REF-FAB-XXXXXX`), and transfer receipt reference tracking.
+    - Dynamic convenience fee calculator preview updating total payable amounts in real-time.
+    - Interactive success receipt card with `intent_reference`, amount settled, channel, and one-click completion callback.
+  - Subtab Integration: Added as the 4th tab ("Gateway Health & SLA Monitor") in `PaymentGatewaysTab.tsx` and wired the "Unified Multi-Channel Checkout" action button.
+
+- **Verification & Testing:**
+  - 7-step backend verification test suite passed all assertions:
+    1. Flutterwave probe (operational, 124 ms).
+    2. MTN MoMo probe (operational, 121 ms).
+    3. Pesapal probe (operational, 192 ms).
+    4. Stanbic Bank transfer probe (operational, 60 ms).
+    5. Batch ping testing all 5 gateway adapters simultaneously.
+    6. Platform health summary verification (overall status operational, average latency 96 ms, 5 monitored gateways, 9 recent telemetry entries).
+    7. Database persistence in `payment_gateway_health_checks` table.
+  - Frontend production build passed cleanly (`npm run build` in 1.63s, 0 errors).
+
+---
+
 **Phase 10: Payment Integration (Production Gateways, Adapter Architecture, Webhooks)**
 1. ✅ **Day 1**: Unified Gateway Adapter Architecture & Dynamic PaymentIntents Engine (COMPLETED)
 2. ✅ **Day 2**: Universal Webhook Ingestion, Cryptographic Verification & Replay Protection (COMPLETED)
 3. ✅ **Day 3**: Automated Refunds, Reversals & Dispute Resolution Ledger (COMPLETED)
-4. ⏳ **Day 4**: Frontend Multi-Channel Unified Checkout Modal & Gateway Health Monitor (NEXT)
-5. ⏳ **Day 5**: End-to-End Payment Simulation, Sandbox Gateway Tests & Bank Reconciliation Staging
+4. ✅ **Day 4**: Frontend Multi-Channel Unified Checkout Modal & Gateway Health Monitor (COMPLETED)
+5. ⏳ **Day 5**: End-to-End Payment Simulation, Sandbox Gateway Tests & Bank Reconciliation Staging (NEXT)
 
 ---
 
 **Last Updated:** October 22, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 10 Day 3 Complete
+**Latest Commit:** Phase 10 Day 4 Complete
 
 
 
