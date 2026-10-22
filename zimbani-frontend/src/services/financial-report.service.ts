@@ -12,6 +12,9 @@ import {
   ClientActivityReport,
   PlotAllocationReport,
   ConstructionProgressReport,
+  ScheduledReportItem,
+  CreateScheduledReportInput,
+  PrintViewResponse,
 } from '../types/financial-report.types'
 
 class FinancialReportService {
@@ -154,6 +157,66 @@ class FinancialReportService {
     const response = await api.get<{ success: boolean; data: ConstructionProgressReport }>(
       `/reports/construction-progress?${params.toString()}`
     )
+    return response.data.data
+  }
+
+  // --- Phase 11 Day 4 Multi-Format Export Engine & Scheduled Delivery ---
+
+  async downloadReportCsv(reportType: string, filters?: Record<string, any>): Promise<void> {
+    const params = new URLSearchParams()
+    params.append('report_type', reportType)
+    if (filters) {
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') {
+          params.append(k, String(v))
+        }
+      })
+    }
+
+    const response = await api.get(`/reports/export/csv?${params.toString()}`, {
+      responseType: 'blob',
+    })
+
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `zimbani_${reportType}_${new Date().toISOString().slice(0, 10)}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  async getPrintView(reportType: string, filters?: Record<string, any>): Promise<PrintViewResponse> {
+    const params = new URLSearchParams()
+    params.append('report_type', reportType)
+    if (filters) {
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') {
+          params.append(k, String(v))
+        }
+      })
+    }
+
+    const response = await api.get<{ success: boolean; data: PrintViewResponse }>(
+      `/reports/export/print-view?${params.toString()}`
+    )
+    return response.data.data
+  }
+
+  async getScheduledReports(): Promise<ScheduledReportItem[]> {
+    const response = await api.get<{ success: boolean; data: ScheduledReportItem[] }>('/reports/schedules')
+    return response.data.data
+  }
+
+  async createScheduledReport(input: CreateScheduledReportInput): Promise<ScheduledReportItem> {
+    const response = await api.post<{ success: boolean; data: ScheduledReportItem }>('/reports/schedules', input)
+    return response.data.data
+  }
+
+  async toggleScheduledReport(identifier: string | number): Promise<ScheduledReportItem> {
+    const response = await api.post<{ success: boolean; data: ScheduledReportItem }>(`/reports/schedules/${identifier}/toggle`)
     return response.data.data
   }
 }

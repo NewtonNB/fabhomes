@@ -337,7 +337,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/entries/{id}/match', [PaymentSimulationReconciliationController::class, 'manualMatch']);
     });
 
-    // Executive BI Analytics & Advanced Reporting Engine (Phase 11 Day 1 & Day 2)
+    // Executive BI Analytics, Export Engine & Reporting (Phase 11 Day 1 - Day 4)
     Route::prefix('reports')->group(function () {
         Route::get('/financial-summary', [ExecutiveReportingController::class, 'financialSummary']);
         Route::get('/cash-flow-breakdown', [ExecutiveReportingController::class, 'cashFlowBreakdown']);
@@ -345,6 +345,11 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::get('/client-activity', [ExecutiveReportingController::class, 'clientActivity']);
         Route::get('/plot-allocation', [ExecutiveReportingController::class, 'plotAllocation']);
         Route::get('/construction-progress', [ExecutiveReportingController::class, 'constructionProgress']);
+        Route::get('/export/csv', [ExecutiveReportingController::class, 'exportCsv']);
+        Route::get('/export/print-view', [ExecutiveReportingController::class, 'printView']);
+        Route::get('/schedules', [ExecutiveReportingController::class, 'listSchedules']);
+        Route::post('/schedules', [ExecutiveReportingController::class, 'createSchedule']);
+        Route::post('/schedules/{schedule}/toggle', [ExecutiveReportingController::class, 'toggleSchedule']);
     });
 
     // Financial Transactions & Immutable Ledger

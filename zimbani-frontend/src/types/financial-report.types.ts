@@ -316,3 +316,39 @@ export interface ConstructionProgressReport {
   }
   by_project: ConstructionProgressProjectItem[]
 }
+
+
+// Phase 11 Day 4 Export Engine & Scheduled Reporting Types
+export interface ScheduledReportItem {
+  id: number
+  uuid: string
+  name: string
+  report_type: string
+  frequency: 'daily' | 'weekly' | 'monthly'
+  format: 'csv' | 'pdf' | 'both'
+  recipients: string[]
+  filters?: Record<string, any>
+  is_active: boolean
+  last_sent_at?: string
+  created_at: string
+}
+
+export interface CreateScheduledReportInput {
+  name: string
+  report_type: string
+  frequency: 'daily' | 'weekly' | 'monthly'
+  format: 'csv' | 'pdf' | 'both'
+  recipients: string[]
+  filters?: Record<string, any>
+}
+
+export interface PrintViewResponse {
+  organization: {
+    name: string
+    system: string
+    generated_at: string
+    currency: string
+  }
+  title: string
+  report: any
+}

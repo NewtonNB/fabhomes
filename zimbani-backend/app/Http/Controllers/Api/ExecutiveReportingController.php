@@ -3,17 +3,24 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ScheduledReport;
 use App\Services\ExecutiveReportingService;
+use App\Services\ReportExportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExecutiveReportingController extends Controller
 {
     protected ExecutiveReportingService $reportingService;
+    protected ReportExportService $exportService;
 
-    public function __construct(ExecutiveReportingService $reportingService)
-    {
+    public function __construct(
+        ExecutiveReportingService $reportingService,
+        ReportExportService $exportService
+    ) {
         $this->reportingService = $reportingService;
+        $this->exportService = $exportService;
     }
 
     /**
@@ -127,6 +134,101 @@ class ExecutiveReportingController extends Controller
         return response()->json([
             'success' => true,
             'data' => $report,
+        ]);
+    }
+
+    /**
+     * Multi-Format CSV Stream Export
+     * GET /api/v1/reports/export/csv
+     */
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $request->validate([
+            'report_type' => 'required|string|in:financial_summary,client_activity,plot_allocation,construction_progress,cash_flow',
+        ]);
+
+        return $this->exportService->exportCsv(
+            $request->input('report_type'),
+            $request->except(['report_type'])
+        );
+    }
+
+    /**
+     * Print-Ready Structured View
+     * GET /api/v1/reports/export/print-view
+     */
+    public function printView(Request $request): JsonResponse
+    {
+        $request->validate([
+            'report_type' => 'required|string|in:financial_summary,client_activity,plot_allocation,construction_progress,cash_flow,executive_kpis',
+        ]);
+
+        $viewData = $this->exportService->getPrintView(
+            $request->input('report_type'),
+            $request->except(['report_type'])
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => $viewData,
+        ]);
+    }
+
+    /**
+     * List Recurring Scheduled Reports
+     * GET /api/v1/reports/schedules
+     */
+    public function listSchedules(): JsonResponse
+    {
+        $schedules = $this->exportService->listSchedules();
+
+        return response()->json([
+            'success' => true,
+            'data' => $schedules,
+        ]);
+    }
+
+    /**
+     * Configure New Scheduled Report Delivery
+     * POST /api/v1/reports/schedules
+     */
+    public function createSchedule(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'report_type' => 'required|string|in:financial_summary,client_activity,plot_allocation,construction_progress,cash_flow',
+            'frequency' => 'nullable|string|in:daily,weekly,monthly',
+            'format' => 'nullable|string|in:csv,pdf,both',
+            'recipients' => 'required|array|min:1',
+            'recipients.*' => 'email',
+            'filters' => 'nullable|array',
+        ]);
+
+        $schedule = $this->exportService->createSchedule($data, auth()->id() ?? 1);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Scheduled report created successfully',
+            'data' => $schedule,
+        ], 201);
+    }
+
+    /**
+     * Toggle Active Status of Scheduled Report
+     * POST /api/v1/reports/schedules/{schedule}/toggle
+     */
+    public function toggleSchedule(string $identifier): JsonResponse
+    {
+        $schedule = is_numeric($identifier)
+            ? ScheduledReport::findOrFail((int) $identifier)
+            : ScheduledReport::where('uuid', $identifier)->firstOrFail();
+
+        $updated = $this->exportService->toggleSchedule($schedule);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule status toggled',
+            'data' => $updated,
         ]);
     }
 }
