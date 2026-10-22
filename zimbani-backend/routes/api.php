@@ -48,6 +48,7 @@ use App\Http\Controllers\Api\MultiCurrencyEscalationController;
 use App\Http\Controllers\Api\ProjectHandoverSettlementController;
 use App\Http\Controllers\Api\PaymentGatewayIntegrationController;
 use App\Http\Controllers\Api\PaymentRefundDisputeController;
+use App\Http\Controllers\Api\PaymentSimulationReconciliationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -315,6 +316,21 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::get('/{identifier}', [PaymentRefundDisputeController::class, 'showDispute']);
         Route::post('/{identifier}/evidence', [PaymentRefundDisputeController::class, 'submitEvidence']);
         Route::post('/{identifier}/resolve', [PaymentRefundDisputeController::class, 'resolveDispute']);
+    });
+
+    // End-to-End Payment Simulation & Bank Reconciliation Staging (Phase 10 Day 5)
+    Route::prefix('payment-simulations')->group(function () {
+        Route::post('/run', [PaymentSimulationReconciliationController::class, 'runSimulation']);
+        Route::post('/run-all', [PaymentSimulationReconciliationController::class, 'runAllSimulations']);
+        Route::get('/history', [PaymentSimulationReconciliationController::class, 'simulationHistory']);
+    });
+
+    Route::prefix('bank-reconciliation-staging')->group(function () {
+        Route::get('/batches', [PaymentSimulationReconciliationController::class, 'listBatches']);
+        Route::post('/batches/demo', [PaymentSimulationReconciliationController::class, 'seedDemoBatch']);
+        Route::get('/batches/{id}', [PaymentSimulationReconciliationController::class, 'showBatch']);
+        Route::post('/batches/{id}/auto-reconcile', [PaymentSimulationReconciliationController::class, 'autoReconcile']);
+        Route::post('/entries/{id}/match', [PaymentSimulationReconciliationController::class, 'manualMatch']);
     });
 
     // Financial Transactions & Immutable Ledger

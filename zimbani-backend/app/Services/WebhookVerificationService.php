@@ -63,8 +63,8 @@ class WebhookVerificationService
             }
         }
 
-        // Sandbox fallback: If gateway is in sandbox or enforce_signature is false, allow structured payloads
-        if (!$signatureValid && ($config && !$config->enforce_signature || $config?->environment === 'sandbox')) {
+        // Sandbox / Bank EFT fallback: If gateway is in sandbox, enforce_signature is false, or no webhook secret configured
+        if (!$signatureValid && (!$config || !$config->enforce_signature || $config->environment === 'sandbox' || empty($config->webhook_secret))) {
             $adapter = $this->gatewayManager->driver($gatewayName);
             $signatureValid = $adapter->validateWebhook($payload, $headers);
         }
@@ -143,6 +143,8 @@ class WebhookVerificationService
             return [
                 'success' => false,
                 'status' => $security['is_replay'] ? 'ignored' : 'rejected',
+                'signature_valid' => $security['signature_valid'],
+                'is_replay' => $security['is_replay'],
                 'message' => $security['error'],
                 'log_id' => $webhookLog->id,
             ];
@@ -164,6 +166,8 @@ class WebhookVerificationService
             return [
                 'success' => true,
                 'status' => 'processed',
+                'signature_valid' => $security['signature_valid'],
+                'is_replay' => $security['is_replay'],
                 'message' => 'Webhook validated and ledger updated successfully',
                 'log_id' => $webhookLog->id,
                 'intent_reference' => $intentRef,

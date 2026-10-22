@@ -152,6 +152,11 @@ class Payment extends Model
         return $this->hasMany(PaymentDispute::class, 'payment_id');
     }
 
+    public function reconciliationEntries(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(BankStatementEntry::class, 'matched_payment_id');
+    }
+
     // Scopes
 
     public function scopeConfirmed($query)

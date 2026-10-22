@@ -335,3 +335,82 @@ export interface GatewayHealthSummary {
   gateways: GatewayHealthItem[]
   recent_logs: GatewayHealthCheckLog[]
 }
+
+export interface PaymentSimulation {
+  id: number
+  uuid: string
+  simulation_run_id: string
+  scenario_name: string
+  channel: 'card' | 'mobile_money' | 'bank_transfer'
+  gateway_name: string
+  amount: number
+  currency: string
+  status: 'running' | 'passed' | 'failed'
+  steps_executed?: { step: string; detail: string; duration_ms: number }[]
+  payment_intent_id?: number
+  payment_id?: number
+  transaction_id?: number
+  webhook_log_id?: number
+  refund_id?: number
+  dispute_id?: number
+  execution_duration_ms: number
+  assertions_count: number
+  passed_assertions_count: number
+  error_message?: string
+  created_at: string
+}
+
+export interface BankStatementEntry {
+  id: number
+  uuid: string
+  batch_id: number
+  entry_reference: string
+  bank_transaction_id?: string
+  value_date: string
+  booking_date?: string
+  narration: string
+  entry_type: 'credit' | 'debit'
+  amount: number
+  currency: string
+  running_balance?: number
+  matching_status: 'unmatched' | 'matched_exact' | 'matched_fuzzy' | 'discrepancy' | 'manually_cleared'
+  match_confidence_score: number
+  matched_payment_id?: number
+  matched_payment?: {
+    id: number
+    payment_number: string
+    amount: number
+    payment_method: string
+    status: string
+  }
+  matched_payment_intent_id?: number
+  matched_transaction_id?: number
+  matching_rule?: string
+  discrepancy_notes?: string
+  created_at: string
+}
+
+export interface BankReconciliationBatch {
+  id: number
+  uuid: string
+  batch_number: string
+  bank_name: string
+  account_number: string
+  currency: string
+  statement_period_start: string
+  statement_period_end: string
+  opening_balance: number
+  closing_balance: number
+  total_credits: number
+  total_debits: number
+  total_entries_count: number
+  matched_entries_count: number
+  unmatched_entries_count: number
+  variance_amount: number
+  status: 'uploaded' | 'processing' | 'reconciled' | 'discrepancy_flagged'
+  reconciled_by?: number
+  reconciled_by_user?: { id: number; name: string }
+  reconciled_at?: string
+  entries?: BankStatementEntry[]
+  created_at: string
+}

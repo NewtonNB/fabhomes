@@ -11,6 +11,7 @@ import {
   MdSecurity,
   MdAssignmentReturn,
   MdSensors,
+  MdFactCheck,
 } from 'react-icons/md'
 import paymentIntegrationService from '../../../services/payment-integration.service'
 import {
@@ -22,10 +23,11 @@ import WebhookTelemetryTab from './WebhookTelemetryTab'
 import PaymentRefundsDisputesTab from './PaymentRefundsDisputesTab'
 import GatewayHealthMonitor from './GatewayHealthMonitor'
 import UnifiedCheckoutModal from './UnifiedCheckoutModal'
+import PaymentSimulationReconciliationTab from './PaymentSimulationReconciliationTab'
 import './PaymentGatewaysTab.css'
 
 export const PaymentGatewaysTab: React.FC = () => {
-  const [subtab, setSubtab] = useState<'checkout' | 'health' | 'webhooks' | 'refunds_disputes'>('checkout')
+  const [subtab, setSubtab] = useState<'checkout' | 'health' | 'webhooks' | 'refunds_disputes' | 'simulation'>('checkout')
   const [gateways, setGateways] = useState<PaymentGatewayConfig[]>([])
   const [intents, setIntents] = useState<PaymentIntent[]>([])
   const [stats, setStats] = useState<PaymentStatistics | null>(null)
@@ -262,6 +264,26 @@ export const PaymentGatewaysTab: React.FC = () => {
         >
           <MdAssignmentReturn size={18} /> Refunds & Dispute Resolution Ledger
         </button>
+
+        <button
+          onClick={() => setSubtab('simulation')}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '10px 14px',
+            fontSize: '14px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            color: subtab === 'simulation' ? '#0284c7' : '#64748b',
+            borderBottom: subtab === 'simulation' ? '2px solid #0284c7' : '2px solid transparent',
+            marginBottom: '-6px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <MdFactCheck size={18} /> Sandbox Simulation & Bank Reconciliation
+        </button>
       </div>
 
       {subtab === 'checkout' ? (
@@ -454,8 +476,10 @@ export const PaymentGatewaysTab: React.FC = () => {
     <GatewayHealthMonitor />
   ) : subtab === 'webhooks' ? (
     <WebhookTelemetryTab />
-  ) : (
+  ) : subtab === 'refunds_disputes' ? (
     <PaymentRefundsDisputesTab />
+  ) : (
+    <PaymentSimulationReconciliationTab />
   )}
 
   {/* Unified Multi-Channel Checkout Modal */}

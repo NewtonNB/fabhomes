@@ -14,6 +14,9 @@ import {
   SubmitEvidencePayload,
   ResolveDisputePayload,
   GatewayHealthSummary,
+  PaymentSimulation,
+  BankStatementEntry,
+  BankReconciliationBatch,
 } from '../types/payment-integration.types'
 
 const API_BASE = '/api/v1'
@@ -211,6 +214,65 @@ export const paymentIntegrationService = {
   // Ping all gateways simultaneously
   async pingAllGateways(): Promise<Record<string, any>> {
     const response = await axios.post(`${API_BASE}/payment-gateways/ping-all`)
+    return response.data.data
+  },
+
+  // --- End-to-End Simulation & Bank Reconciliation Staging (Phase 10 Day 5) ---
+
+  // Run a single sandbox simulation scenario
+  async runSimulation(scenarioName: string): Promise<PaymentSimulation> {
+    const response = await axios.post(`${API_BASE}/payment-simulations/run`, {
+      scenario_name: scenarioName,
+    })
+    return response.data.data
+  },
+
+  // Run all test harness scenarios
+  async runAllSimulations(): Promise<PaymentSimulation[]> {
+    const response = await axios.post(`${API_BASE}/payment-simulations/run-all`)
+    return response.data.data
+  },
+
+  // Get simulation run history
+  async getSimulationHistory(): Promise<PaymentSimulation[]> {
+    const response = await axios.get(`${API_BASE}/payment-simulations/history`)
+    return response.data.data
+  },
+
+  // List bank reconciliation batches
+  async getReconciliationBatches(params?: any): Promise<BankReconciliationBatch[]> {
+    const response = await axios.get(`${API_BASE}/bank-reconciliation-staging/batches`, { params })
+    return response.data.data
+  },
+
+  // Seed sample demo bank statement batch
+  async seedDemoReconciliationBatch(): Promise<BankReconciliationBatch> {
+    const response = await axios.post(`${API_BASE}/bank-reconciliation-staging/batches/demo`)
+    return response.data.data
+  },
+
+  // Get single batch details
+  async getReconciliationBatch(id: string | number): Promise<BankReconciliationBatch> {
+    const response = await axios.get(`${API_BASE}/bank-reconciliation-staging/batches/${id}`)
+    return response.data.data
+  },
+
+  // Run automated rule-based reconciliation
+  async autoReconcileBatch(id: string | number): Promise<BankReconciliationBatch> {
+    const response = await axios.post(`${API_BASE}/bank-reconciliation-staging/batches/${id}/auto-reconcile`)
+    return response.data.data
+  },
+
+  // Manually match a bank statement entry with a payment
+  async manualMatchEntry(
+    entryId: number,
+    paymentId: number,
+    notes?: string
+  ): Promise<BankStatementEntry> {
+    const response = await axios.post(`${API_BASE}/bank-reconciliation-staging/entries/${entryId}/match`, {
+      payment_id: paymentId,
+      notes,
+    })
     return response.data.data
   },
 }
