@@ -24,6 +24,7 @@ import {
 } from 'react-icons/md'
 import MultiCurrencyEscalationTab from './components/MultiCurrencyEscalationTab'
 import ProjectHandoverSettlementTab from './components/ProjectHandoverSettlementTab'
+import ExecutiveBiAnalyticsTab from './components/ExecutiveBiAnalyticsTab'
 import financialReportService from '../../services/financial-report.service'
 import budgetService from '../../services/budget.service'
 import projectService from '../../services/project.service'
@@ -45,6 +46,7 @@ import { Site } from '../../types/site.types'
 import './FinancialReports.css'
 
 type TabType =
+  | 'executive_bi'
   | 'variance'
   | 'profitability'
   | 'cash_flow'
@@ -444,6 +446,13 @@ export const FinancialReportsDashboard: React.FC = () => {
 
       {/* Tabs Bar */}
       <div className="financial-tabs-nav">
+        <button
+          className={`financial-tab-btn ${activeTab === 'executive_bi' ? 'active' : ''}`}
+          onClick={() => setActiveTab('executive_bi')}
+        >
+          <MdSpeed /> Executive BI Analytics & Export Center
+        </button>
+
         <button
           className={`financial-tab-btn ${activeTab === 'variance' ? 'active' : ''}`}
           onClick={() => setActiveTab('variance')}
@@ -1018,6 +1027,9 @@ export const FinancialReportsDashboard: React.FC = () => {
 
       {/* Capstone Project Handover & Settlement Tab */}
       {activeTab === 'capstone_settlement' && <ProjectHandoverSettlementTab />}
+
+      {/* Executive BI Analytics & Export Center Tab (Phase 11 Day 5) */}
+      {activeTab === 'executive_bi' && <ExecutiveBiAnalyticsTab />}
 
       {/* Modal: Add Budget Code */}
       {showAddModal && (
