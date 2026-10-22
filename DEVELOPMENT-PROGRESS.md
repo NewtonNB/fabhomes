@@ -9,9 +9,9 @@
 
 ## 🎯 Current Status
 
-**Phase:** 11 - Advanced Reporting, BI Analytics, Document Management & Export Engine  
-**Status:** ✅ 100% COMPLETED  
-**Next Phase:** Phase 12 - Client Portal PWA & Customer Self-Service Experience (Day 1: Client Authentication, Onboarding & Biometric/PIN PWA Security Profile)
+**Phase:** 12 - Client Portal PWA & Customer Self-Service Experience  
+**Status:** ⏳ In Progress (Day 1 of 5 ✅ COMPLETED)  
+**Next:** Day 2 of 5 (Client Savings Dashboard, Milestone Progress Trackers & Deposit Checkout)
 
 ---
 
@@ -3299,9 +3299,63 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+---
+
+### Phase 12 Day 1: Client Authentication, Onboarding & Biometric/PIN PWA Security Profile ✅ (Oct 22, 2026)
+
+- **Database Schema Migration:**
+  - Created migration `2026_10_22_160000_create_client_security_profiles_table.php` (`client_security_profiles`):
+    - Implemented ADR-014 hybrid keys (`id` and `uuid`).
+    - Stored bcrypt hash for 4-6 digit Quick-PIN (`pin_hash`), attempt tracking (`pin_failed_attempts`), and progressive lockout (`pin_locked_until`).
+    - WebAuthn biometric credential tracking (`biometric_enabled`, `biometric_credential_id`, `biometric_device_name`, `biometric_registered_at`).
+    - Multi-channel notification preferences (`sms`, `email`, `push`, `whatsapp`) and preferred language.
+    - PWA installation tracking (`pwa_installed`, `pwa_installed_at`, `last_active_device`, `last_active_ip`).
+  - Model: `ClientSecurityProfile.php` with PIN verification methods, lockout enforcement, attempt resets, and relationships (`client`, `user`).
+  - Relationships: Linked `Client::securityProfile()` and `User::clientSecurityProfile()`.
+
+- **Service Layer & Domain Logic:**
+  - Created `ClientAuthService.php`:
+    - `registerClient()`: Self-service onboarding linking or auto-provisioning `User` and `Client` profiles, creating `ClientSecurityProfile`, optional initial PIN, and issuing Sanctum tokens.
+    - `loginWithCredentials()`: Secure login via email or primary mobile phone with password.
+    - `loginWithPin()`: Sub-second 4-6 digit Quick-PIN authentication with brute-force lockout safeguards.
+    - `loginWithBiometrics()`: WebAuthn / Passkey credential authentication.
+    - `getClientProfile()`: Aggregates real-time portfolio statistics (savings balances, allocated plots count, unique projects, pending milestone verifications, documents count).
+    - `updateProfile()`, `submitKyc()`, `setupPin()`, `setupBiometrics()`, `updatePreferences()`, `getSecuritySessions()`, `revokeOtherSessions()`, and `recordPwaInstall()`.
+
+- **Controllers, Policies, & API Endpoints:**
+  - Created `ClientPortalAuthController.php` mounted at `/api/v1/client-portal/*`:
+    - `POST /api/v1/client-portal/auth/register` (public, throttled)
+    - `POST /api/v1/client-portal/auth/login` (public, throttled)
+    - `POST /api/v1/client-portal/auth/pin-login` (public, throttled)
+    - `POST /api/v1/client-portal/auth/biometric-login` (public, throttled)
+    - `GET  /api/v1/client-portal/profile` (auth:sanctum)
+    - `PUT  /api/v1/client-portal/profile` (auth:sanctum)
+    - `POST /api/v1/client-portal/profile/kyc` (auth:sanctum, multipart DMS upload)
+    - `GET  /api/v1/client-portal/security/sessions` (auth:sanctum)
+    - `POST /api/v1/client-portal/security/pin` (auth:sanctum)
+    - `POST /api/v1/client-portal/security/biometrics` (auth:sanctum)
+    - `PUT  /api/v1/client-portal/security/preferences` (auth:sanctum)
+    - `POST /api/v1/client-portal/security/pwa-install` (auth:sanctum)
+    - `POST /api/v1/client-portal/security/revoke-others` (auth:sanctum)
+
+- **PWA Assets & Mobile Frontend Architecture:**
+  - Manifest & Service Worker: Created `manifest.json` with standalone mode, corporate `#0f172a` theme, app shortcuts, and `sw.js` for offline asset caching and network fallback (FR-PORTAL-001, NFR-USA-006).
+  - TypeScript Types & Service: Created `src/types/client-portal-auth.types.ts` and `src/services/client-portal-auth.service.ts` with WebAuthn credential generator and fallback fingerprinting.
+  - UI Components:
+    - `ClientPortalLayout.css`: Mobile-first responsive styling with dark corporate palette, quick status badges, numpad grid, and fixed bottom navigation bar for mobile touchscreens (`< 768px`).
+    - `ClientPortalDashboard.tsx`: Comprehensive customer hub with Overview KPI cards, Security & Quick-PIN management, Biometrics toggle, Contact Profile editor, KYC Verification Wizard, and Quick-PIN Lock screen modal.
+    - `ClientPortalAuth.tsx`: Dedicated PWA onboarding and login experience with Quick-PIN, Password, and 1-tap Biometric options.
+  - Route Integration: Mounted `/client-portal`, `/client-portal/auth`, and `/client-portal/milestones` in `App.tsx` and linked in `Sidebar.tsx`.
+
+- **Verification & Testing:**
+  - Automated test script `test_phase_12_day_1.php` verified registration, password login, quick-pin login, profile stats, contact update, KYC submission, biometric setup/login, PWA install recording, and active device sessions with 25/25 assertions passed (100%).
+  - Frontend production build (`npm run build`) passed with 0 errors in 17.1s.
+
+---
+
 **Phase 12: Client Portal PWA & Customer Self-Service Experience**
-1. ⏳ **Day 1**: Client Authentication, Onboarding & Biometric/PIN PWA Security Profile (NEXT)
-2. ⏳ **Day 2**: Client Savings Dashboard, Milestone Progress Trackers & Deposit Checkout
+1. ✅ **Day 1**: Client Authentication, Onboarding & Biometric/PIN PWA Security Profile (COMPLETED)
+2. ⏳ **Day 2**: Client Savings Dashboard, Milestone Progress Trackers & Deposit Checkout (NEXT)
 3. ⏳ **Day 3**: Plot Reservation, Deed Status & Interactive Estate Map Viewer
 4. ⏳ **Day 4**: Progress Photo Verification, Defect Punch-List Reporting & Milestone Sign-Off
 5. ⏳ **Day 5**: Digital Document Vault, Statements Download & Customer Support Ticketing
@@ -3311,7 +3365,8 @@ Delivered robust external settlement statement reconciliation for client escrow 
 **Last Updated:** October 22, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 11 Capstone Complete (100% of Phase 11 Finished)
+**Latest Commit:** Phase 12 Day 1 Complete
+
 
 
 

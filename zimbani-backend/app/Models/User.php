@@ -110,4 +110,12 @@ class User extends Authenticatable
     {
         return $this->hasOne(Client::class, 'user_id');
     }
+
+    /**
+     * Get client security profile associated with this user.
+     */
+    public function clientSecurityProfile()
+    {
+        return $this->hasOne(ClientSecurityProfile::class, 'user_id');
+    }
 }

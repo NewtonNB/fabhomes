@@ -8,3 +8,17 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <App />
   </React.StrictMode>,
 )
+
+// Register PWA Service Worker in production/supported environments
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((reg) => {
+        console.log('Fab Homes PWA ServiceWorker registered successfully:', reg.scope)
+      })
+      .catch((err) => {
+        console.warn('Fab Homes PWA ServiceWorker registration failed:', err)
+      })
+  })
+}

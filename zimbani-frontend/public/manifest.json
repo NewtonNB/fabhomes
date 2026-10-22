@@ -1,0 +1,56 @@
+{
+  "name": "Fab Homes - Zimbani Client Portal",
+  "short_name": "FabHomes",
+  "description": "Customer self-service PWA for land savings, plot allocation, and construction milestone tracking.",
+  "start_url": "/client-portal",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0f17",
+  "theme_color": "#0f172a",
+  "categories": ["finance", "business", "lifestyle"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "My Dashboard",
+      "short_name": "Dashboard",
+      "description": "View account balances and overview",
+      "url": "/client-portal",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Savings Accounts",
+      "short_name": "Savings",
+      "description": "Manage land and construction savings deposits",
+      "url": "/client-portal?tab=savings",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Milestone Verifications",
+      "short_name": "Milestones",
+      "description": "Verify progress photos and approve releases",
+      "url": "/client-portal?tab=milestones",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Security & PIN",
+      "short_name": "Security",
+      "description": "Manage Quick-PIN and biometric settings",
+      "url": "/client-portal?tab=security",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    }
+  ]
+}

@@ -158,6 +158,11 @@ class Client extends Model
         return $this->morphMany(Document::class, 'documentable');
     }
 
+    public function securityProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ClientSecurityProfile::class, 'client_id');
+    }
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');

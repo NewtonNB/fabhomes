@@ -183,6 +183,11 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           permission: 'view payments',
         },
         {
+          path: '/client-portal',
+          label: 'Client Portal PWA',
+          icon: <MdHome />,
+        },
+        {
           path: '/client-portal/milestones',
           label: 'Client Milestones',
           icon: <MdVerified />,

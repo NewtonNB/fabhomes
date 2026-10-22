@@ -102,7 +102,9 @@ import { FinancialReportsDashboard } from './pages/financial-reports/FinancialRe
 // Milestone Releases & Physical Verification Pages (Phase 8 Day 1)
 import { MilestoneReleasesList } from './pages/milestone-releases/MilestoneReleasesList'
 
-// Client Portal Milestones & Progress Photos (Phase 8 Day 2)
+// Client Portal PWA & Customer Self-Service (Phase 12 Day 1)
+import { ClientPortalDashboard } from './pages/client-portal/ClientPortalDashboard'
+import { ClientPortalAuth } from './pages/client-portal/ClientPortalAuth'
 import { ClientMilestonePortal } from './pages/client-portal/ClientMilestonePortal'
 
 // Admin Pages
@@ -121,6 +123,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/client-portal/auth" element={<ClientPortalAuth />} />
 
           {/* Protected Routes with Layout */}
           <Route
@@ -563,7 +566,15 @@ function App() {
               }
             />
 
-            {/* Client Portal Milestone Authorisations & Progress Photos (Phase 8 Day 2) */}
+            {/* Client Portal PWA Hub & Milestones (Phase 12 Day 1 & Phase 8 Day 2) */}
+            <Route
+              path="client-portal"
+              element={
+                <PermissionRoute roles={['Client', 'Super Admin', 'Admin', 'Company Admin', 'Site Manager', 'Project Manager', 'Finance Manager', 'Finance Officer', 'Director']}>
+                  <ClientPortalDashboard />
+                </PermissionRoute>
+              }
+            />
             <Route
               path="client-portal/milestones"
               element={

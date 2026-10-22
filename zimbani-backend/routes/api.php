@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ClientPortalAuthController;
 use App\Http\Controllers\Api\UserManagementController;
 use App\Http\Controllers\Api\RoleManagementController;
 use App\Http\Controllers\Api\ActivityController;
@@ -84,6 +85,18 @@ Route::prefix('v1')->group(function () {
 
     // Universal Payment Gateway Public Webhooks (Phase 10)
     Route::post('/payments/webhooks/{gateway}', [PaymentGatewayIntegrationController::class, 'handleWebhook']);
+
+    // Client Portal PWA Public Auth & Onboarding (Phase 12 Day 1)
+    Route::prefix('client-portal/auth')->group(function () {
+        Route::post('/register', [ClientPortalAuthController::class, 'register'])
+            ->middleware('throttle:5,1');
+        Route::post('/login', [ClientPortalAuthController::class, 'login'])
+            ->middleware('throttle:10,1');
+        Route::post('/pin-login', [ClientPortalAuthController::class, 'pinLogin'])
+            ->middleware('throttle:5,1');
+        Route::post('/biometric-login', [ClientPortalAuthController::class, 'biometricLogin'])
+            ->middleware('throttle:10,1');
+    });
 });
 
 // Protected routes (require authentication)
@@ -428,6 +441,19 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/verifications/{uuid}/dispute', [ClientPortalMilestoneController::class, 'disputeVerification']);
         Route::post('/verifications/{uuid}/photos', [ClientPortalMilestoneController::class, 'uploadPhoto']);
         Route::post('/photos/{uuid}/flag', [ClientPortalMilestoneController::class, 'flagPhoto']);
+    });
+
+    // Client Portal PWA Self-Service & Security Profile (Phase 12 Day 1)
+    Route::prefix('client-portal')->group(function () {
+        Route::get('/profile', [ClientPortalAuthController::class, 'profile']);
+        Route::put('/profile', [ClientPortalAuthController::class, 'updateProfile']);
+        Route::post('/profile/kyc', [ClientPortalAuthController::class, 'submitKyc']);
+        Route::get('/security/sessions', [ClientPortalAuthController::class, 'getSecuritySessions']);
+        Route::post('/security/pin', [ClientPortalAuthController::class, 'setupPin']);
+        Route::post('/security/biometrics', [ClientPortalAuthController::class, 'setupBiometrics']);
+        Route::put('/security/preferences', [ClientPortalAuthController::class, 'updatePreferences']);
+        Route::post('/security/pwa-install', [ClientPortalAuthController::class, 'recordPwaInstall']);
+        Route::post('/security/revoke-others', [ClientPortalAuthController::class, 'revokeOtherSessions']);
     });
 
     // Subcontractor Milestone Valuation & Interim Payment Linkages (Phase 8 Day 3)
