@@ -5,13 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\PaymentIntent;
 use App\Services\PaymentProcessingService;
+use App\Services\WebhookVerificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PaymentGatewayIntegrationController extends Controller
 {
     public function __construct(
-        protected PaymentProcessingService $service
+        protected PaymentProcessingService $service,
+        protected WebhookVerificationService $webhookService
     ) {}
 
     /**
@@ -131,17 +133,67 @@ class PaymentGatewayIntegrationController extends Controller
     }
 
     /**
-     * Public gateway webhook receiver.
+     * Public gateway webhook receiver with cryptographic verification & replay protection.
      */
     public function handleWebhook(Request $request, string $gateway): JsonResponse
     {
-        $result = $this->service->handleWebhook(
+        $result = $this->webhookService->ingestWebhook(
             $gateway,
             $request->all(),
-            $request->headers->all()
+            $request->headers->all(),
+            $request->ip()
         );
 
-        return response()->json($result);
+        $status = $result['success'] ? 200 : ($result['status'] === 'ignored' ? 200 : 400);
+
+        return response()->json($result, $status);
+    }
+
+    /**
+     * Paginated Webhook Telemetry Stream.
+     */
+    public function webhookLogs(Request $request): JsonResponse
+    {
+        $filters = $request->only(['provider', 'status', 'signature_valid', 'search']);
+        $perPage = (int) $request->get('per_page', 20);
+
+        $logs = $this->webhookService->getWebhookTelemetry($filters, $perPage);
+
+        return response()->json([
+            'success' => true,
+            'data' => $logs->items(),
+            'meta' => [
+                'current_page' => $logs->currentPage(),
+                'last_page' => $logs->lastPage(),
+                'per_page' => $logs->perPage(),
+                'total' => $logs->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Manually retry a failed / dead-letter webhook.
+     */
+    public function retryWebhook(int $id): JsonResponse
+    {
+        $result = $this->webhookService->retryFailedWebhook($id);
+
+        $statusCode = $result['success'] ? 200 : 422;
+
+        return response()->json($result, $statusCode);
+    }
+
+    /**
+     * Real-time Webhook Ingestion & Security Metrics.
+     */
+    public function webhookMetrics(): JsonResponse
+    {
+        $metrics = $this->webhookService->getWebhookMetrics();
+
+        return response()->json([
+            'success' => true,
+            'data' => $metrics,
+        ]);
     }
 
     /**

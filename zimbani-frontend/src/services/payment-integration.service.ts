@@ -4,6 +4,8 @@ import {
   PaymentIntent,
   PaymentStatistics,
   CreatePaymentIntentPayload,
+  PaymentWebhookLog,
+  WebhookMetrics,
 } from '../types/payment-integration.types'
 
 const API_BASE = '/api/v1'
@@ -60,6 +62,30 @@ export const paymentIntegrationService = {
   ): Promise<PaymentIntent> {
     const response = await axios.post(`${API_BASE}/payment-intents/${identifier}/cancel`, { reason })
     return response.data.data
+  },
+
+  // Get webhook telemetry stream logs
+  async getWebhookLogs(params?: {
+    provider?: string
+    status?: string
+    signature_valid?: boolean
+    search?: string
+    per_page?: number
+  }): Promise<{ data: PaymentWebhookLog[]; meta: any }> {
+    const response = await axios.get(`${API_BASE}/payment-webhooks/logs`, { params })
+    return response.data
+  },
+
+  // Get real-time webhook ingestion metrics
+  async getWebhookMetrics(): Promise<WebhookMetrics> {
+    const response = await axios.get(`${API_BASE}/payment-webhooks/metrics`)
+    return response.data.data
+  },
+
+  // Retry a dead-letter / failed webhook
+  async retryWebhook(id: number): Promise<{ success: boolean; message: string }> {
+    const response = await axios.post(`${API_BASE}/payment-webhooks/logs/${id}/retry`)
+    return response.data
   },
 }
 

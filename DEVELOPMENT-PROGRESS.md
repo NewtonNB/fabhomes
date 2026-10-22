@@ -2935,19 +2935,62 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+### Phase 10 Day 2: Universal Webhook Ingestion, Cryptographic Verification & Replay Protection ✅ (Oct 22, 2026)
+
+- **Database Architecture & Schema Migration:**
+  - Created migration `2026_10_22_090000_enhance_webhook_security_and_replay_protection.php`:
+    - Enhanced `payment_webhook_logs`: Added `signature_valid` (boolean), `signature_hash`, `payload_hash` (SHA-256 fingerprint for duplicate detection), `is_replay` (boolean), `ip_whitelisted` (boolean), `processing_duration_ms` (integer), `retry_count`, `max_retries` (default 5), `next_retry_at` (timestamp), `payment_intent_id` (foreign key to `payment_intents`), and composite indexes on `['payload_hash', 'created_at']` and `['status', 'next_retry_at']`.
+    - Enhanced `payment_gateway_configs`: Added `ip_whitelist` (JSON array of trusted IPs/CIDRs), `enforce_ip_whitelist` (boolean), `enforce_signature` (boolean), and `replay_window_seconds` (default 300 seconds / 5 minutes).
+
+- **Eloquent Models & Domain Relationships:**
+  - `PaymentWebhookLog.php`: Casts for signature and replay flags, `paymentIntent()` relationship, and `canRetry()` helper method.
+  - `PaymentGatewayConfig.php`: Casts for IP whitelist array and signature enforcement switches.
+
+- **Backend Business Logic Services:**
+  - `WebhookVerificationService.php`:
+    - `verifyWebhookSecurity`: Verifies incoming HMAC-SHA256 signatures, shared secret hashes, and tokens across Flutterwave, Pesapal, MTN MoMo, Airtel Money, and Stanbic Bank.
+    - `ingestWebhook`: Captures microsecond processing latency, computes SHA-256 canonical payload fingerprints, detects replay attacks within the 300-second window, blocks untrusted IP addresses, updates matching `PaymentIntent` records, and records comprehensive audit telemetry in `payment_webhook_logs`.
+    - `retryFailedWebhook`: Dead-letter queue retry engine with exponential backoff scheduling (1 min, 5 min, 15 min, etc.) and manual administrative recovery.
+    - `getWebhookTelemetry`: Filtered and searchable stream of ingested webhook events.
+    - `getWebhookMetrics`: Aggregate telemetry metrics (total received, average latency in ms, replays blocked, signature rejections, and overall success rate).
+
+- **Controllers, Policies, & API Endpoints:**
+  - `PaymentGatewayIntegrationController.php`: Updated and added endpoints in `routes/api.php`:
+    - `POST /api/v1/payments/webhooks/{gateway}` - Public ingestion endpoint with cryptographic verification & replay protection
+    - `GET /api/v1/payment-webhooks/logs` - Paginated webhook telemetry stream
+    - `GET /api/v1/payment-webhooks/metrics` - Real-time webhook ingestion & security metrics
+    - `POST /api/v1/payment-webhooks/logs/{id}/retry` - Manually retry a failed/dead-letter webhook
+
+- **Frontend Architecture & Telemetry Stream Integration:**
+  - TypeScript interfaces: Enhanced `payment-integration.types.ts` with `PaymentWebhookLog` and `WebhookMetrics`.
+  - Client Service Layer: Enhanced `payment-integration.service.ts` with `getWebhookLogs()`, `getWebhookMetrics()`, and `retryWebhook()`.
+  - UI Component: `WebhookTelemetryTab.tsx` & `.css`:
+    - Real-time Security & Ingestion KPI Bar (Total Ingested, Ingestion Latency ms, Replays Blocked, Signature Rejections, Success Rate %).
+    - Dynamic Filter Bar (Gateway Provider, Status `processed` / `received` / `failed` / `ignored`, and instant multi-field search).
+    - Live Ingestion Telemetry Stream Table with verification badges (`Valid HMAC` vs `Invalid/Forged`), replay flags, and latency measurements.
+    - Raw Webhook Inspection Modal with JSON payload viewer, HTTP headers, payload hash, and error traces.
+    - One-click manual retry button for dead-letter items.
+  - Integrated into `PaymentGatewaysTab.tsx` as a dedicated subtab ("Universal Webhook Ingestion & Cryptographic Security").
+
+- **Verification & Testing:**
+  - 6-step backend test suite (`test_webhook_security.php`) passed all assertions: Valid HMAC-SHA256 signature ingestion and payment intent settlement (862 ms latency), forged signature rejection, replay attack detection blocking duplicate payloads within the 300s window (`is_replay = true`), untrusted host IP blocking, dead-letter queue manual retry recovering a failed webhook into `succeeded`, and global security metrics aggregation.
+  - Frontend production build passed cleanly (`npm run build` in 10.66s, 0 errors).
+
+---
+
 **Phase 10: Payment Integration (Production Gateways, Adapter Architecture, Webhooks)**
 1. ✅ **Day 1**: Unified Gateway Adapter Architecture & Dynamic PaymentIntents Engine (COMPLETED)
-2. ⏳ **Day 2**: Universal Webhook Ingestion, Cryptographic Verification & Replay Protection (NEXT)
-3. ⏳ **Day 3**: Automated Refunds, Reversals & Dispute Resolution Ledger
+2. ✅ **Day 2**: Universal Webhook Ingestion, Cryptographic Verification & Replay Protection (COMPLETED)
+3. ⏳ **Day 3**: Automated Refunds, Reversals & Dispute Resolution Ledger (NEXT)
 4. ⏳ **Day 4**: Frontend Multi-Channel Unified Checkout Modal & Gateway Health Monitor
 5. ⏳ **Day 5**: End-to-End Payment Simulation, Sandbox Gateway Tests & Bank Reconciliation Staging
 
 ---
 
-**Last Updated:** October 21, 2026  
+**Last Updated:** October 22, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 10 Day 1 Complete
+**Latest Commit:** Phase 10 Day 2 Complete
 
 
 

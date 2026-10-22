@@ -287,6 +287,12 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/{identifier}/cancel', [PaymentGatewayIntegrationController::class, 'cancelIntent']);
     });
 
+    Route::prefix('payment-webhooks')->group(function () {
+        Route::get('/logs', [PaymentGatewayIntegrationController::class, 'webhookLogs']);
+        Route::get('/metrics', [PaymentGatewayIntegrationController::class, 'webhookMetrics']);
+        Route::post('/logs/{id}/retry', [PaymentGatewayIntegrationController::class, 'retryWebhook']);
+    });
+
     // Financial Transactions & Immutable Ledger
     Route::get('/transactions', [TransactionController::class, 'index']);
     Route::post('/transactions', [TransactionController::class, 'store']);

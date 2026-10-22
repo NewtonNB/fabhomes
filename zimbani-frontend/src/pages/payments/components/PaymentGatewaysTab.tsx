@@ -9,6 +9,7 @@ import {
   MdClose,
   MdOpenInNew,
   MdCancel,
+  MdSecurity,
 } from 'react-icons/md'
 import paymentIntegrationService from '../../../services/payment-integration.service'
 import {
@@ -17,9 +18,11 @@ import {
   PaymentStatistics,
   CreatePaymentIntentPayload,
 } from '../../../types/payment-integration.types'
+import WebhookTelemetryTab from './WebhookTelemetryTab'
 import './PaymentGatewaysTab.css'
 
 export const PaymentGatewaysTab: React.FC = () => {
+  const [subtab, setSubtab] = useState<'checkout' | 'webhooks'>('checkout')
   const [gateways, setGateways] = useState<PaymentGatewayConfig[]>([])
   const [intents, setIntents] = useState<PaymentIntent[]>([])
   const [stats, setStats] = useState<PaymentStatistics | null>(null)
@@ -205,39 +208,84 @@ export const PaymentGatewaysTab: React.FC = () => {
         </div>
       )}
 
-      {/* Header Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: '#0f172a' }}>
-            Production Gateway Adapters & Dynamic Checkout
-          </h3>
-          <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
-            Multi-provider routing: Flutterwave, Pesapal, MTN MoMo, Airtel Money, Stanbic Bank
-          </p>
-        </div>
+      {/* Subtab Navigation */}
+      <div style={{ display: 'flex', gap: '12px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px' }}>
+        <button
+          onClick={() => setSubtab('checkout')}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '10px 14px',
+            fontSize: '14px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            color: subtab === 'checkout' ? '#0284c7' : '#64748b',
+            borderBottom: subtab === 'checkout' ? '2px solid #0284c7' : '2px solid transparent',
+            marginBottom: '-6px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <MdCreditCard size={18} /> Gateway Adapters & Dynamic Checkout
+        </button>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button
-            className="btn-secondary"
-            onClick={loadData}
-            disabled={loading}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <MdRefresh /> Refresh
-          </button>
-
-          <button
-            className="btn-primary"
-            onClick={() => {
-              setCreatedIntent(null)
-              setShowCheckoutModal(true)
-            }}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <MdAdd /> Initiate Payment Intent
-          </button>
-        </div>
+        <button
+          onClick={() => setSubtab('webhooks')}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '10px 14px',
+            fontSize: '14px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            color: subtab === 'webhooks' ? '#0284c7' : '#64748b',
+            borderBottom: subtab === 'webhooks' ? '2px solid #0284c7' : '2px solid transparent',
+            marginBottom: '-6px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <MdSecurity size={18} /> Universal Webhook Ingestion & Cryptographic Security
+        </button>
       </div>
+
+      {subtab === 'checkout' ? (
+        <>
+          {/* Header Actions */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: '#0f172a' }}>
+                Production Gateway Adapters & Dynamic Checkout
+              </h3>
+              <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+                Multi-provider routing: Flutterwave, Pesapal, MTN MoMo, Airtel Money, Stanbic Bank
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                className="btn-secondary"
+                onClick={loadData}
+                disabled={loading}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <MdRefresh /> Refresh
+              </button>
+
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  setCreatedIntent(null)
+                  setShowCheckoutModal(true)
+                }}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <MdAdd /> Initiate Payment Intent
+              </button>
+            </div>
+          </div>
 
       {/* Gateway Cards Grid */}
       <div className="gateways-cards-grid">
@@ -391,8 +439,12 @@ export const PaymentGatewaysTab: React.FC = () => {
           </table>
         </div>
       </div>
+    </>
+  ) : (
+    <WebhookTelemetryTab />
+  )}
 
-      {/* Checkout Modal */}
+  {/* Checkout Modal */}
       {showCheckoutModal && (
         <div className="checkout-modal-overlay">
           <div className="checkout-modal-card">

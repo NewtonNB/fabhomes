@@ -18,6 +18,10 @@ export interface PaymentGatewayConfig {
   max_transaction_amount: number
   display_order: number
   instructions?: string
+  ip_whitelist?: string[]
+  enforce_ip_whitelist?: boolean
+  enforce_signature?: boolean
+  replay_window_seconds?: number
 }
 
 export interface PaymentIntent {
@@ -97,4 +101,40 @@ export interface CreatePaymentIntentPayload {
   client_email?: string
   client_name?: string
   metadata?: Record<string, any>
+}
+
+export interface PaymentWebhookLog {
+  id: number
+  uuid: string
+  provider: string
+  event_type?: string
+  external_reference?: string
+  headers?: Record<string, any>
+  payload: Record<string, any>
+  ip_address?: string
+  status: 'received' | 'processed' | 'failed' | 'ignored'
+  signature_valid: boolean
+  signature_hash?: string
+  payload_hash?: string
+  is_replay: boolean
+  ip_whitelisted: boolean
+  processing_duration_ms: number
+  retry_count: number
+  max_retries: number
+  next_retry_at?: string
+  processing_error?: string
+  payment_intent_id?: number
+  payment_intent?: PaymentIntent
+  processed_at?: string
+  created_at: string
+}
+
+export interface WebhookMetrics {
+  total_webhooks_received: number
+  processed_count: number
+  failed_count: number
+  replay_attacks_blocked: number
+  signature_rejections_count: number
+  average_latency_ms: number
+  success_rate_percentage: number
 }
