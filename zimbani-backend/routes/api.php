@@ -54,6 +54,7 @@ use App\Http\Controllers\Api\PaymentGatewayIntegrationController;
 use App\Http\Controllers\Api\PaymentRefundDisputeController;
 use App\Http\Controllers\Api\PaymentSimulationReconciliationController;
 use App\Http\Controllers\Api\ExecutiveReportingController;
+use App\Http\Controllers\Api\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -485,6 +486,17 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::get('/support/tickets/{identifier}', [ClientPortalDocumentController::class, 'getTicketDetails']);
         Route::post('/support/tickets/{identifier}/reply', [ClientPortalDocumentController::class, 'replyTicket']);
         Route::post('/support/tickets/{identifier}/close', [ClientPortalDocumentController::class, 'closeTicket']);
+    });
+
+    // Multi-Channel Notifications & Dispatch Logs (Phase 13 Day 1)
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::get('/summary', [NotificationController::class, 'summary']);
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+        Route::post('/dispatch-test', [NotificationController::class, 'dispatchTest']);
+        Route::get('/dispatch-logs', [NotificationController::class, 'dispatchLogs']);
+        Route::post('/{identifier}/read', [NotificationController::class, 'markAsRead']);
+        Route::post('/{identifier}/dismiss', [NotificationController::class, 'dismiss']);
     });
 
     // Subcontractor Milestone Valuation & Interim Payment Linkages (Phase 8 Day 3)

@@ -32,6 +32,8 @@ import { ClientInteractiveEstateMapTab } from './components/ClientInteractiveEst
 import { ClientLandTitleDeedsTab } from './components/ClientLandTitleDeedsTab'
 import { ClientDocumentVaultTab } from './components/ClientDocumentVaultTab'
 import { ClientSupportTicketsTab } from './components/ClientSupportTicketsTab'
+import { NotificationBellDropdown } from '../../components/notifications/NotificationBellDropdown'
+import { NotificationCenterModal } from '../../components/notifications/NotificationCenterModal'
 import './ClientPortalLayout.css'
 
 export const ClientPortalDashboard: React.FC = () => {
@@ -44,6 +46,16 @@ export const ClientPortalDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine)
   const [actionMessage, setActionMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+  const [showNotificationCenter, setShowNotificationCenter] = useState<boolean>(false)
+
+  const handleNotificationNavigate = (url: string) => {
+    if (url.includes('tab=')) {
+      const tabMatch = url.match(/tab=([a-z]+)/)
+      if (tabMatch && tabMatch[1]) {
+        setActiveTab(tabMatch[1] as any)
+      }
+    }
+  }
 
   // PWA Install Prompt
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
@@ -384,6 +396,12 @@ export const ClientPortalDashboard: React.FC = () => {
                 </>
               )}
             </span>
+
+            {/* Notification Bell & Dropdown */}
+            <NotificationBellDropdown
+              onOpenFullCenter={() => setShowNotificationCenter(true)}
+              onNavigateAction={handleNotificationNavigate}
+            />
 
             {/* Quick Lock Button */}
             {security?.has_pin && (
@@ -1269,6 +1287,14 @@ export const ClientPortalDashboard: React.FC = () => {
           <span>Profile</span>
         </button>
       </nav>
+
+      {/* Full Multi-Channel Notification Center Modal */}
+      <NotificationCenterModal
+        isOpen={showNotificationCenter}
+        onClose={() => setShowNotificationCenter(false)}
+        onNavigateAction={handleNotificationNavigate}
+        onNotify={handleNotify}
+      />
     </div>
   )
 }
