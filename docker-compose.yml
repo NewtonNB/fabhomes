@@ -1,0 +1,215 @@
+services:
+  # ----------------------------------------------------------------------------
+  # 1. Laravel 13 Core PHP-FPM Application
+  # ----------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    container_name: zimbani_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    environment:
+      APP_NAME: "${APP_NAME:-ZIMBANI}"
+      APP_ENV: "${APP_ENV:-production}"
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      APP_URL: "${APP_URL:-http://localhost}"
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: "${DB_DATABASE:-zimbani_prod}"
+      DB_USERNAME: "${DB_USERNAME:-zimbani_user}"
+      DB_PASSWORD: "${DB_PASSWORD:-SecretZimbani2026!}"
+      CACHE_STORE: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      AUTORUN_MIGRATIONS: "${AUTORUN_MIGRATIONS:-true}"
+    volumes:
+      - app_storage:/var/www/html/storage
+      - app_bootstrap_cache:/var/www/html/bootstrap/cache
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - zimbani_net
+
+  # ----------------------------------------------------------------------------
+  # 2. Nginx Reverse Proxy & API Gateway
+  # ----------------------------------------------------------------------------
+  web:
+    image: nginx:alpine
+    container_name: zimbani_web
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - app_storage:/var/www/html/storage:ro
+    depends_on:
+      - app
+      - frontend
+      - reverb
+    networks:
+      - zimbani_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ----------------------------------------------------------------------------
+  # 3. React 19 Frontend SPA & Client PWA
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+    container_name: zimbani_frontend
+    restart: unless-stopped
+    networks:
+      - zimbani_net
+
+  # ----------------------------------------------------------------------------
+  # 4. MySQL 8.0 Relational Database Engine
+  # ----------------------------------------------------------------------------
+  db:
+    image: mysql:8.0
+    container_name: zimbani_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: "${DB_DATABASE:-zimbani_prod}"
+      MYSQL_USER: "${DB_USERNAME:-zimbani_user}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:-SecretZimbani2026!}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-RootZimbani2026!}"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+    ports:
+      - "${DB_FORWARD_PORT:-13306}:3306"
+    networks:
+      - zimbani_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-RootZimbani2026!}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ----------------------------------------------------------------------------
+  # 5. Redis 7.2 Cache & Queue Broker
+  # ----------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: zimbani_redis
+    restart: unless-stopped
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - redis_data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "${REDIS_FORWARD_PORT:-16379}:6379"
+    networks:
+      - zimbani_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ----------------------------------------------------------------------------
+  # 6. Laravel Reverb Real-Time WebSocket Daemon
+  # ----------------------------------------------------------------------------
+  reverb:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    container_name: zimbani_reverb
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
+    environment:
+      APP_ENV: "${APP_ENV:-production}"
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      REDIS_HOST: redis
+    depends_on:
+      app:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - zimbani_net
+
+  # ----------------------------------------------------------------------------
+  # 7. Asynchronous Queue Worker (Notifications, Drips & Webhooks)
+  # ----------------------------------------------------------------------------
+  queue:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    container_name: zimbani_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
+    environment:
+      APP_ENV: "${APP_ENV:-production}"
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      REDIS_HOST: redis
+      QUEUE_CONNECTION: redis
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - zimbani_net
+
+  # ----------------------------------------------------------------------------
+  # 8. Scheduled Cron Task Runner (Daily Drips, Sync & Archiving)
+  # ----------------------------------------------------------------------------
+  cron:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    container_name: zimbani_cron
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: ["sh", "-c", "while true; do php artisan schedule:run --verbose --no-interaction & sleep 60; done"]
+    environment:
+      APP_ENV: "${APP_ENV:-production}"
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      REDIS_HOST: redis
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - zimbani_net
+
+# ------------------------------------------------------------------------------
+# Persistent Volume Declarations
+# ------------------------------------------------------------------------------
+volumes:
+  db_data:
+    name: zimbani_db_data
+  redis_data:
+    name: zimbani_redis_data
+  app_storage:
+    name: zimbani_app_storage
+  app_bootstrap_cache:
+    name: zimbani_app_bootstrap_cache
+
+# ------------------------------------------------------------------------------
+# Isolated Bridge Network
+# ------------------------------------------------------------------------------
+networks:
+  zimbani_net:
+    name: zimbani_network
+    driver: bridge
