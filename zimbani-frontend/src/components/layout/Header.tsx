@@ -22,8 +22,9 @@ const Header = ({ onToggleSidebar }: HeaderProps) => {
         <div className="header-container">
           <div className="header-left">
             <Link to="/" className="logo">
-              <h1>ZIMBANI</h1>
-              <span className="logo-subtitle">FAB HOMES UGANDA</span>
+              <img src="/fab-homes-logo-transparent.png" alt="Fab Homes" className="header-logo-img" />
+              <div className="logo-text"><span className="logo-title">FAB HOMES</span><span className="logo-tagline">“Live your dream”</span></div>
+
             </Link>
           </div>
           <div>Loading...</div>
@@ -47,8 +48,9 @@ const Header = ({ onToggleSidebar }: HeaderProps) => {
             </button>
           )}
           <Link to="/" className="logo">
-            <h1>ZIMBANI</h1>
-            <span className="logo-subtitle">FAB HOMES UGANDA</span>
+            <img src="/fab-homes-logo-transparent.png" alt="Fab Homes" className="header-logo-img" />
+            <div className="logo-text"><span className="logo-title">FAB HOMES</span><span className="logo-tagline">“Live your dream”</span></div>
+
           </Link>
         </div>
         

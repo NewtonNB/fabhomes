@@ -7,8 +7,8 @@
   --portal-bg-card-subtle: #131c31;
   --portal-border: #1e293b;
   --portal-border-accent: #334155;
-  --portal-primary: #3b82f6;
-  --portal-primary-hover: #2563eb;
+  --portal-primary: #FF6B01;
+  --portal-primary-hover: #E65F00;
   --portal-success: #10b981;
   --portal-warning: #f59e0b;
   --portal-danger: #ef4444;
@@ -55,7 +55,8 @@
 .portal-logo-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: #ffffff;
+  padding: 2px;
   border-radius: 10px;
   display: flex;
   align-items: center;

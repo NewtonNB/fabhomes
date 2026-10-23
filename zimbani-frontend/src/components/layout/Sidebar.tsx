@@ -386,7 +386,13 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
-        <h2>Menu</h2>
+        <div className="sidebar-brand">
+          <img src="/fab-homes-logo-transparent.png" alt="Fab Homes" className="sidebar-logo-img" />
+          <div className="sidebar-brand-text">
+            <span className="sidebar-brand-name">Fab Homes</span>
+            <span className="sidebar-brand-tagline">“Live your dream”</span>
+          </div>
+        </div>
         {onClose && (
           <button 
             type="button"

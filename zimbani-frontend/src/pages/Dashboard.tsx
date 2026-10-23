@@ -138,9 +138,9 @@ const Dashboard: React.FC = () => {
       {/* Top Bar Greeting */}
       <div className="dashboard-top-bar">
         <div className="dashboard-greeting">
-          <h1>Welcome back, {user?.name || 'Administrator'}</h1>
+          <h1>Welcome to Fab Homes Zimbani, {user?.name || 'Administrator'}</h1>
           <p className="dashboard-subtitle">
-            Operations & Real-Time Executive Overview • Updated {lastUpdated.toLocaleTimeString()}
+            “Live your dream” • Real-Time Executive Overview • Updated {lastUpdated.toLocaleTimeString()}
           </p>
         </div>
 

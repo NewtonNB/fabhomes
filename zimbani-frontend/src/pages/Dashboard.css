@@ -130,9 +130,9 @@
 }
 
 .launchpad-btn:hover {
-  background: #059669;
+  background: #015231;
   color: #ffffff;
-  border-color: #059669;
+  border-color: #015231;
   transform: translateY(-1px);
   box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.2);
 }
@@ -392,7 +392,7 @@
 
 .item-bar-fill {
   height: 100%;
-  background: #059669;
+  background: #015231;
   border-radius: 4px;
   transition: width 0.4s ease;
 }

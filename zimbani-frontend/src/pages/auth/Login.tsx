@@ -62,8 +62,9 @@ const Login = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1>ZIMBANI</h1>
-          <p className="auth-subtitle">FAB HOMES UGANDA</p>
+          <img src="/fab-homes-logo-transparent.png" alt="Fab Homes" className="auth-logo-img" />
+          <h1>Fab Homes</h1>
+          <p className="auth-subtitle">“Live your dream” • Zimbani Platform</p>
         </div>
 
         <h2 className="auth-title">Welcome Back</h2>

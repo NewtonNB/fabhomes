@@ -15,6 +15,22 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Fab Homes Official Brand Palette */
+  --fab-forest-green: #015231;
+  --fab-forest-green-dark: #013F26;
+  --fab-forest-green-light: #0B6A42;
+  --fab-forest-green-surface: #E8F5EE;
+  
+  --fab-orange: #FF6B01;
+  --fab-orange-hover: #E65F00;
+  --fab-orange-light: #FFF2E8;
+  --fab-orange-border: #FFD6B3;
+
+  --color-primary: #015231;
+  --color-primary-hover: #013F26;
+  --color-accent: #FF6B01;
+  --color-accent-hover: #E65F00;
 }
 
 * {
@@ -48,7 +64,7 @@ body {
   width: 50px;
   height: 50px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #3b82f6;
+  border-top: 4px solid #FF6B01;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

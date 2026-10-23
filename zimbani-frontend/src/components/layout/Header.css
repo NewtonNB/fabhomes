@@ -1,5 +1,6 @@
 .header {
-  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #013F26 0%, #015231 65%, #05693C 100%);
+  border-bottom: 3px solid #FF6B01;
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: sticky;
@@ -53,7 +54,39 @@
   color: white;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+.header-logo-img {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  background: #ffffff;
+  padding: 2px 4px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.logo-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.logo-tagline {
+  font-size: 11px;
+  font-style: italic;
+  color: #FFD4B2;
+  letter-spacing: 0.3px;
+  font-weight: 500;
 }
 
 .logo h1 {
@@ -127,7 +160,39 @@
 .user-menu {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+.header-logo-img {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  background: #ffffff;
+  padding: 2px 4px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.logo-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.logo-tagline {
+  font-size: 11px;
+  font-style: italic;
+  color: #FFD4B2;
+  letter-spacing: 0.3px;
+  font-weight: 500;
 }
 
 .btn-logout {

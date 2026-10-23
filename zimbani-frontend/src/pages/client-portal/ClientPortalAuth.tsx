@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  MdConstruction,
+
   MdLock,
   MdVpnKey,
   MdPersonAdd,
@@ -171,11 +171,11 @@ export const ClientPortalAuth: React.FC = () => {
             className="portal-logo-icon"
             style={{ width: 48, height: 48, margin: '0 auto 12px auto', fontSize: 24 }}
           >
-            <MdConstruction />
+            <img src="/fab-homes-logo-transparent.png" alt="Fab Homes" style={{ height: 38, objectFit: 'contain' }} />
           </div>
           <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 4px 0' }}>FAB HOMES CLIENT PORTAL</h2>
           <span style={{ fontSize: 12, color: '#94a3b8' }}>
-            Savings Schemes • Plots • Construction Milestones
+            “Live your dream” • Savings Schemes, Plots & Milestones
           </span>
         </div>
 

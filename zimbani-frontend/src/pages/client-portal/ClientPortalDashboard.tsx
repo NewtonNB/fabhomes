@@ -455,11 +455,11 @@ export const ClientPortalDashboard: React.FC = () => {
         <div className="portal-header-content">
           <div className="portal-brand">
             <div className="portal-logo-icon">
-              <MdConstruction />
+              <img src="/fab-homes-logo-transparent.png" alt="Fab Homes" style={{ height: 32, objectFit: 'contain' }} />
             </div>
             <div className="portal-brand-text">
               <h1>FAB HOMES</h1>
-              <span>Zimbani Client Portal</span>
+              <span>“Live your dream”</span>
             </div>
           </div>
 
@@ -586,7 +586,7 @@ export const ClientPortalDashboard: React.FC = () => {
               <MdSavings /> Savings Schemes
             </button>
             <button className="portal-btn-secondary" onClick={() => setActiveTab('milestones')}>
-              <MdConstruction /> Milestones
+              <img src="/fab-homes-logo-transparent.png" alt="Fab Homes" style={{ height: 32, objectFit: 'contain' }} /> Milestones
             </button>
             <button className="portal-btn-secondary" onClick={() => loadProfile()}>
               <MdRefresh /> Refresh
@@ -868,7 +868,7 @@ export const ClientPortalDashboard: React.FC = () => {
                 title="Click to view construction milestones"
               >
                 <div className="portal-kpi-icon milestones">
-                  <MdConstruction />
+                  <img src="/fab-homes-logo-transparent.png" alt="Fab Homes" style={{ height: 32, objectFit: 'contain' }} />
                 </div>
                 <div className="portal-kpi-content">
                   <span className="portal-kpi-label">Pending Verifications</span>
