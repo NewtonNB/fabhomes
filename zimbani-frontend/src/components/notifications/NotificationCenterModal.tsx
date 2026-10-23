@@ -11,9 +11,14 @@ import {
   MdDeleteOutline,
   MdArrowForward,
   MdSend,
+  MdOutlineSchedule,
+  MdPlayArrow,
+  MdRefresh,
 } from 'react-icons/md'
 import {
   AppNotificationItem,
+  DripSummaryResponse,
+  DripTriggerItem,
   NotificationCategory,
   WhatsAppMessageItem,
 } from '../../types/notification.types'
@@ -35,11 +40,16 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
 }) => {
   const [notifications, setNotifications] = useState<AppNotificationItem[]>([])
   const [loading, setLoading] = useState<boolean>(true)
-  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'whatsapp' | NotificationCategory>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'whatsapp' | 'drips' | NotificationCategory>('all')
   const [totalCount, setTotalCount] = useState<number>(0)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [lastPage, setLastPage] = useState<number>(1)
   const [whatsappMessages, setWhatsAppMessages] = useState<WhatsAppMessageItem[]>([])
+
+  // Drip Automation State
+  const [dripSummary, setDripSummary] = useState<DripSummaryResponse | null>(null)
+  const [dripLogs, setDripLogs] = useState<DripTriggerItem[]>([])
+  const [runningDrip, setRunningDrip] = useState<boolean>(false)
 
   // Test Dispatch Form
   const [showTestForm, setShowTestForm] = useState<boolean>(false)
@@ -57,6 +67,14 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
           const msgs = await notificationService.getWhatsAppMessages()
           setWhatsAppMessages(msgs || [])
           setTotalCount(msgs?.length || 0)
+        } else if (activeTab === 'drips') {
+          const [summaryData, logsData] = await Promise.all([
+            notificationService.getDripSummary(),
+            notificationService.getDripLogs({ per_page: 20 }),
+          ])
+          setDripSummary(summaryData)
+          setDripLogs(logsData.data || [])
+          setTotalCount(summaryData.total_triggers || 0)
         } else {
           const filters: any = { page, per_page: 20 }
           if (activeTab === 'unread') {
@@ -155,6 +173,23 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
       onNotify?.(err?.response?.data?.message || 'Failed test dispatch', 'error')
     } finally {
       setDispatchingTest(false)
+    }
+  }
+
+  const handleRunDrips = async (dryRun: boolean, workflow: string = 'all') => {
+    setRunningDrip(true)
+    try {
+      const res = await notificationService.runDripsNow(dryRun, workflow)
+      onNotify?.(
+        `${dryRun ? 'Dry Run Simulated' : 'Automated Drips Dispatched'}: ${res.summary.total_triggered} triggered, ${res.summary.total_skipped} skipped`,
+        'success'
+      )
+      fetchNotifications(1)
+    } catch (err: any) {
+      console.error('Failed to run drips', err)
+      onNotify?.(err?.response?.data?.message || 'Failed to execute drip automation', 'error')
+    } finally {
+      setRunningDrip(false)
     }
   }
 
@@ -346,6 +381,19 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
           >
             <span style={{ fontSize: '13px' }}>🟢</span> WhatsApp Cloud Stream
           </button>
+          <button
+            className={`notification-filter-tab ${activeTab === 'drips' ? 'active' : ''}`}
+            onClick={() => setActiveTab('drips')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              borderColor: activeTab === 'drips' ? '#38bdf8' : undefined,
+              color: activeTab === 'drips' ? '#38bdf8' : undefined,
+            }}
+          >
+            <MdOutlineSchedule style={{ fontSize: '14px' }} /> Automated Drips
+          </button>
         </div>
 
         {/* Notifications Scroll List */}
@@ -421,6 +469,217 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                 })}
               </div>
             )
+          ) : activeTab === 'drips' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Header Action Controls */}
+              <div
+                style={{
+                  background: 'rgba(30, 58, 138, 0.25)',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  borderRadius: '12px',
+                  padding: '14px 18px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                }}
+              >
+                <div>
+                  <h4 style={{ margin: '0 0 4px 0', color: '#f8fafc', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <MdOutlineSchedule style={{ color: '#38bdf8' }} />
+                    Automated Drip Rules Engine
+                  </h4>
+                  <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                    Active schedule: daily at 08:00 AM • Idempotency lock active (no duplicate spam)
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    className="portal-btn-secondary"
+                    style={{ fontSize: '12px', padding: '6px 12px' }}
+                    onClick={() => handleRunDrips(true)}
+                    disabled={runningDrip}
+                  >
+                    Simulate Dry Run
+                  </button>
+                  <button
+                    className="portal-btn-primary"
+                    style={{ fontSize: '12px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    onClick={() => handleRunDrips(false)}
+                    disabled={runningDrip}
+                  >
+                    <MdPlayArrow /> {runningDrip ? 'Running...' : 'Run Drips Now'}
+                  </button>
+                  <button
+                    className="portal-btn-secondary"
+                    style={{ fontSize: '12px', padding: '6px 10px' }}
+                    onClick={() => fetchNotifications(1)}
+                  >
+                    <MdRefresh />
+                  </button>
+                </div>
+              </div>
+
+              {/* Telemetry Stat Cards */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Total Triggers</span>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#f8fafc', marginTop: '4px' }}>
+                    {dripSummary?.total_triggers || 0}
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Dispatched</span>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#4ade80', marginTop: '4px' }}>
+                    {dripSummary?.dispatched_count || 0}
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Skipped (Anti-Spam)</span>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#38bdf8', marginTop: '4px' }}>
+                    {dripSummary?.skipped_count || 0}
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Past 24 Hours</span>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#facc15', marginTop: '4px' }}>
+                    {dripSummary?.past_24h || 0}
+                  </div>
+                </div>
+              </div>
+
+              {/* Active Drip Workflows Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
+                <div style={{ background: 'rgba(15, 23, 42, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9' }}>💰 Target Savings Reminders</span>
+                    <span style={{ fontSize: '10px', background: '#15803d', color: '#fff', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>ACTIVE</span>
+                  </div>
+                  <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#94a3b8' }}>
+                    Alerts clients whose monthly target deposit is pending.
+                  </p>
+                  <div style={{ fontSize: '11px', color: '#64748b' }}>
+                    Channels: In-App, Email, SMS, WhatsApp
+                  </div>
+                </div>
+
+                <div style={{ background: 'rgba(15, 23, 42, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9' }}>⏳ Plot Expiry Countdown</span>
+                    <span style={{ fontSize: '10px', background: '#15803d', color: '#fff', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>ACTIVE</span>
+                  </div>
+                  <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#94a3b8' }}>
+                    Statutory 14-day reservation countdown at 7d, 3d, 24h intervals.
+                  </p>
+                  <div style={{ fontSize: '11px', color: '#64748b' }}>
+                    Channels: In-App, Email, SMS, WhatsApp
+                  </div>
+                </div>
+
+                <div style={{ background: 'rgba(15, 23, 42, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9' }}>🏗️ Milestone Inspection Sign-Off</span>
+                    <span style={{ fontSize: '10px', background: '#15803d', color: '#fff', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>ACTIVE</span>
+                  </div>
+                  <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#94a3b8' }}>
+                    Nudges clients on inspections waiting &gt; 48 hours for Quick-PIN approval.
+                  </p>
+                  <div style={{ fontSize: '11px', color: '#64748b' }}>
+                    Channels: In-App, Email, WhatsApp
+                  </div>
+                </div>
+
+                <div style={{ background: 'rgba(15, 23, 42, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9' }}>🤝 Dormant Account Re-engagement</span>
+                    <span style={{ fontSize: '10px', background: '#15803d', color: '#fff', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>ACTIVE</span>
+                  </div>
+                  <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#94a3b8' }}>
+                    Recaps estate progress for clients inactive for 30+ days.
+                  </p>
+                  <div style={{ fontSize: '11px', color: '#64748b' }}>
+                    Channels: In-App, Email
+                  </div>
+                </div>
+              </div>
+
+              {/* Drip Audit History Table */}
+              <div>
+                <h4 style={{ margin: '8px 0 8px 0', fontSize: '14px', color: '#e2e8f0' }}>
+                  Recent Automated Triggers ({dripLogs.length})
+                </h4>
+                {dripLogs.length === 0 ? (
+                  <p style={{ fontSize: '12px', color: '#64748b', fontStyle: 'italic' }}>
+                    No automated drip records logged yet. Click "Simulate Dry Run" to test evaluation.
+                  </p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {dripLogs.map((log) => (
+                      <div
+                        key={log.uuid || log.id}
+                        style={{
+                          background: 'rgba(15, 23, 42, 0.6)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          borderRadius: '8px',
+                          padding: '10px 14px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                background:
+                                  log.campaign_type === 'savings_reminder'
+                                    ? '#0369a1'
+                                    : log.campaign_type === 'plot_expiry'
+                                    ? '#b91c1c'
+                                    : log.campaign_type === 'milestone_nudge'
+                                    ? '#b45309'
+                                    : '#4338ca',
+                                color: '#fff',
+                                padding: '1px 8px',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              {log.campaign_type.replace('_', ' ').toUpperCase()}
+                            </span>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9' }}>
+                              {log.title}
+                            </span>
+                          </div>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              color: log.status === 'dispatched' ? '#4ade80' : log.is_dry_run ? '#facc15' : '#94a3b8',
+                            }}
+                          >
+                            {log.is_dry_run ? 'DRY RUN' : log.status.toUpperCase()}
+                          </span>
+                        </div>
+                        <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#94a3b8', lineHeight: 1.4 }}>
+                          {log.message}
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b' }}>
+                          <span style={{ fontFamily: 'monospace' }}>Key: {log.trigger_key}</span>
+                          <span>{new Date(log.created_at).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           ) : notifications.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>
               <MdCheckCircle style={{ fontSize: '48px', color: '#34d399', opacity: 0.8, marginBottom: '8px' }} />

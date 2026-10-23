@@ -92,3 +92,76 @@ export interface WhatsAppWebhookLogItem {
   error?: string
   created_at: string
 }
+
+export interface DripWorkflowItem {
+  id: string
+  name: string
+  frequency: string
+  channels: string[]
+  status: 'active' | 'paused'
+}
+
+export interface DripTriggerItem {
+  id: number
+  uuid: string
+  campaign_type: 'savings_reminder' | 'plot_expiry' | 'milestone_nudge' | 'dormant_client' | string
+  trigger_key: string
+  recipient_user_id?: number
+  recipient_client_id?: number
+  entity_type?: string
+  entity_id?: number
+  title: string
+  message: string
+  channels_attempted?: string[]
+  channels_succeeded?: string[]
+  status: 'pending' | 'dispatched' | 'skipped' | 'failed'
+  is_dry_run: boolean
+  dispatch_summary?: Record<string, any>
+  scheduled_at?: string
+  dispatched_at?: string
+  metadata?: Record<string, any>
+  created_at: string
+  user?: {
+    id: number
+    name: string
+    email: string
+  }
+  client?: {
+    id: number
+    first_name: string
+    last_name: string
+    client_number: string
+  }
+}
+
+export interface DripSummaryResponse {
+  total_triggers: number
+  dispatched_count: number
+  dry_run_count: number
+  skipped_count: number
+  failed_count: number
+  past_24h: number
+  past_7d: number
+  by_campaign: Record<string, number>
+  active_workflows: DripWorkflowItem[]
+  recent_triggers: DripTriggerItem[]
+}
+
+export interface DripRunResult {
+  executed_at: string
+  dry_run: boolean
+  workflow: string
+  summary: {
+    total_evaluated: number
+    total_triggered: number
+    total_skipped: number
+    total_errors: number
+  }
+  breakdown: Record<string, {
+    evaluated: number
+    triggered: number
+    skipped: number
+    errors: number
+    triggers?: any[]
+  }>
+}

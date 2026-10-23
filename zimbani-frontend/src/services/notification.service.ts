@@ -1,6 +1,9 @@
 import api from '../config/api'
 import {
   AppNotificationItem,
+  DripRunResult,
+  DripSummaryResponse,
+  DripTriggerItem,
   NotificationDispatchLogItem,
   NotificationFilters,
   NotificationSummaryResponse,
@@ -11,6 +14,7 @@ import {
 class NotificationService {
   private readonly baseUrl = '/notifications'
   private readonly waUrl = '/whatsapp'
+  private readonly dripUrl = '/notification-drips'
 
   /**
    * Get paginated notifications
@@ -111,6 +115,41 @@ class NotificationService {
     total: number
   }> {
     const res = await api.get(`${this.waUrl}/webhooks-log`)
+    return res.data.data
+  }
+
+  /**
+   * Get Drip Automation Telemetry & Active Workflows
+   */
+  async getDripSummary(): Promise<DripSummaryResponse> {
+    const res = await api.get(`${this.dripUrl}/summary`)
+    return res.data.data
+  }
+
+  /**
+   * Get Paginated Drip Audit Logs
+   */
+  async getDripLogs(params: Record<string, any> = {}): Promise<{
+    data: DripTriggerItem[]
+    pagination: {
+      current_page: number
+      last_page: number
+      per_page: number
+      total: number
+    }
+  }> {
+    const res = await api.get(`${this.dripUrl}/logs`, { params })
+    return {
+      data: res.data.data,
+      pagination: res.data.pagination,
+    }
+  }
+
+  /**
+   * Trigger Manual Drip Evaluation or Dry Run
+   */
+  async runDripsNow(dryRun: boolean = false, workflow: string = 'all'): Promise<DripRunResult> {
+    const res = await api.post(`${this.dripUrl}/run-now`, { dry_run: dryRun, workflow })
     return res.data.data
   }
 }

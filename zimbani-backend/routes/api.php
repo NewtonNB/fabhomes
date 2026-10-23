@@ -55,6 +55,7 @@ use App\Http\Controllers\Api\PaymentRefundDisputeController;
 use App\Http\Controllers\Api\PaymentSimulationReconciliationController;
 use App\Http\Controllers\Api\ExecutiveReportingController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\NotificationDripController;
 use App\Http\Controllers\Api\WhatsAppWebhookController;
 use App\Http\Controllers\Api\BroadcastingController;
 use Illuminate\Http\Request;
@@ -518,6 +519,13 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::prefix('broadcasting')->group(function () {
         Route::get('/channels', [BroadcastingController::class, 'getChannels']);
         Route::post('/test-broadcast', [BroadcastingController::class, 'testBroadcast']);
+    });
+
+    // Automated Notification Workflows & Drip Triggers (Phase 13 Day 4)
+    Route::prefix('notification-drips')->group(function () {
+        Route::get('/summary', [NotificationDripController::class, 'summary']);
+        Route::get('/logs', [NotificationDripController::class, 'logs']);
+        Route::post('/run-now', [NotificationDripController::class, 'runNow']);
     });
 
     // Subcontractor Milestone Valuation & Interim Payment Linkages (Phase 8 Day 3)
