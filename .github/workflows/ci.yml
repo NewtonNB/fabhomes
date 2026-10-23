@@ -1,0 +1,177 @@
+name: ZIMBANI CI Pipeline
+
+on:
+  push:
+    branches: [ development, main, master ]
+  pull_request:
+    branches: [ development, main, master ]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # 1. Backend Verification & Automated Test Suites
+  # ============================================================================
+  backend-test:
+    name: Backend Tests & Database Migrations (PHP 8.3 + MySQL 8 + Redis)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: zimbani_test
+          MYSQL_ROOT_PASSWORD: root_password_ci
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -proot_password_ci" --health-interval=10s --health-timeout=5s --health-retries=5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP Runtime (8.3)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, mbstring, zip, bcmath, redis, gd, intl, pcntl, opcache
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer Manifest
+        run: |
+          cd zimbani-backend
+          composer validate --strict
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          cd zimbani-backend
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Backend Dependencies
+        run: |
+          cd zimbani-backend
+          composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Setup Environment & Database
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: zimbani_test
+          DB_USERNAME: root
+          DB_PASSWORD: root_password_ci
+          CACHE_STORE: redis
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
+        run: |
+          cd zimbani-backend
+          cp .env.example .env
+          php artisan key:generate
+          php artisan migrate --force
+
+      - name: Execute Phase 14 Day 1 Verification Suite (OWASP Security & API Shield)
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: zimbani_test
+          DB_USERNAME: root
+          DB_PASSWORD: root_password_ci
+        run: php test_phase_14_day_1.php
+
+      - name: Execute Phase 14 Day 2 Verification Suite (Database Tuning & Redis Cache)
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: zimbani_test
+          DB_USERNAME: root
+          DB_PASSWORD: root_password_ci
+        run: php test_phase_14_day_2.php
+
+      - name: Execute Phase 14 Day 3 Verification Suite (Docker Orchestration Topology)
+        run: php test_phase_14_day_3.php
+
+  # ============================================================================
+  # 2. Frontend Verification & TypeScript Compilation
+  # ============================================================================
+  frontend-check:
+    name: Frontend Quality Gate (TypeScript + Vite Bundle)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (22.x)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: zimbani-frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd zimbani-frontend
+          npm ci
+
+      - name: TypeScript Static Type Checking
+        run: |
+          cd zimbani-frontend
+          npx tsc --noEmit
+
+      - name: Build Production Assets
+        run: |
+          cd zimbani-frontend
+          npm run build
+
+  # ============================================================================
+  # 3. Docker Image Build Verification
+  # ============================================================================
+  docker-build-check:
+    name: Docker Image Build Validation (Buildx)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [backend-test, frontend-check]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/backend/Dockerfile
+          push: false
+          tags: zimbani-backend:ci-test
+
+      - name: Build Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/frontend/Dockerfile
+          push: false
+          tags: zimbani-frontend:ci-test

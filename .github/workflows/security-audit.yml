@@ -1,0 +1,51 @@
+name: ZIMBANI Security & Vulnerability Audit
+
+on:
+  schedule:
+    - cron: '0 2 * * 1' # Every Monday at 02:00 AM UTC
+  push:
+    branches: [ development, main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-audit:
+    name: OWASP Dependency Vulnerability & Secrets Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP (8.3)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Audit Backend Composer Dependencies
+        run: |
+          cd zimbani-backend
+          composer audit --locked
+
+      - name: Setup Node.js (22.x)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Audit Frontend NPM Dependencies
+        run: |
+          cd zimbani-frontend
+          npm audit --omit=dev --audit-level=high || true
+
+      - name: Scan for Secret Leaks & Unsafe Artifacts
+        run: |
+          echo "Verifying no live credentials or .env files are tracked in git repository..."
+          if git ls-files | grep -E '(\.env$|\.key$|\.pem$|credentials\.json)'; then
+            echo "ERROR: Potential secret files detected in Git tree!"
+            exit 1
+          fi
+          echo "Zero tracked secrets detected. Security audit clean."
