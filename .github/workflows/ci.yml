@@ -84,7 +84,22 @@ jobs:
         run: |
           cd zimbani-backend
           cp .env.example .env
+          echo "DB_CONNECTION=mysql" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=3306" >> .env
+          echo "DB_DATABASE=zimbani_test" >> .env
+          echo "DB_USERNAME=root" >> .env
+          echo "DB_PASSWORD=root_password_ci" >> .env
+          echo "CACHE_STORE=redis" >> .env
+          echo "REDIS_HOST=127.0.0.1" >> .env
+          echo "REDIS_PORT=6379" >> .env
           php artisan key:generate
+          # Ensure MySQL is ready to accept connections
+          for i in $(seq 1 30); do
+            nc -z 127.0.0.1 3306 && break
+            echo "Waiting for MySQL service container..."
+            sleep 1
+          done
           php artisan migrate --force
 
       - name: Execute Phase 14 Day 1 Verification Suite (OWASP Security & API Shield)
