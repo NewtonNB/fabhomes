@@ -78,7 +78,7 @@ jobs:
           DB_DATABASE: zimbani_test
           DB_USERNAME: root
           DB_PASSWORD: root_password_ci
-          CACHE_STORE: redis
+          CACHE_STORE: database
           REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
         run: |
@@ -86,7 +86,8 @@ jobs:
           cp .env.example .env
           sed -i 's/DB_DATABASE=.*/DB_DATABASE=zimbani_test/' .env
           sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=root_password_ci/' .env
-          sed -i 's/CACHE_STORE=.*/CACHE_STORE=redis/' .env
+          sed -i 's/CACHE_STORE=.*/CACHE_STORE=database/' .env
+          sed -i 's/REDIS_PASSWORD=.*/REDIS_PASSWORD=/' .env
           php artisan key:generate
           # Ensure MySQL is ready to accept connections via PHP PDO
           php -r 'for($i=0;$i<30;$i++){try{new PDO("mysql:host=127.0.0.1;port=3306;dbname=zimbani_test","root","root_password_ci");echo "MySQL is ready.\n";break;}catch(\Exception $e){echo "Waiting for MySQL...\n";sleep(1);}}'
@@ -100,6 +101,7 @@ jobs:
           DB_DATABASE: zimbani_test
           DB_USERNAME: root
           DB_PASSWORD: root_password_ci
+          CACHE_STORE: database
         run: php test_phase_14_day_1.php
 
       - name: Execute Phase 14 Day 2 Verification Suite (Database Tuning & Redis Cache)
@@ -110,6 +112,7 @@ jobs:
           DB_DATABASE: zimbani_test
           DB_USERNAME: root
           DB_PASSWORD: root_password_ci
+          CACHE_STORE: database
         run: php test_phase_14_day_2.php
 
       - name: Execute Phase 14 Day 3 Verification Suite (Docker Orchestration Topology)

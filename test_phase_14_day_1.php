@@ -234,6 +234,11 @@ try {
     assertTest("simulateThreat() returns 200", $resThreat->status() === 200);
     assertTest("simulateThreat() processes payload through shield", $dataThreat['status'] === 'success');
 
+} catch (\Throwable $e) {
+    echo "\n  [CRITICAL ERROR] " . $e->getMessage() . "\n";
+    echo "  File: " . $e->getFile() . ':' . $e->getLine() . "\n";
+    echo "  Trace:\n" . $e->getTraceAsString() . "\n";
+    $passedTests = -1;
 } finally {
     DB::rollBack();
 }
