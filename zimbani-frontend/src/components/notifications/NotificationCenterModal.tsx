@@ -15,6 +15,7 @@ import {
 import {
   AppNotificationItem,
   NotificationCategory,
+  WhatsAppMessageItem,
 } from '../../types/notification.types'
 import { notificationService } from '../../services/notification.service'
 import './NotificationCenter.css'
@@ -34,37 +35,45 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
 }) => {
   const [notifications, setNotifications] = useState<AppNotificationItem[]>([])
   const [loading, setLoading] = useState<boolean>(true)
-  const [activeTab, setActiveTab] = useState<'all' | 'unread' | NotificationCategory>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'whatsapp' | NotificationCategory>('all')
   const [totalCount, setTotalCount] = useState<number>(0)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [lastPage, setLastPage] = useState<number>(1)
+  const [whatsappMessages, setWhatsAppMessages] = useState<WhatsAppMessageItem[]>([])
 
   // Test Dispatch Form
   const [showTestForm, setShowTestForm] = useState<boolean>(false)
   const [testTitle, setTestTitle] = useState<string>('')
   const [testMessage, setTestMessage] = useState<string>('')
   const [testCategory, setTestCategory] = useState<string>('financial')
+  const [testChannels] = useState<string[]>(['in_app', 'sms', 'email', 'whatsapp'])
   const [dispatchingTest, setDispatchingTest] = useState<boolean>(false)
 
   const fetchNotifications = useCallback(
     async (page = 1) => {
       setLoading(true)
       try {
-        const filters: any = { page, per_page: 20 }
-        if (activeTab === 'unread') {
-          filters.unread_only = true
-        } else if (activeTab !== 'all') {
-          filters.category = activeTab
-        }
+        if (activeTab === 'whatsapp') {
+          const msgs = await notificationService.getWhatsAppMessages()
+          setWhatsAppMessages(msgs || [])
+          setTotalCount(msgs?.length || 0)
+        } else {
+          const filters: any = { page, per_page: 20 }
+          if (activeTab === 'unread') {
+            filters.unread_only = true
+          } else if (activeTab !== 'all') {
+            filters.category = activeTab
+          }
 
-        const res = await notificationService.getNotifications(filters)
-        setNotifications(res.data || [])
-        setCurrentPage(res.current_page || 1)
-        setLastPage(res.last_page || 1)
-        setTotalCount(res.total || 0)
+          const res = await notificationService.getNotifications(filters)
+          setNotifications(res.data || [])
+          setCurrentPage(res.current_page || 1)
+          setLastPage(res.last_page || 1)
+          setTotalCount(res.total || 0)
+        }
       } catch (err: any) {
-        console.error('Failed to load notifications', err)
-        onNotify?.('Failed to load notifications', 'error')
+        console.error('Failed to load notifications or WhatsApp activity', err)
+        onNotify?.('Failed to load notification activity', 'error')
       } finally {
         setLoading(false)
       }
@@ -134,9 +143,9 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
         title: testTitle,
         message: testMessage,
         category: testCategory,
-        channels: ['in_app', 'sms', 'email'],
+        channels: testChannels,
       })
-      onNotify?.('Test multi-channel notification dispatched (In-App, SMS, Email)', 'success')
+      onNotify?.('Test multi-channel notification dispatched (In-App, SMS, Email, WhatsApp)', 'success')
       setShowTestForm(false)
       setTestTitle('')
       setTestMessage('')
@@ -324,6 +333,19 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
           >
             Support
           </button>
+          <button
+            className={`notification-filter-tab ${activeTab === 'whatsapp' ? 'active' : ''}`}
+            onClick={() => setActiveTab('whatsapp')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              borderColor: activeTab === 'whatsapp' ? '#22c55e' : undefined,
+              color: activeTab === 'whatsapp' ? '#4ade80' : undefined,
+            }}
+          >
+            <span style={{ fontSize: '13px' }}>🟢</span> WhatsApp Cloud Stream
+          </button>
         </div>
 
         {/* Notifications Scroll List */}
@@ -331,8 +353,74 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
               <div className="portal-spinner" />
-              <p style={{ fontSize: '13px', color: '#94a3b8' }}>Loading notifications...</p>
+              <p style={{ fontSize: '13px', color: '#94a3b8' }}>Loading activity...</p>
             </div>
+          ) : activeTab === 'whatsapp' ? (
+            whatsappMessages.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>
+                <span style={{ fontSize: '42px', display: 'block', marginBottom: '8px' }}>💬</span>
+                <h4 style={{ margin: '0 0 4px 0', color: '#f1f5f9' }}>No WhatsApp activity logged</h4>
+                <p style={{ margin: 0, fontSize: '13px' }}>
+                  Outbound deposit receipts and inbound client commands will appear here in real-time.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {whatsappMessages.map((msg) => {
+                  const isOutbound = msg.direction === 'outbound'
+                  return (
+                    <div
+                      key={msg.uuid || msg.id}
+                      style={{
+                        background: isOutbound ? 'rgba(34, 197, 94, 0.08)' : 'rgba(59, 130, 246, 0.08)',
+                        border: '1px solid',
+                        borderColor: isOutbound ? 'rgba(34, 197, 94, 0.3)' : 'rgba(59, 130, 246, 0.3)',
+                        borderRadius: '12px',
+                        padding: '12px 16px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              background: isOutbound ? '#15803d' : '#1d4ed8',
+                              color: '#fff',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            {isOutbound ? 'OUTBOUND TEMPLATE' : 'INBOUND COMMAND'}
+                          </span>
+                          <span style={{ fontSize: '12px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                            {msg.phone_number}
+                          </span>
+                        </div>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            color: msg.status === 'read' ? '#38bdf8' : msg.status === 'delivered' ? '#34d399' : '#fbbf24',
+                          }}
+                        >
+                          {msg.status === 'read' ? '✓✓ Read' : msg.status === 'delivered' ? '✓✓ Delivered' : '✓ Sent'}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: '13px', color: '#f1f5f9', lineHeight: 1.5, margin: '6px 0' }}>
+                        {msg.body}
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginTop: '6px' }}>
+                        <span>ID: {msg.wa_message_id?.substring(0, 24)}...</span>
+                        <span>{new Date(msg.created_at).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )
           ) : notifications.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>
               <MdCheckCircle style={{ fontSize: '48px', color: '#34d399', opacity: 0.8, marginBottom: '8px' }} />

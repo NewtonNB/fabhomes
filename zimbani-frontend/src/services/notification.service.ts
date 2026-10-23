@@ -4,10 +4,13 @@ import {
   NotificationDispatchLogItem,
   NotificationFilters,
   NotificationSummaryResponse,
+  WhatsAppMessageItem,
+  WhatsAppWebhookLogItem,
 } from '../types/notification.types'
 
 class NotificationService {
   private readonly baseUrl = '/notifications'
+  private readonly waUrl = '/whatsapp'
 
   /**
    * Get paginated notifications
@@ -76,6 +79,38 @@ class NotificationService {
     total: number
   }> {
     const res = await api.get(`${this.baseUrl}/dispatch-logs`, { params })
+    return res.data.data
+  }
+
+  /**
+   * Get WhatsApp Conversation Messages
+   */
+  async getWhatsAppMessages(phone?: string): Promise<WhatsAppMessageItem[]> {
+    const res = await api.get(`${this.waUrl}/messages`, { params: { phone } })
+    return res.data.data
+  }
+
+  /**
+   * Send WhatsApp Template Message
+   */
+  async sendWhatsAppTemplate(payload: {
+    to: string
+    template_name: string
+    parameters?: string[]
+    buttons?: any[]
+  }): Promise<WhatsAppMessageItem> {
+    const res = await api.post(`${this.waUrl}/send-template`, payload)
+    return res.data.data
+  }
+
+  /**
+   * Get Ingested WhatsApp Webhook Logs
+   */
+  async getWhatsAppWebhookLogs(): Promise<{
+    data: WhatsAppWebhookLogItem[]
+    total: number
+  }> {
+    const res = await api.get(`${this.waUrl}/webhooks-log`)
     return res.data.data
   }
 }

@@ -3562,10 +3562,53 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+### Phase 13 Day 2: WhatsApp Business Cloud API & Webhooks Ingestion ✅ (Oct 23, 2026)
+
+- **Database Schema Migration:**
+  - Created migration `2026_10_23_100000_create_whatsapp_tables.php`:
+    - `whatsapp_messages`: ADR-014 hybrid keys (`id`, `uuid`), `user_id`, `client_id`, `notification_id`, `direction` (`outbound`, `inbound`), Meta `wa_message_id` (`wamid.HBg...`), `phone_number`, `message_type` (`template`, `text`, `interactive`, `button_reply`, `image`, `document`), `template_name`, `body`, `payload` (JSON), `status` (`queued`, `sent`, `delivered`, `read`, `failed`), `error_message`, and lifecycle timestamps (`sent_at`, `delivered_at`, `read_at`).
+    - `whatsapp_webhooks_log`: ADR-014 hybrid keys (`id`, `uuid`), `event_type` (`messages`, `message_status`), `sender_phone`, `payload` (JSON), `signature_valid`, `processed`, `error`, and timestamps.
+  - Models: `App\Models\WhatsAppMessage.php` and `App\Models\WhatsAppWebhookLog.php` with polymorphic relationship bindings and timestamp casting.
+
+- **WhatsApp Cloud API Channel Driver Architecture:**
+  - Created `App\Services\Notifications\Contracts\WhatsAppDriverInterface.php`.
+  - Created `App\Services\Notifications\Drivers\MetaWhatsAppCloudDriver.php`:
+    - Meta Graph API (v21.0) Cloud API driver with Bearer token authentication, interactive quick-reply component serialization, and automated mock fallback in test environments.
+  - Created `App\Services\Notifications\Drivers\MockWhatsAppDriver.php`:
+    - Sandbox simulator generating authentic Meta `wamid.HBg...` IDs and validating recipient numbers.
+  - Created `App\Services\Notifications\WhatsAppWebhookService.php`:
+    - `verifyChallenge(Request $request)`: Cryptographic challenge validation for Meta subscription handshakes (`hub.mode=subscribe`, `hub.challenge`).
+    - `verifySignature(string $content, ?string $header)`: Strict HMAC-SHA256 signature verification matching Meta's `X-Hub-Signature-256` header.
+    - `processWebhook(array $payload, bool $isSignatureValid)`: Ingestion pipeline handling delivery receipts (`delivered`, `read`), quick-reply button clicks (`VIEW_LEDGER`, `APPROVE_MILESTONE`), and automated contextual text replies (`BALANCE`, `HELP`).
+    - `dispatchTemplate()`: Direct outbound template dispatch logging to database.
+  - Integrated WhatsApp channel into `App\Services\Notifications\NotificationDispatcherService.php`:
+    - Automatically sends WhatsApp templates when client preferences have `whatsapp: true` or when explicitly requested.
+
+- **Controllers, Routes, & API Endpoints:**
+  - Created `App\Http\Controllers\Api\WhatsAppWebhookController.php`:
+    - `GET  /api/v1/webhooks/whatsapp` - Public Meta webhook verification challenge.
+    - `POST /api/v1/webhooks/whatsapp` - Public Meta webhook ingestion with HMAC-SHA256 verification.
+    - `POST /api/v1/whatsapp/send-template` (auth:sanctum) - Direct template dispatch.
+    - `GET  /api/v1/whatsapp/messages` (auth:sanctum) - Client WhatsApp conversation thread.
+    - `GET  /api/v1/whatsapp/webhooks-log` (auth:sanctum) - Webhook audit trail.
+
+- **Frontend Architecture & React Components:**
+  - Types: `src/types/notification.types.ts` updated with `WhatsAppMessageItem` and `WhatsAppWebhookLogItem`.
+  - Service: `src/services/notification.service.ts` updated with `getWhatsAppMessages`, `sendWhatsAppTemplate`, and `getWhatsAppWebhookLogs`.
+  - UI Components:
+    - Enhanced `NotificationCenterModal.tsx` with a live **WhatsApp Cloud Stream** tab displaying outbound template messages, delivery checkmarks (`✓ Sent`, `✓✓ Delivered`, `✓✓ Read`), and inbound client button replies.
+    - Enhanced test dispatch drawer with WhatsApp channel support.
+
+- **Verification & Testing:**
+  - Automated test script `test_phase_13_day_2.php` passed **33/33 assertions (100%)**, verifying Meta challenge echoes, invalid challenge rejection, authentic HMAC-SHA256 verification, forged signature rejection, outbound template creation with valid `wamid`, status updates from delivered to read, inbound button reply ingestion (`VIEW_LEDGER`), keyword command execution (`BALANCE`), notification dispatcher integration, and controller endpoints.
+  - Production build (`npm run build`) passed with **0 errors** in **6.79s**.
+
+---
+
 **Phase 13: Automated Multi-Channel Notifications, WhatsApp Business Webhooks & Real-Time Client Engagement**
 1. ✅ **Day 1**: Multi-Channel Notification Dispatcher Engine (SMS, Email, In-App Notifications & Preference Filtering) (COMPLETED)
-2. ⏳ **Day 2**: WhatsApp Business Cloud API & Webhooks Ingestion (NEXT)
-3. ⏳ **Day 3**: Real-Time Event Broadcasting & WebSocket Subscriptions
+2. ✅ **Day 2**: WhatsApp Business Cloud API & Webhooks Ingestion (COMPLETED)
+3. ⏳ **Day 3**: Real-Time Event Broadcasting & WebSocket Subscriptions (NEXT)
 4. ⏳ **Day 4**: Automated Notification Workflows & Drip Triggers
 5. ⏳ **Day 5**: Notification Preferences, Delivery Logs, Analytics & Campaign Management UI
 
@@ -3574,7 +3617,7 @@ Delivered robust external settlement statement reconciliation for client escrow 
 **Last Updated:** October 23, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 13 Day 1 Complete
+**Latest Commit:** Phase 13 Day 2 Complete
 
 
 

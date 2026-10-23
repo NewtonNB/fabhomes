@@ -55,6 +55,7 @@ use App\Http\Controllers\Api\PaymentRefundDisputeController;
 use App\Http\Controllers\Api\PaymentSimulationReconciliationController;
 use App\Http\Controllers\Api\ExecutiveReportingController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\WhatsAppWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -89,6 +90,10 @@ Route::prefix('v1')->group(function () {
 
     // Universal Payment Gateway Public Webhooks (Phase 10)
     Route::post('/payments/webhooks/{gateway}', [PaymentGatewayIntegrationController::class, 'handleWebhook']);
+
+    // WhatsApp Cloud API Public Webhooks (Phase 13 Day 2)
+    Route::get('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'verify']);
+    Route::post('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'handle']);
 
     // Client Portal PWA Public Auth & Onboarding (Phase 12 Day 1)
     Route::prefix('client-portal/auth')->group(function () {
@@ -497,6 +502,13 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::get('/dispatch-logs', [NotificationController::class, 'dispatchLogs']);
         Route::post('/{identifier}/read', [NotificationController::class, 'markAsRead']);
         Route::post('/{identifier}/dismiss', [NotificationController::class, 'dismiss']);
+    });
+
+    // WhatsApp Cloud API Management & Conversation Logs (Phase 13 Day 2)
+    Route::prefix('whatsapp')->group(function () {
+        Route::post('/send-template', [WhatsAppWebhookController::class, 'sendTemplate']);
+        Route::get('/messages', [WhatsAppWebhookController::class, 'getMessages']);
+        Route::get('/webhooks-log', [WhatsAppWebhookController::class, 'getWebhookLogs']);
     });
 
     // Subcontractor Milestone Valuation & Interim Payment Linkages (Phase 8 Day 3)

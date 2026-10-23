@@ -7,11 +7,15 @@ use App\Models\Client;
 use App\Models\ClientSecurityProfile;
 use App\Models\NotificationDispatchLog;
 use App\Models\User;
+use App\Models\WhatsAppMessage;
 use App\Services\Notifications\Contracts\EmailDriverInterface;
 use App\Services\Notifications\Contracts\SmsDriverInterface;
+use App\Services\Notifications\Contracts\WhatsAppDriverInterface;
 use App\Services\Notifications\Drivers\AfricasTalkingSmsDriver;
 use App\Services\Notifications\Drivers\BrandedEmailDriver;
+use App\Services\Notifications\Drivers\MetaWhatsAppCloudDriver;
 use App\Services\Notifications\Drivers\MockSmsDriver;
+use App\Services\Notifications\Drivers\MockWhatsAppDriver;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -20,10 +24,12 @@ class NotificationDispatcherService
 {
     protected SmsDriverInterface $smsDriver;
     protected EmailDriverInterface $emailDriver;
+    protected WhatsAppDriverInterface $whatsappDriver;
 
     public function __construct(
         ?SmsDriverInterface $smsDriver = null,
-        ?EmailDriverInterface $emailDriver = null
+        ?EmailDriverInterface $emailDriver = null,
+        ?WhatsAppDriverInterface $whatsappDriver = null
     ) {
         $this->smsDriver = $smsDriver ?? (
             app()->environment('testing')
@@ -31,6 +37,11 @@ class NotificationDispatcherService
                 : new AfricasTalkingSmsDriver()
         );
         $this->emailDriver = $emailDriver ?? new BrandedEmailDriver();
+        $this->whatsappDriver = $whatsappDriver ?? (
+            app()->environment('testing')
+                ? new MockWhatsAppDriver()
+                : new MetaWhatsAppCloudDriver()
+        );
     }
 
     /**
@@ -194,8 +205,101 @@ class NotificationDispatcherService
                 ];
             }
 
+            // 4. Dispatch WhatsApp channel
+            $shouldSendWhatsApp = $explicitChannels
+                ? in_array('whatsapp', $explicitChannels)
+                : ($preferences['whatsapp'] ?? false);
+
+            if ($shouldSendWhatsApp && !empty($recipientPhone)) {
+                $templateName = $this->resolveWhatsAppTemplate($type);
+                $templateParams = [$title, $message];
+                $buttons = [
+                    ['sub_type' => 'quick_reply', 'payload' => 'VIEW_LEDGER'],
+                ];
+
+                $waRes = $this->whatsappDriver->sendTemplateMessage(
+                    $recipientPhone,
+                    $templateName,
+                    $templateParams,
+                    $buttons
+                );
+
+                // Save to whatsapp_messages table
+                WhatsAppMessage::create([
+                    'user_id' => $user->id,
+                    'client_id' => $client?->id,
+                    'notification_id' => $notification->id,
+                    'direction' => 'outbound',
+                    'wa_message_id' => $waRes['message_id'] ?? null,
+                    'phone_number' => $recipientPhone,
+                    'message_type' => 'template',
+                    'template_name' => $templateName,
+                    'body' => "{$title}: {$message}",
+                    'payload' => $waRes['raw'] ?? [],
+                    'status' => $waRes['success'] ? 'sent' : 'failed',
+                    'error_message' => $waRes['error'] ?? null,
+                    'sent_at' => $waRes['success'] ? now() : null,
+                ]);
+
+                NotificationDispatchLog::create([
+                    'notification_id' => $notification->id,
+                    'recipient_type' => 'User',
+                    'recipient_id' => $user->id,
+                    'recipient_phone' => $recipientPhone,
+                    'recipient_email' => $user->email,
+                    'channel' => 'whatsapp',
+                    'status' => $waRes['success'] ? 'dispatched' : 'failed',
+                    'gateway_provider' => $waRes['gateway_provider'] ?? 'meta_whatsapp_cloud',
+                    'gateway_message_id' => $waRes['message_id'] ?? null,
+                    'response_payload' => $waRes['raw'] ?? [],
+                    'error_message' => $waRes['error'] ?? null,
+                    'cost_ugx' => 0.00,
+                    'dispatched_at' => now(),
+                ]);
+
+                $results['channels']['whatsapp'] = [
+                    'status' => $waRes['success'] ? 'dispatched' : 'failed',
+                    'message_id' => $waRes['message_id'] ?? null,
+                    'error' => $waRes['error'] ?? null,
+                ];
+            } elseif ($shouldSendWhatsApp && empty($recipientPhone)) {
+                NotificationDispatchLog::create([
+                    'notification_id' => $notification->id,
+                    'recipient_type' => 'User',
+                    'recipient_id' => $user->id,
+                    'channel' => 'whatsapp',
+                    'status' => 'failed',
+                    'error_message' => 'No phone number available for WhatsApp recipient',
+                    'dispatched_at' => now(),
+                ]);
+            } else {
+                NotificationDispatchLog::create([
+                    'notification_id' => $notification->id,
+                    'recipient_type' => 'User',
+                    'recipient_id' => $user->id,
+                    'channel' => 'whatsapp',
+                    'status' => 'skipped_preference',
+                    'dispatched_at' => now(),
+                ]);
+            }
+
             return $results;
         });
+    }
+
+    /**
+     * Resolve WhatsApp template name based on notification type
+     */
+    protected function resolveWhatsAppTemplate(string $type): string
+    {
+        return match ($type) {
+            'savings_deposit' => 'savings_deposit_receipt',
+            'milestone_approval_required' => 'milestone_approval_prompt',
+            'plot_reservation' => 'plot_reservation_notice',
+            'deed_status_update' => 'title_deed_status_alert',
+            'support_reply' => 'support_ticket_update',
+            default => 'client_general_notice',
+        };
     }
 
     /**

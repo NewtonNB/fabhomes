@@ -58,3 +58,37 @@ export interface NotificationFilters {
   per_page?: number
   page?: number
 }
+
+export interface WhatsAppMessageItem {
+  id: number
+  uuid: string
+  user_id?: number
+  client_id?: number
+  notification_id?: number
+  direction: 'outbound' | 'inbound'
+  wa_message_id?: string
+  phone_number: string
+  message_type: 'template' | 'text' | 'interactive' | 'button_reply' | 'image' | 'document'
+  template_name?: string
+  body: string
+  payload?: Record<string, any>
+  status: 'queued' | 'sent' | 'delivered' | 'read' | 'failed'
+  error_message?: string
+  sent_at?: string
+  delivered_at?: string
+  read_at?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface WhatsAppWebhookLogItem {
+  id: number
+  uuid: string
+  event_type: string
+  sender_phone?: string
+  payload: Record<string, any>
+  signature_valid: boolean
+  processed: boolean
+  error?: string
+  created_at: string
+}
