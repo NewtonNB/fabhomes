@@ -114,7 +114,7 @@ Route::prefix('v1')->group(function () {
 });
 
 // Protected routes (require authentication)
-Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+Route::prefix('v1')->middleware(['auth:sanctum', app()->environment('production') ? 'throttle:120,1' : 'throttle:1000,1'])->group(function () {
     // User profile routes
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
@@ -598,7 +598,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     });
 
     // Admin: User Management routes (stricter rate limit)
-    Route::prefix('admin')->middleware('throttle:30,1')->group(function () {
+    Route::prefix('admin')->middleware(app()->environment('production') ? 'throttle:60,1' : 'throttle:500,1')->group(function () {
         // User management
         Route::get('/users', [UserManagementController::class, 'index']);
         Route::post('/users', [UserManagementController::class, 'store']);
