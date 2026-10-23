@@ -224,8 +224,8 @@ const SitesList: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                sites.map((site) => (
-                  <tr key={site.id}>
+                sites.map((site, idx) => (
+                  <tr key={site.id ?? (site as any).uuid ?? idx}>
                     <td>
                       <span className="code-badge">{site.site_code}</span>
                     </td>

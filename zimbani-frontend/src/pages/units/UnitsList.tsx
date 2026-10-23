@@ -262,8 +262,8 @@ const UnitsList: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                units.map((unit) => (
-                  <tr key={unit.id}>
+                units.map((unit, idx) => (
+                  <tr key={unit.uuid || unit.id || idx}>
                     <td>
                       <span className="code-badge">{unit.unit_number}</span>
                     </td>
