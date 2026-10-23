@@ -15,6 +15,7 @@ import {
   CreateTicketPayload,
 } from '../../../types/client-portal-vault.types'
 import { clientPortalVaultService } from '../../../services/client-portal-vault.service'
+import { echoService } from '../../../services/echo.service'
 import './ClientVaultTab.css'
 
 interface ClientSupportTicketsTabProps {
@@ -77,6 +78,31 @@ export const ClientSupportTicketsTab: React.FC<ClientSupportTicketsTabProps> = (
       setThreadLoading(false)
     }
   }
+
+  // Real-Time WebSocket Listener for live chat updates
+  useEffect(() => {
+    if (!selectedTicket?.id) return
+
+    const unsubscribe = echoService.onTicketMessage(selectedTicket.id, (newMsg) => {
+      setSelectedTicket((prev) => {
+        if (!prev || prev.id !== selectedTicket.id) return prev
+        const existing = prev.messages || []
+        if (existing.some((m) => m.id === newMsg.id || m.uuid === newMsg.uuid)) {
+          return prev
+        }
+        return {
+          ...prev,
+          messages: [...existing, newMsg],
+          message_count: (prev.message_count || 0) + 1,
+          last_message: newMsg.message,
+        }
+      })
+    })
+
+    return () => {
+      unsubscribe()
+    }
+  }, [selectedTicket?.id])
 
   const handleCreateTicket = async (e: React.FormEvent) => {
     e.preventDefault()

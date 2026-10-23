@@ -255,7 +255,7 @@ class ClientDocumentSupportService
             ]);
 
             // Add Initial Message
-            SupportTicketMessage::create([
+            $msg = SupportTicketMessage::create([
                 'uuid' => (string) Str::uuid(),
                 'support_ticket_id' => $ticket->id,
                 'user_id' => $user->id,
@@ -264,6 +264,10 @@ class ClientDocumentSupportService
                 'message' => $data['message'],
                 'attachments' => $data['attachments'] ?? null,
             ]);
+
+            try {
+                (new \App\Services\Notifications\RealtimeBroadcasterService())->broadcastTicketMessage($ticket->id, $msg, $user->name);
+            } catch (\Throwable $e) {}
 
             return $ticket->load('messages');
         });
@@ -362,6 +366,10 @@ class ClientDocumentSupportService
                 'status' => 'open', // Reopen or set to open when client replies
                 'last_replied_at' => now(),
             ]);
+
+            try {
+                (new \App\Services\Notifications\RealtimeBroadcasterService())->broadcastTicketMessage($ticket->id, $reply, $user->name);
+            } catch (\Throwable $e) {}
 
             return $reply;
         });

@@ -1,5 +1,6 @@
 // User related types matching Laravel backend API
 export interface User {
+  id?: number
   uuid: string
   name: string
   email: string

@@ -3605,11 +3605,54 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+### Phase 13 Day 3: Real-Time Event Broadcasting & WebSocket Subscriptions ✅ (Oct 23, 2026)
+
+- **Broadcasting Infrastructure & Channel Authorization:**
+  - Registered `routes/channels.php` with channel authorization callbacks using `RealtimeBroadcasterService`:
+    - `private-client.{id}`: Strictly authorized for target client user ID.
+    - `private-ticket.{id}`: Multi-party authorization (ticket owner, assigned support agent, or admin roles).
+    - `private-project.{id}`: Unit owners and estate engineering staff.
+  - Created `config/broadcasting.php` supporting `reverb`, `pusher`, `log`, and `null` drivers with robust fallback handling.
+  - Enabled channel routing in `bootstrap/app.php` via `channels: __DIR__.'/../routes/channels.php'`.
+
+- **Core Broadcast Events (Implementing `ShouldBroadcastNow`):**
+  - `App\Events\NotificationBroadcastEvent`: Broadcasts on `private-client.{userId}` as `notification.received` with full alert metadata.
+  - `App\Events\MilestoneInspectionBroadcastEvent`: Broadcasts on `private-client.{userId}` and `private-project.{projectId}` as `milestone.inspection_updated` for immediate Quick-PIN sign-off prompts.
+  - `App\Events\TicketMessageBroadcastEvent`: Broadcasts on `private-ticket.{ticketId}` as `ticket.message_sent` for instant live support chat threading.
+  - `App\Events\SavingsDepositBroadcastEvent`: Broadcasts on `private-client.{userId}` as `savings.deposit_confirmed` with updated balance totals.
+
+- **Real-Time Broadcaster Service & Application Wiring:**
+  - Created `App\Services\Notifications\RealtimeBroadcasterService.php`:
+    - `broadcastNotification()`, `broadcastMilestoneInspection()`, `broadcastTicketMessage()`, and `broadcastSavingsDeposit()`.
+    - `getUserAuthorizedChannels(User $user)`: Discovers all channels authorized for the current session.
+    - `isUserAuthorizedForChannel(User $user, string $channelName)`: Central authorization rule engine.
+  - Wired into `NotificationDispatcherService.php`: Automatically broadcasts all in-app notifications, savings deposits, and milestone inspections to live WebSockets.
+  - Wired into `ClientDocumentSupportService.php`: Automatically broadcasts ticket creation and ticket replies to `ticket.{id}`.
+
+- **Controllers, Routes, & API Endpoints:**
+  - Mounted `Broadcast::routes(['middleware' => ['auth:sanctum']])` at `/api/v1/broadcasting/auth`.
+  - Created `App\Http\Controllers\Api\BroadcastingController.php`:
+    - `GET  /api/v1/broadcasting/channels` - List of active authorized channels.
+    - `POST /api/v1/broadcasting/test-broadcast` - Programmatic test broadcast trigger.
+
+- **Frontend Architecture & React Components:**
+  - Service: `src/services/echo.service.ts` providing reactive WebSocket subscriptions and internal event bus.
+  - UI Components:
+    - `RealtimeToastContainer.tsx`: Floating real-time notification toast stack in the dashboard top-right corner with category icons, smooth slide-in animations, auto-dismiss timers, and deep-link navigation triggers.
+    - `ClientSupportTicketsTab.tsx`: Integrated live WebSocket listener on `ticket.{id}` that appends incoming agent replies dynamically without page refresh.
+    - `ClientPortalDashboard.tsx`: Initialized Echo service on login and mounted `RealtimeToastContainer`.
+
+- **Verification & Testing:**
+  - Automated test script `test_phase_13_day_3.php` passed **32/32 assertions (100%)**, verifying channel authorizations, stranger access denial, event serialization, service methods, API endpoints, notification dispatcher integration, and support ticket socket broadcast.
+  - Production build (`npm run build`) passed with **0 errors** in **1.92s**.
+
+---
+
 **Phase 13: Automated Multi-Channel Notifications, WhatsApp Business Webhooks & Real-Time Client Engagement**
 1. ✅ **Day 1**: Multi-Channel Notification Dispatcher Engine (SMS, Email, In-App Notifications & Preference Filtering) (COMPLETED)
 2. ✅ **Day 2**: WhatsApp Business Cloud API & Webhooks Ingestion (COMPLETED)
-3. ⏳ **Day 3**: Real-Time Event Broadcasting & WebSocket Subscriptions (NEXT)
-4. ⏳ **Day 4**: Automated Notification Workflows & Drip Triggers
+3. ✅ **Day 3**: Real-Time Event Broadcasting & WebSocket Subscriptions (COMPLETED)
+4. ⏳ **Day 4**: Automated Notification Workflows & Drip Triggers (NEXT)
 5. ⏳ **Day 5**: Notification Preferences, Delivery Logs, Analytics & Campaign Management UI
 
 ---
@@ -3617,7 +3660,7 @@ Delivered robust external settlement statement reconciliation for client escrow 
 **Last Updated:** October 23, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 13 Day 2 Complete
+**Latest Commit:** Phase 13 Day 3 Complete
 
 
 

@@ -56,7 +56,9 @@ use App\Http\Controllers\Api\PaymentSimulationReconciliationController;
 use App\Http\Controllers\Api\ExecutiveReportingController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\WhatsAppWebhookController;
+use App\Http\Controllers\Api\BroadcastingController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -509,6 +511,13 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/send-template', [WhatsAppWebhookController::class, 'sendTemplate']);
         Route::get('/messages', [WhatsAppWebhookController::class, 'getMessages']);
         Route::get('/webhooks-log', [WhatsAppWebhookController::class, 'getWebhookLogs']);
+    });
+
+    // Real-Time Event Broadcasting & WebSocket Subscriptions (Phase 13 Day 3)
+    Broadcast::routes(['middleware' => ['auth:sanctum']]);
+    Route::prefix('broadcasting')->group(function () {
+        Route::get('/channels', [BroadcastingController::class, 'getChannels']);
+        Route::post('/test-broadcast', [BroadcastingController::class, 'testBroadcast']);
     });
 
     // Subcontractor Milestone Valuation & Interim Payment Linkages (Phase 8 Day 3)

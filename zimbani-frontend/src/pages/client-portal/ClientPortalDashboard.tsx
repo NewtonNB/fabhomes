@@ -34,6 +34,8 @@ import { ClientDocumentVaultTab } from './components/ClientDocumentVaultTab'
 import { ClientSupportTicketsTab } from './components/ClientSupportTicketsTab'
 import { NotificationBellDropdown } from '../../components/notifications/NotificationBellDropdown'
 import { NotificationCenterModal } from '../../components/notifications/NotificationCenterModal'
+import { RealtimeToastContainer } from '../../components/notifications/RealtimeToastContainer'
+import { echoService } from '../../services/echo.service'
 import './ClientPortalLayout.css'
 
 export const ClientPortalDashboard: React.FC = () => {
@@ -112,6 +114,15 @@ export const ClientPortalDashboard: React.FC = () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstall)
     }
   }, [])
+
+  // Initialize Real-Time WebSocket Echo Service
+  const resolvedUserId = user?.id || profileData?.client?.id
+
+  useEffect(() => {
+    if (resolvedUserId) {
+      echoService.init(resolvedUserId)
+    }
+  }, [resolvedUserId])
 
   // Load Client Profile & Security data
   const loadProfile = async () => {
@@ -1294,6 +1305,12 @@ export const ClientPortalDashboard: React.FC = () => {
         onClose={() => setShowNotificationCenter(false)}
         onNavigateAction={handleNotificationNavigate}
         onNotify={handleNotify}
+      />
+
+      {/* Real-Time WebSocket Toast Notifications */}
+      <RealtimeToastContainer
+        userId={resolvedUserId}
+        onNavigateAction={handleNotificationNavigate}
       />
     </div>
   )

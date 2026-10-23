@@ -25,11 +25,13 @@ class NotificationDispatcherService
     protected SmsDriverInterface $smsDriver;
     protected EmailDriverInterface $emailDriver;
     protected WhatsAppDriverInterface $whatsappDriver;
+    protected RealtimeBroadcasterService $broadcaster;
 
     public function __construct(
         ?SmsDriverInterface $smsDriver = null,
         ?EmailDriverInterface $emailDriver = null,
-        ?WhatsAppDriverInterface $whatsappDriver = null
+        ?WhatsAppDriverInterface $whatsappDriver = null,
+        ?RealtimeBroadcasterService $broadcaster = null
     ) {
         $this->smsDriver = $smsDriver ?? (
             app()->environment('testing')
@@ -42,6 +44,7 @@ class NotificationDispatcherService
                 ? new MockWhatsAppDriver()
                 : new MetaWhatsAppCloudDriver()
         );
+        $this->broadcaster = $broadcaster ?? new RealtimeBroadcasterService();
     }
 
     /**
@@ -93,6 +96,9 @@ class NotificationDispatcherService
                 'read_at' => null,
                 'is_dismissed' => false,
             ]);
+
+            // Real-Time Event Broadcast to private client WebSocket channel
+            $this->broadcaster->broadcastNotification($user->id, $notification);
 
             // Log in-app delivery
             NotificationDispatchLog::create([
@@ -333,6 +339,12 @@ class NotificationDispatcherService
         $formattedAmt = number_format($amount, 0) . ' UGX';
         $formattedBal = number_format($balance, 0) . ' UGX';
 
+        $this->broadcaster->broadcastSavingsDeposit($user->id, [
+            'amount' => $amount,
+            'account_number' => $accountNumber,
+            'balance' => $balance,
+        ]);
+
         return $this->dispatchToUser($user, [
             'type' => 'savings_deposit',
             'category' => 'financial',
@@ -359,6 +371,14 @@ class NotificationDispatcherService
         string $verificationUuid
     ): array {
         $formattedAmt = number_format($releaseAmount, 0) . ' UGX';
+
+        $this->broadcaster->broadcastMilestoneInspection($user->id, 0, [
+            'milestone_name' => $milestoneName,
+            'project_name' => $projectName,
+            'release_amount' => $releaseAmount,
+            'verification_uuid' => $verificationUuid,
+            'sign_off_required' => true,
+        ]);
 
         return $this->dispatchToUser($user, [
             'type' => 'milestone_approval_required',
