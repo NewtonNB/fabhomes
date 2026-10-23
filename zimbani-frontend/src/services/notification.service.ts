@@ -1,11 +1,15 @@
 import api from '../config/api'
 import {
   AppNotificationItem,
+  CampaignBroadcastPayload,
+  CampaignBroadcastResult,
   DripRunResult,
   DripSummaryResponse,
   DripTriggerItem,
+  NotificationAnalyticsResponse,
   NotificationDispatchLogItem,
   NotificationFilters,
+  NotificationPreferences,
   NotificationSummaryResponse,
   WhatsAppMessageItem,
   WhatsAppWebhookLogItem,
@@ -150,6 +154,46 @@ class NotificationService {
    */
   async runDripsNow(dryRun: boolean = false, workflow: string = 'all'): Promise<DripRunResult> {
     const res = await api.post(`${this.dripUrl}/run-now`, { dry_run: dryRun, workflow })
+    return res.data.data
+  }
+
+  /**
+   * Get User Notification Preferences
+   */
+  async getPreferences(): Promise<NotificationPreferences> {
+    const res = await api.get(`${this.baseUrl}/preferences`)
+    return res.data.data
+  }
+
+  /**
+   * Update User Notification Preferences
+   */
+  async updatePreferences(payload: Partial<NotificationPreferences>): Promise<NotificationPreferences> {
+    const res = await api.put(`${this.baseUrl}/preferences`, payload)
+    return res.data.data
+  }
+
+  /**
+   * Get Notification Delivery Analytics & Metrics
+   */
+  async getAnalytics(params: Record<string, any> = {}): Promise<NotificationAnalyticsResponse> {
+    const res = await api.get(`${this.baseUrl}/analytics`, { params })
+    return res.data.data
+  }
+
+  /**
+   * Send Campaign Broadcast Message to Targeted Audience Segment
+   */
+  async sendCampaign(payload: CampaignBroadcastPayload): Promise<CampaignBroadcastResult> {
+    const res = await api.post(`${this.baseUrl}/campaign-broadcast`, payload)
+    return res.data.data
+  }
+
+  /**
+   * Retry a Failed Notification Dispatch Log
+   */
+  async retryDispatchLog(logId: number): Promise<NotificationDispatchLogItem> {
+    const res = await api.post(`${this.baseUrl}/dispatch-logs/${logId}/retry`)
     return res.data.data
   }
 }

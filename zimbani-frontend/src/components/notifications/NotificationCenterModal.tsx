@@ -14,12 +14,19 @@ import {
   MdOutlineSchedule,
   MdPlayArrow,
   MdRefresh,
+  MdSettings,
+  MdBarChart,
+  MdCampaign,
+  MdReplay,
 } from 'react-icons/md'
 import {
   AppNotificationItem,
   DripSummaryResponse,
   DripTriggerItem,
+  NotificationAnalyticsResponse,
   NotificationCategory,
+  NotificationDispatchLogItem,
+  NotificationPreferences,
   WhatsAppMessageItem,
 } from '../../types/notification.types'
 import { notificationService } from '../../services/notification.service'
@@ -40,7 +47,9 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
 }) => {
   const [notifications, setNotifications] = useState<AppNotificationItem[]>([])
   const [loading, setLoading] = useState<boolean>(true)
-  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'whatsapp' | 'drips' | NotificationCategory>('all')
+  const [activeTab, setActiveTab] = useState<
+    'all' | 'unread' | 'whatsapp' | 'drips' | 'preferences' | 'analytics' | NotificationCategory
+  >('all')
   const [totalCount, setTotalCount] = useState<number>(0)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [lastPage, setLastPage] = useState<number>(1)
@@ -50,6 +59,23 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
   const [dripSummary, setDripSummary] = useState<DripSummaryResponse | null>(null)
   const [dripLogs, setDripLogs] = useState<DripTriggerItem[]>([])
   const [runningDrip, setRunningDrip] = useState<boolean>(false)
+
+  // Preferences State
+  const [preferences, setPreferences] = useState<NotificationPreferences | null>(null)
+  const [savingPrefs, setSavingPrefs] = useState<boolean>(false)
+
+  // Analytics & Logs State
+  const [analyticsData, setAnalyticsData] = useState<NotificationAnalyticsResponse | null>(null)
+  const [dispatchLogs, setDispatchLogs] = useState<NotificationDispatchLogItem[]>([])
+  const [retryingLogId, setRetryingLogId] = useState<number | null>(null)
+
+  // Campaign Broadcast State
+  const [showCampaignModal, setShowCampaignModal] = useState<boolean>(false)
+  const [campaignTitle, setCampaignTitle] = useState<string>('')
+  const [campaignMessage, setCampaignMessage] = useState<string>('')
+  const [campaignSegment, setCampaignSegment] = useState<string>('all_clients')
+  const [campaignChannels, setCampaignChannels] = useState<string[]>(['in_app', 'email'])
+  const [broadcastingCampaign, setBroadcastingCampaign] = useState<boolean>(false)
 
   // Test Dispatch Form
   const [showTestForm, setShowTestForm] = useState<boolean>(false)
@@ -75,6 +101,17 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
           setDripSummary(summaryData)
           setDripLogs(logsData.data || [])
           setTotalCount(summaryData.total_triggers || 0)
+        } else if (activeTab === 'preferences') {
+          const prefs = await notificationService.getPreferences()
+          setPreferences(prefs)
+        } else if (activeTab === 'analytics') {
+          const [analytics, logsRes] = await Promise.all([
+            notificationService.getAnalytics(),
+            notificationService.getDispatchLogs({ per_page: 30 }),
+          ])
+          setAnalyticsData(analytics)
+          setDispatchLogs(logsRes.data || [])
+          setTotalCount(analytics.total_dispatches || 0)
         } else {
           const filters: any = { page, per_page: 20 }
           if (activeTab === 'unread') {
@@ -193,6 +230,67 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
     }
   }
 
+  const handleSavePreferences = async () => {
+    if (!preferences) return
+    setSavingPrefs(true)
+    try {
+      const updated = await notificationService.updatePreferences(preferences)
+      setPreferences(updated)
+      onNotify?.('Notification preferences saved successfully', 'success')
+    } catch (err: any) {
+      console.error('Failed to save preferences', err)
+      onNotify?.(err?.response?.data?.message || 'Failed to save preferences', 'error')
+    } finally {
+      setSavingPrefs(false)
+    }
+  }
+
+  const handleRetryLog = async (logId: number) => {
+    setRetryingLogId(logId)
+    try {
+      const retried = await notificationService.retryDispatchLog(logId)
+      setDispatchLogs((prev) =>
+        prev.map((l) => (l.id === logId ? { ...l, status: retried.status, error_message: retried.error_message } : l))
+      )
+      onNotify?.(`Dispatch log #${logId} retried successfully (${retried.status})`, 'success')
+      const updatedAnalytics = await notificationService.getAnalytics()
+      setAnalyticsData(updatedAnalytics)
+    } catch (err: any) {
+      console.error('Failed to retry dispatch log', err)
+      onNotify?.(err?.response?.data?.message || 'Failed to retry dispatch log', 'error')
+    } finally {
+      setRetryingLogId(null)
+    }
+  }
+
+  const handleSendCampaign = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!campaignTitle.trim() || !campaignMessage.trim()) return
+
+    setBroadcastingCampaign(true)
+    try {
+      const res = await notificationService.sendCampaign({
+        title: campaignTitle,
+        message: campaignMessage,
+        target_segment: campaignSegment,
+        channels: campaignChannels,
+        category: 'general',
+      })
+      onNotify?.(`Broadcast dispatched to ${res.total_dispatched} recipients in segment '${campaignSegment}'`, 'success')
+      setShowCampaignModal(false)
+      setCampaignTitle('')
+      setCampaignMessage('')
+      if (activeTab === 'analytics') {
+        fetchNotifications(1)
+      }
+    } catch (err: any) {
+      console.error('Failed campaign broadcast', err)
+      onNotify?.(err?.response?.data?.message || 'Failed to dispatch broadcast', 'error')
+    } finally {
+      setBroadcastingCampaign(false)
+    }
+  }
+
   const renderCategoryIcon = (category: NotificationCategory) => {
     switch (category) {
       case 'financial':
@@ -229,9 +327,22 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
+              className="portal-btn-primary"
+              style={{ fontSize: '12px', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              onClick={() => {
+                setShowCampaignModal(!showCampaignModal)
+                setShowTestForm(false)
+              }}
+            >
+              <MdCampaign /> {showCampaignModal ? 'Close Broadcast' : 'Broadcast'}
+            </button>
+            <button
               className="portal-btn-secondary"
               style={{ fontSize: '12px', padding: '6px 10px' }}
-              onClick={() => setShowTestForm(!showTestForm)}
+              onClick={() => {
+                setShowTestForm(!showTestForm)
+                setShowCampaignModal(false)
+              }}
             >
               {showTestForm ? 'Close Test' : 'Test Dispatch'}
             </button>
@@ -330,6 +441,106 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
           </form>
         )}
 
+        {/* Campaign Broadcast Drawer */}
+        {showCampaignModal && (
+          <div
+            style={{
+              padding: '16px 20px',
+              background: 'rgba(30, 27, 75, 0.5)',
+              borderBottom: '1px solid rgba(139, 92, 246, 0.3)',
+            }}
+          >
+            <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#c084fc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <MdCampaign /> Enterprise Multi-Channel Campaign Broadcast
+            </h4>
+            <form onSubmit={handleSendCampaign} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>
+                    Target Audience Segment
+                  </label>
+                  <select
+                    className="portal-input"
+                    value={campaignSegment}
+                    onChange={(e) => setCampaignSegment(e.target.value)}
+                    style={{ fontSize: '13px', padding: '6px 10px', width: '100%' }}
+                  >
+                    <option value="all_clients">All Registered Clients</option>
+                    <option value="active_savers">Active Savers (Land & Construction)</option>
+                    <option value="plot_holders">Plot Holders & Active Reservations</option>
+                    <option value="all_users">All System Users</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>
+                    Delivery Channels
+                  </label>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', height: '36px' }}>
+                    {(['in_app', 'email', 'sms', 'whatsapp'] as const).map((ch) => (
+                      <label key={ch} style={{ fontSize: '12px', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={campaignChannels.includes(ch)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setCampaignChannels([...campaignChannels, ch])
+                            } else {
+                              setCampaignChannels(campaignChannels.filter((c) => c !== ch))
+                            }
+                          }}
+                        />
+                        {ch.toUpperCase()}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <input
+                  type="text"
+                  placeholder="Campaign Title (e.g. Groundbreaking Ceremony Announcement)"
+                  className="portal-input"
+                  value={campaignTitle}
+                  onChange={(e) => setCampaignTitle(e.target.value)}
+                  style={{ width: '100%', fontSize: '13px' }}
+                />
+              </div>
+
+              <div>
+                <textarea
+                  placeholder="Broadcast Message Body..."
+                  className="portal-input"
+                  rows={2}
+                  value={campaignMessage}
+                  onChange={(e) => setCampaignMessage(e.target.value)}
+                  style={{ width: '100%', fontSize: '13px', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  type="button"
+                  className="portal-btn-secondary"
+                  onClick={() => setShowCampaignModal(false)}
+                  style={{ fontSize: '12px' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="portal-btn-primary"
+                  disabled={broadcastingCampaign || !campaignTitle.trim()}
+                  style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <MdSend /> {broadcastingCampaign ? 'Broadcasting...' : 'Broadcast Campaign'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
         {/* Filter Tabs */}
         <div className="notification-filter-tabs">
           <button
@@ -393,6 +604,32 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
             }}
           >
             <MdOutlineSchedule style={{ fontSize: '14px' }} /> Automated Drips
+          </button>
+          <button
+            className={`notification-filter-tab ${activeTab === 'preferences' ? 'active' : ''}`}
+            onClick={() => setActiveTab('preferences')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              borderColor: activeTab === 'preferences' ? '#a855f7' : undefined,
+              color: activeTab === 'preferences' ? '#c084fc' : undefined,
+            }}
+          >
+            <MdSettings style={{ fontSize: '14px' }} /> Preferences
+          </button>
+          <button
+            className={`notification-filter-tab ${activeTab === 'analytics' ? 'active' : ''}`}
+            onClick={() => setActiveTab('analytics')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              borderColor: activeTab === 'analytics' ? '#f59e0b' : undefined,
+              color: activeTab === 'analytics' ? '#fbbf24' : undefined,
+            }}
+          >
+            <MdBarChart style={{ fontSize: '14px' }} /> Analytics & Logs
           </button>
         </div>
 
@@ -676,6 +913,385 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : activeTab === 'preferences' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div
+                style={{
+                  background: 'rgba(30, 27, 75, 0.3)',
+                  border: '1px solid rgba(168, 85, 247, 0.3)',
+                  borderRadius: '12px',
+                  padding: '16px 20px',
+                }}
+              >
+                <h4 style={{ margin: '0 0 6px 0', color: '#f1f5f9', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <MdSettings style={{ color: '#c084fc' }} /> Multi-Channel Delivery Channels
+                </h4>
+                <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#94a3b8' }}>
+                  Choose which communications channels Fab Homes uses to deliver your statements, receipts, and alerts.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                  {[
+                    { key: 'in_app', label: 'In-App Alerts', desc: 'Real-time dashboard popups and bell dropdown' },
+                    { key: 'email', label: 'Email Notifications', desc: 'Branded PDF statements and receipts to inbox' },
+                    { key: 'sms', label: 'SMS Instant Text', desc: 'Immediate carrier SMS alerts for financial credits' },
+                    { key: 'whatsapp', label: 'WhatsApp Business', desc: 'Meta Cloud API interactive messages with quick buttons' },
+                    { key: 'push', label: 'Web / Mobile Push', desc: 'Device push notifications when dashboard is backgrounded' },
+                  ].map((item) => {
+                    const isChecked = preferences?.channels?.[item.key as keyof typeof preferences.channels] ?? true
+                    return (
+                      <div
+                        key={item.key}
+                        style={{
+                          background: 'rgba(15, 23, 42, 0.6)',
+                          border: '1px solid',
+                          borderColor: isChecked ? 'rgba(168, 85, 247, 0.4)' : 'rgba(255, 255, 255, 0.08)',
+                          borderRadius: '8px',
+                          padding: '12px',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '10px',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => {
+                          if (!preferences) return
+                          setPreferences({
+                            ...preferences,
+                            channels: {
+                              ...preferences.channels,
+                              [item.key]: !isChecked,
+                            },
+                          })
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}}
+                          style={{ marginTop: '2px', cursor: 'pointer' }}
+                        />
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: '#f8fafc' }}>
+                            {item.label}
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+                            {item.desc}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Category Subscriptions */}
+              <div
+                style={{
+                  background: 'rgba(15, 23, 42, 0.5)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '12px',
+                  padding: '16px 20px',
+                }}
+              >
+                <h4 style={{ margin: '0 0 6px 0', color: '#f1f5f9', fontSize: '15px' }}>
+                  Topic & Category Subscriptions
+                </h4>
+                <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#94a3b8' }}>
+                  Select the domain updates you wish to receive alerts for.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+                  {[
+                    { key: 'financial', label: 'Financial Transactions', desc: 'Deposits, payment receipts, escrow transfers' },
+                    { key: 'construction', label: 'Construction Milestones', desc: 'Inspection sign-off, photo verification updates' },
+                    { key: 'legal', label: 'Land & Title Deeds', desc: 'Plot reservations, cadastral surveys, deed handover' },
+                    { key: 'support', label: 'Support Ticketing', desc: 'Client portal agent replies and inquiries' },
+                    { key: 'general', label: 'Estate Developments', desc: 'Community announcements, webinars, promotions' },
+                  ].map((cat) => {
+                    const isChecked = preferences?.categories?.[cat.key as keyof typeof preferences.categories] ?? true
+                    return (
+                      <div
+                        key={cat.key}
+                        style={{
+                          background: 'rgba(30, 41, 59, 0.4)',
+                          border: '1px solid rgba(255, 255, 255, 0.06)',
+                          borderRadius: '8px',
+                          padding: '10px 12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => {
+                          if (!preferences) return
+                          setPreferences({
+                            ...preferences,
+                            categories: {
+                              ...preferences.categories,
+                              [cat.key]: !isChecked,
+                            },
+                          })
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9' }}>{cat.label}</span>
+                          <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8' }}>{cat.desc}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Quiet Hours / DND */}
+              <div
+                style={{
+                  background: 'rgba(15, 23, 42, 0.5)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '12px',
+                  padding: '16px 20px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 2px 0', color: '#f1f5f9', fontSize: '15px' }}>
+                      Quiet Hours (Do Not Disturb)
+                    </h4>
+                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                      Suppress external SMS and WhatsApp alerts during sleeping hours (In-app alerts remain active)
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={preferences?.quiet_hours_enabled ?? false}
+                    onChange={(e) => {
+                      if (!preferences) return
+                      setPreferences({
+                        ...preferences,
+                        quiet_hours_enabled: e.target.checked,
+                      })
+                    }}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                </div>
+
+                {preferences?.quiet_hours_enabled && (
+                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '12px', flexWrap: 'wrap' }}>
+                    <div>
+                      <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                        Start Time
+                      </label>
+                      <input
+                        type="time"
+                        value={preferences.quiet_hours_start || '22:00'}
+                        onChange={(e) => setPreferences({ ...preferences, quiet_hours_start: e.target.value })}
+                        className="portal-input"
+                        style={{ fontSize: '13px', padding: '6px 10px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                        End Time
+                      </label>
+                      <input
+                        type="time"
+                        value={preferences.quiet_hours_end || '07:00'}
+                        onChange={(e) => setPreferences({ ...preferences, quiet_hours_end: e.target.value })}
+                        className="portal-input"
+                        style={{ fontSize: '13px', padding: '6px 10px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                        Timezone
+                      </label>
+                      <span style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: 600 }}>
+                        {preferences.timezone || 'Africa/Kampala (EAT)'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Save Button */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
+                <button
+                  className="portal-btn-primary"
+                  onClick={handleSavePreferences}
+                  disabled={savingPrefs}
+                  style={{ padding: '8px 24px', fontSize: '13px' }}
+                >
+                  {savingPrefs ? 'Saving Preferences...' : 'Save Notification Preferences'}
+                </button>
+              </div>
+            </div>
+          ) : activeTab === 'analytics' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Analytics Summary KPI Cards */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Total Dispatches</span>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#f8fafc', marginTop: '4px' }}>
+                    {analyticsData?.total_dispatches || 0}
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Success Rate</span>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#4ade80', marginTop: '4px' }}>
+                    {analyticsData?.success_rate || 100}%
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Total Gateway Cost</span>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#fbbf24', marginTop: '4px' }}>
+                    {Number(analyticsData?.total_cost_ugx || 0).toLocaleString()} UGX
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Failed Dispatches</span>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: (analyticsData?.failed_count || 0) > 0 ? '#ef4444' : '#94a3b8', marginTop: '4px' }}>
+                    {analyticsData?.failed_count || 0}
+                  </div>
+                </div>
+              </div>
+
+              {/* Delivery Logs Table */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <h4 style={{ margin: 0, fontSize: '14px', color: '#e2e8f0' }}>
+                    Multi-Channel Delivery Audit Trail ({dispatchLogs.length})
+                  </h4>
+                  <button
+                    className="portal-btn-secondary"
+                    style={{ fontSize: '11px', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    onClick={() => fetchNotifications(1)}
+                  >
+                    <MdRefresh /> Refresh Logs
+                  </button>
+                </div>
+
+                {dispatchLogs.length === 0 ? (
+                  <p style={{ fontSize: '12px', color: '#64748b', fontStyle: 'italic' }}>
+                    No dispatch activity records found.
+                  </p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {dispatchLogs.map((log) => {
+                      const isFailed = log.status === 'failed'
+                      return (
+                        <div
+                          key={log.uuid || log.id}
+                          style={{
+                            background: isFailed ? 'rgba(239, 68, 68, 0.08)' : 'rgba(15, 23, 42, 0.6)',
+                            border: '1px solid',
+                            borderColor: isFailed ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.08)',
+                            borderRadius: '8px',
+                            padding: '10px 14px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  background:
+                                    log.channel === 'sms'
+                                      ? '#0284c7'
+                                      : log.channel === 'email'
+                                      ? '#7c3aed'
+                                      : log.channel === 'whatsapp'
+                                      ? '#16a34a'
+                                      : '#475569',
+                                  color: '#fff',
+                                  padding: '1px 8px',
+                                  borderRadius: '4px',
+                                }}
+                              >
+                                {log.channel.toUpperCase()}
+                              </span>
+                              <span style={{ fontSize: '12px', color: '#cbd5e1', fontFamily: 'monospace' }}>
+                                {log.recipient_phone || log.recipient_email || `User #${log.recipient_id}`}
+                              </span>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  color:
+                                    log.status === 'delivered'
+                                      ? '#4ade80'
+                                      : log.status === 'failed'
+                                      ? '#f87171'
+                                      : log.status === 'skipped_preference'
+                                      ? '#38bdf8'
+                                      : '#facc15',
+                                }}
+                              >
+                                {log.status.toUpperCase().replace('_', ' ')}
+                              </span>
+
+                              {isFailed && (
+                                <button
+                                  className="portal-btn-secondary"
+                                  style={{
+                                    fontSize: '10px',
+                                    padding: '2px 8px',
+                                    background: 'rgba(239, 68, 68, 0.2)',
+                                    color: '#f87171',
+                                    borderColor: '#ef4444',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                  }}
+                                  onClick={() => handleRetryLog(log.id)}
+                                  disabled={retryingLogId === log.id}
+                                >
+                                  <MdReplay /> {retryingLogId === log.id ? 'Retrying...' : 'Retry'}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {log.notification && (
+                            <div style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', margin: '4px 0 2px 0' }}>
+                              {log.notification.title}
+                            </div>
+                          )}
+
+                          {log.error_message && (
+                            <div style={{ fontSize: '11px', color: '#f87171', background: 'rgba(239, 68, 68, 0.1)', padding: '4px 8px', borderRadius: '4px', margin: '4px 0' }}>
+                              Error: {log.error_message}
+                            </div>
+                          )}
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+                            <span>
+                              Gateway: {log.gateway_provider || 'native'} • ID: {log.gateway_message_id?.substring(0, 20) || 'N/A'} • Cost: {Number(log.cost_ugx || 0).toFixed(0)} UGX
+                            </span>
+                            <span>{new Date(log.created_at).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </div>

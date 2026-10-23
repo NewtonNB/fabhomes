@@ -165,3 +165,73 @@ export interface DripRunResult {
     triggers?: any[]
   }>
 }
+
+export interface NotificationPreferences {
+  channels: {
+    sms: boolean
+    email: boolean
+    whatsapp: boolean
+    push: boolean
+    in_app: boolean
+  }
+  categories: {
+    financial: boolean
+    construction: boolean
+    legal: boolean
+    support: boolean
+    general: boolean
+  }
+  quiet_hours_enabled: boolean
+  quiet_hours_start: string
+  quiet_hours_end: string
+  timezone: string
+}
+
+export interface NotificationAnalyticsResponse {
+  total_dispatches: number
+  delivered_count: number
+  failed_count: number
+  skipped_count: number
+  success_rate: number
+  total_cost_ugx: number
+  by_channel: Record<string, number>
+  by_status: Record<string, number>
+  by_category: Record<string, number>
+  daily_volume: Record<string, number>
+  recent_failures: NotificationDispatchLogItem[]
+}
+
+export interface NotificationCampaignItem {
+  id: number
+  uuid: string
+  title: string
+  message: string
+  target_segment: 'all_clients' | 'active_savers' | 'plot_holders' | 'site_investors' | 'all_users'
+  channels: string[]
+  category: NotificationCategory
+  priority: NotificationPriority
+  action_url?: string
+  total_targeted: number
+  total_dispatched: number
+  total_failed: number
+  status: string
+  dispatched_at: string
+  created_at: string
+}
+
+export interface CampaignBroadcastPayload {
+  title: string
+  message: string
+  target_segment: string
+  channels: string[]
+  category?: NotificationCategory
+  priority?: NotificationPriority
+  action_url?: string
+}
+
+export interface CampaignBroadcastResult {
+  campaign: NotificationCampaignItem
+  total_targeted: number
+  total_dispatched: number
+  total_failed: number
+}

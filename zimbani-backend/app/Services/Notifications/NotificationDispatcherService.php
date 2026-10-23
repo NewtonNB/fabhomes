@@ -5,9 +5,14 @@ namespace App\Services\Notifications;
 use App\Models\AppNotification;
 use App\Models\Client;
 use App\Models\ClientSecurityProfile;
+use App\Models\NotificationCampaign;
 use App\Models\NotificationDispatchLog;
+use App\Models\PlotReservation;
+use App\Models\SavingsAccount;
 use App\Models\User;
+use App\Models\UserNotificationPreference;
 use App\Models\WhatsAppMessage;
+use Carbon\Carbon;
 use App\Services\Notifications\Contracts\EmailDriverInterface;
 use App\Services\Notifications\Contracts\SmsDriverInterface;
 use App\Services\Notifications\Contracts\WhatsAppDriverInterface;
@@ -309,26 +314,108 @@ class NotificationDispatcherService
     }
 
     /**
-     * Resolve notification preferences from ClientSecurityProfile
+     * Resolve notification preferences from UserNotificationPreference or ClientSecurityProfile
      */
     protected function resolvePreferences(User $user, ?Client $client): array
     {
-        $default = [
-            'sms' => true,
-            'email' => true,
-            'whatsapp' => false,
-            'push' => true,
-        ];
+        $defaultChannels = UserNotificationPreference::getDefaultChannels();
+        $defaultCategories = UserNotificationPreference::getDefaultCategories();
+
+        $userPref = UserNotificationPreference::where('user_id', $user->id)->first();
+        if ($userPref) {
+            $channels = array_merge($defaultChannels, $userPref->channels ?? []);
+            return array_merge($channels, [
+                'channels' => $channels,
+                'categories' => array_merge($defaultCategories, $userPref->categories ?? []),
+                'quiet_hours_enabled' => (bool) $userPref->quiet_hours_enabled,
+                'quiet_hours_start' => $userPref->quiet_hours_start ?: '22:00',
+                'quiet_hours_end' => $userPref->quiet_hours_end ?: '07:00',
+                'timezone' => $userPref->timezone ?: 'Africa/Kampala',
+            ]);
+        }
 
         $profile = ClientSecurityProfile::where('user_id', $user->id)
             ->when($client, fn($q) => $q->orWhere('client_id', $client->id))
             ->first();
 
         if ($profile && is_array($profile->notification_channels)) {
-            return array_merge($default, $profile->notification_channels);
+            $channels = array_merge($defaultChannels, $profile->notification_channels);
+            return array_merge($channels, [
+                'channels' => $channels,
+                'categories' => $defaultCategories,
+                'quiet_hours_enabled' => false,
+                'quiet_hours_start' => '22:00',
+                'quiet_hours_end' => '07:00',
+                'timezone' => 'Africa/Kampala',
+            ]);
         }
 
-        return $default;
+        return array_merge($defaultChannels, [
+            'channels' => $defaultChannels,
+            'categories' => $defaultCategories,
+            'quiet_hours_enabled' => false,
+            'quiet_hours_start' => '22:00',
+            'quiet_hours_end' => '07:00',
+            'timezone' => 'Africa/Kampala',
+        ]);
+    }
+
+    /**
+     * Get user notification preferences
+     */
+    public function getUserPreferences(User $user): array
+    {
+        $client = Client::where('user_id', $user->id)
+            ->orWhere('email', $user->email)
+            ->first();
+
+        return $this->resolvePreferences($user, $client);
+    }
+
+    /**
+     * Update user notification preferences
+     */
+    public function updateUserPreferences(User $user, array $params): array
+    {
+        $defaultChannels = UserNotificationPreference::getDefaultChannels();
+        $defaultCategories = UserNotificationPreference::getDefaultCategories();
+
+        $pref = UserNotificationPreference::firstOrNew(['user_id' => $user->id]);
+
+        $channels = isset($params['channels'])
+            ? array_merge($pref->channels ?? $defaultChannels, $params['channels'])
+            : ($pref->channels ?? $defaultChannels);
+
+        $categories = isset($params['categories'])
+            ? array_merge($pref->categories ?? $defaultCategories, $params['categories'])
+            : ($pref->categories ?? $defaultCategories);
+
+        $pref->channels = $channels;
+        $pref->categories = $categories;
+
+        if (isset($params['quiet_hours_enabled'])) {
+            $pref->quiet_hours_enabled = (bool) $params['quiet_hours_enabled'];
+        }
+        if (isset($params['quiet_hours_start'])) {
+            $pref->quiet_hours_start = $params['quiet_hours_start'];
+        }
+        if (isset($params['quiet_hours_end'])) {
+            $pref->quiet_hours_end = $params['quiet_hours_end'];
+        }
+        if (isset($params['timezone'])) {
+            $pref->timezone = $params['timezone'];
+        }
+
+        $pref->save();
+
+        // Also sync channels to ClientSecurityProfile if available
+        $profile = ClientSecurityProfile::where('user_id', $user->id)->first();
+        if ($profile) {
+            $profile->notification_channels = $channels;
+            $profile->save();
+        }
+
+        return $this->getUserPreferences($user);
     }
 
     /**
@@ -571,14 +658,246 @@ class NotificationDispatcherService
     }
 
     /**
-     * Audit log retrieval
+     * Enhanced Audit Log Retrieval with Multi-Parameter Filtering
      */
     public function getDispatchLogs(array $filters = []): LengthAwarePaginator
     {
         $perPage = min(intval($filters['per_page'] ?? 20), 100);
 
-        return NotificationDispatchLog::with('notification')
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+        $query = NotificationDispatchLog::with('notification')
+            ->orderBy('created_at', 'desc');
+
+        if (!empty($filters['channel'])) {
+            $query->where('channel', $filters['channel']);
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('recipient_phone', 'LIKE', "%{$search}%")
+                  ->orWhere('recipient_email', 'LIKE', "%{$search}%")
+                  ->orWhere('gateway_message_id', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if (!empty($filters['date_from'])) {
+            $query->where('created_at', '>=', Carbon::parse($filters['date_from']));
+        }
+
+        if (!empty($filters['date_to'])) {
+            $query->where('created_at', '<=', Carbon::parse($filters['date_to'])->endOfDay());
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    /**
+     * Retry failed notification dispatch log
+     */
+    public function retryDispatchLog(int $logId): NotificationDispatchLog
+    {
+        $log = NotificationDispatchLog::with('notification')->findOrFail($logId);
+
+        $notification = $log->notification;
+        $title = $notification?->title ?? 'Fab Homes Notification';
+        $message = $notification?->message ?? '';
+
+        switch ($log->channel) {
+            case 'sms':
+                if (!empty($log->recipient_phone)) {
+                    $smsRes = $this->smsDriver->sendSms($log->recipient_phone, "Fab Homes: {$title} - {$message}");
+                    $log->status = ($smsRes['success'] ?? false) ? 'delivered' : 'failed';
+                    $log->gateway_message_id = $smsRes['message_id'] ?? $log->gateway_message_id;
+                    $log->error_message = ($smsRes['success'] ?? false) ? null : ($smsRes['error'] ?? 'SMS Retry Failed');
+                    $log->dispatched_at = now();
+                }
+                break;
+
+            case 'email':
+                if (!empty($log->recipient_email)) {
+                    $emailRes = $this->emailDriver->sendEmail($log->recipient_email, $title, $message);
+                    $log->status = ($emailRes['success'] ?? false) ? 'delivered' : 'failed';
+                    $log->gateway_message_id = $emailRes['message_id'] ?? $log->gateway_message_id;
+                    $log->error_message = ($emailRes['success'] ?? false) ? null : ($emailRes['error'] ?? 'Email Retry Failed');
+                    $log->dispatched_at = now();
+                }
+                break;
+
+            case 'whatsapp':
+                if (!empty($log->recipient_phone)) {
+                    $template = $this->resolveWhatsAppTemplate($notification?->type ?? 'general');
+                    $waRes = $this->whatsappDriver->sendTemplateMessage($log->recipient_phone, $template, ['en_US']);
+                    $log->status = ($waRes['success'] ?? false) ? 'delivered' : 'failed';
+                    $log->gateway_message_id = $waRes['wamid'] ?? $log->gateway_message_id;
+                    $log->error_message = ($waRes['success'] ?? false) ? null : ($waRes['error'] ?? 'WhatsApp Retry Failed');
+                    $log->dispatched_at = now();
+                }
+                break;
+
+            case 'in_app':
+                $log->status = 'delivered';
+                $log->dispatched_at = now();
+                break;
+        }
+
+        $log->save();
+        return $log;
+    }
+
+    /**
+     * Aggregate notification analytics and telemetry
+     */
+    public function getNotificationAnalytics(array $filters = []): array
+    {
+        $totalDispatches = NotificationDispatchLog::count();
+        $deliveredCount = NotificationDispatchLog::where('status', 'delivered')->count();
+        $failedCount = NotificationDispatchLog::where('status', 'failed')->count();
+        $skippedCount = NotificationDispatchLog::where('status', 'skipped_preference')->count();
+
+        $successRate = ($deliveredCount + $failedCount) > 0
+            ? round(($deliveredCount / ($deliveredCount + $failedCount)) * 100, 1)
+            : 100.0;
+
+        $totalCostUgx = (float) NotificationDispatchLog::sum('cost_ugx');
+
+        $byChannel = NotificationDispatchLog::select('channel', DB::raw('count(*) as count'))
+            ->groupBy('channel')
+            ->pluck('count', 'channel')
+            ->toArray();
+
+        $byStatus = NotificationDispatchLog::select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        $byCategory = AppNotification::select('category', DB::raw('count(*) as count'))
+            ->groupBy('category')
+            ->pluck('count', 'category')
+            ->toArray();
+
+        // 7-day trend
+        $sevenDaysAgo = Carbon::now()->subDays(6)->startOfDay();
+        $dailyVolume = NotificationDispatchLog::select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('count(*) as count')
+            )
+            ->where('created_at', '>=', $sevenDaysAgo)
+            ->groupBy('date')
+            ->orderBy('date')
+            ->pluck('count', 'date')
+            ->toArray();
+
+        $recentFailures = NotificationDispatchLog::with('notification')
+            ->where('status', 'failed')
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        return [
+            'total_dispatches' => $totalDispatches,
+            'delivered_count' => $deliveredCount,
+            'failed_count' => $failedCount,
+            'skipped_count' => $skippedCount,
+            'success_rate' => $successRate,
+            'total_cost_ugx' => $totalCostUgx,
+            'by_channel' => $byChannel,
+            'by_status' => $byStatus,
+            'by_category' => $byCategory,
+            'daily_volume' => $dailyVolume,
+            'recent_failures' => $recentFailures,
+        ];
+    }
+
+    /**
+     * Send Campaign Broadcast to targeted client segments
+     */
+    public function sendCampaignBroadcast(array $params, ?User $sender = null): array
+    {
+        $title = $params['title'] ?? 'Announcement from Fab Homes';
+        $message = $params['message'] ?? '';
+        $segment = $params['target_segment'] ?? 'all_clients';
+        $channels = $params['channels'] ?? ['in_app', 'email'];
+        $category = $params['category'] ?? 'general';
+        $priority = $params['priority'] ?? 'normal';
+        $actionUrl = $params['action_url'] ?? null;
+
+        // Resolve recipients based on segment
+        $recipients = match ($segment) {
+            'active_savers' => User::whereHas('client.savingsAccounts', function ($q) {
+                $q->where('status', 'active');
+            })->get(),
+
+            'plot_holders' => User::whereHas('client.plotReservations', function ($q) {
+                $q->whereIn('status', ['confirmed', 'pending']);
+            })->get(),
+
+            'all_users' => User::where('status', 'active')->get(),
+
+            default => User::whereHas('client')->orWhereHas('roles', function ($q) {
+                $q->where('name', 'Client');
+            })->get(),
+        };
+
+        // Fallback: if no clients in segment, target active users or user $sender
+        if ($recipients->isEmpty() && $sender) {
+            $recipients = collect([$sender]);
+        }
+
+        $campaign = NotificationCampaign::create([
+            'created_by' => $sender?->id,
+            'title' => $title,
+            'message' => $message,
+            'target_segment' => $segment,
+            'channels' => $channels,
+            'category' => $category,
+            'priority' => $priority,
+            'action_url' => $actionUrl,
+            'total_targeted' => $recipients->count(),
+            'total_dispatched' => 0,
+            'total_failed' => 0,
+            'status' => 'completed',
+            'dispatched_at' => now(),
+        ]);
+
+        $dispatched = 0;
+        $failed = 0;
+
+        foreach ($recipients as $recipient) {
+            try {
+                $this->dispatchToUser($recipient, [
+                    'type' => 'system_notice',
+                    'title' => $title,
+                    'message' => $message,
+                    'category' => $category,
+                    'priority' => $priority,
+                    'action_url' => $actionUrl,
+                    'channels' => $channels,
+                    'data' => [
+                        'campaign_id' => $campaign->id,
+                        'campaign_uuid' => $campaign->uuid,
+                    ],
+                ]);
+                $dispatched++;
+            } catch (\Throwable $e) {
+                Log::error("Campaign broadcast dispatch failed for user {$recipient->id}: " . $e->getMessage());
+                $failed++;
+            }
+        }
+
+        $campaign->update([
+            'total_dispatched' => $dispatched,
+            'total_failed' => $failed,
+        ]);
+
+        return [
+            'campaign' => $campaign,
+            'total_targeted' => $recipients->count(),
+            'total_dispatched' => $dispatched,
+            'total_failed' => $failed,
+        ];
     }
 }

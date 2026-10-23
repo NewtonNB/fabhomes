@@ -496,13 +496,18 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/support/tickets/{identifier}/close', [ClientPortalDocumentController::class, 'closeTicket']);
     });
 
-    // Multi-Channel Notifications & Dispatch Logs (Phase 13 Day 1)
+    // Multi-Channel Notifications & Preferences (Phase 13 Day 1 & Day 5)
     Route::prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
         Route::get('/summary', [NotificationController::class, 'summary']);
+        Route::get('/preferences', [NotificationController::class, 'preferences']);
+        Route::put('/preferences', [NotificationController::class, 'updatePreferences']);
+        Route::get('/analytics', [NotificationController::class, 'analytics']);
+        Route::post('/campaign-broadcast', [NotificationController::class, 'sendCampaign']);
         Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
         Route::post('/dispatch-test', [NotificationController::class, 'dispatchTest']);
         Route::get('/dispatch-logs', [NotificationController::class, 'dispatchLogs']);
+        Route::post('/dispatch-logs/{id}/retry', [NotificationController::class, 'retryLog']);
         Route::post('/{identifier}/read', [NotificationController::class, 'markAsRead']);
         Route::post('/{identifier}/dismiss', [NotificationController::class, 'dismiss']);
     });
