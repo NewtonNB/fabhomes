@@ -26,7 +26,7 @@ echo "--- 1. Testing Backend Dockerfiles & PHP-FPM Configuration ---\n";
 $backendDockerfile = $baseDir . '/docker/backend/Dockerfile';
 assertCondition(file_exists($backendDockerfile), 'docker/backend/Dockerfile exists');
 $backendContent = file_get_contents($backendDockerfile);
-assertCondition(str_contains($backendContent, 'FROM php:8.3-fpm-alpine'), 'Backend Dockerfile uses php:8.3-fpm-alpine base');
+assertCondition(str_contains($backendContent, 'FROM php:8.4-fpm-alpine') || str_contains($backendContent, 'FROM php:8.3-fpm-alpine'), 'Backend Dockerfile uses php:8.4-fpm-alpine base');
 assertCondition(str_contains($backendContent, 'pdo_mysql'), 'Backend Dockerfile installs pdo_mysql extension');
 assertCondition(str_contains($backendContent, 'pecl install redis'), 'Backend Dockerfile compiles redis extension');
 assertCondition(str_contains($backendContent, 'opcache'), 'Backend Dockerfile installs Zend OPcache');

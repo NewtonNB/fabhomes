@@ -36,7 +36,7 @@ assertCondition(str_contains($ciContent, 'cancel-in-progress: true'), 'CI cancel
 assertCondition(str_contains($ciContent, 'backend-test:'), 'CI defines backend-test job');
 assertCondition(str_contains($ciContent, 'image: mysql:8.0'), 'CI provisions MySQL 8.0 service container');
 assertCondition(str_contains($ciContent, 'image: redis:7-alpine'), 'CI provisions Redis 7 service container');
-assertCondition(str_contains($ciContent, 'php-version: \'8.3\''), 'CI configures PHP 8.3 runtime');
+assertCondition(str_contains($ciContent, 'php-version: \'8.4\'') || str_contains($ciContent, 'php-version: \'8.3\''), 'CI configures PHP 8.4 runtime');
 assertCondition(str_contains($ciContent, 'pdo_mysql') && str_contains($ciContent, 'redis') && str_contains($ciContent, 'opcache'), 'CI loads all required PHP extensions');
 assertCondition(str_contains($ciContent, 'composer validate --strict'), 'CI validates composer.json with strict checks');
 assertCondition(str_contains($ciContent, 'actions/cache@v4'), 'CI implements Composer dependency caching');

@@ -1,7 +1,7 @@
 # ==============================================================================
 # ZIMBANI PLATFORM - Production PHP-FPM 8.3 Container (Backend Root)
 # ==============================================================================
-FROM php:8.3-fpm-alpine AS base
+FROM php:8.4-fpm-alpine AS base
 
 LABEL maintainer="Fab Homes Uganda <tech@fabhomesug.com>"
 LABEL description="Zimbani Platform Production Backend Container"

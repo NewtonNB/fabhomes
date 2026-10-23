@@ -1,10 +1,10 @@
 # ==============================================================================
 # ZIMBANI PLATFORM - Production PHP-FPM 8.3 Container
 # ==============================================================================
-FROM php:8.3-fpm-alpine AS base
+FROM php:8.4-fpm-alpine AS base
 
 LABEL maintainer="Fab Homes Uganda <tech@fabhomesug.com>"
-LABEL description="Zimbani Platform Production PHP-FPM 8.3 Container"
+LABEL description="Zimbani Platform Production PHP-FPM 8.4 Container"
 
 # Install system dependencies and build libraries
 RUN apk add --no-cache \

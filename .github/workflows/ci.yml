@@ -15,7 +15,7 @@ jobs:
   # 1. Backend Verification & Automated Test Suites
   # ============================================================================
   backend-test:
-    name: Backend Tests & Database Migrations (PHP 8.3 + MySQL 8 + Redis)
+    name: Backend Tests & Database Migrations (PHP 8.4 + MySQL 8 + Redis)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -39,10 +39,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup PHP Runtime (8.3)
+      - name: Setup PHP Runtime (8.4)
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           extensions: pdo_mysql, mbstring, zip, bcmath, redis, gd, intl, pcntl, opcache
           coverage: none
           tools: composer:v2
@@ -84,22 +84,12 @@ jobs:
         run: |
           cd zimbani-backend
           cp .env.example .env
-          echo "DB_CONNECTION=mysql" >> .env
-          echo "DB_HOST=127.0.0.1" >> .env
-          echo "DB_PORT=3306" >> .env
-          echo "DB_DATABASE=zimbani_test" >> .env
-          echo "DB_USERNAME=root" >> .env
-          echo "DB_PASSWORD=root_password_ci" >> .env
-          echo "CACHE_STORE=redis" >> .env
-          echo "REDIS_HOST=127.0.0.1" >> .env
-          echo "REDIS_PORT=6379" >> .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=zimbani_test/' .env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=root_password_ci/' .env
+          sed -i 's/CACHE_STORE=.*/CACHE_STORE=redis/' .env
           php artisan key:generate
-          # Ensure MySQL is ready to accept connections
-          for i in $(seq 1 30); do
-            nc -z 127.0.0.1 3306 && break
-            echo "Waiting for MySQL service container..."
-            sleep 1
-          done
+          # Ensure MySQL is ready to accept connections via PHP PDO
+          php -r 'for($i=0;$i<30;$i++){try{new PDO("mysql:host=127.0.0.1;port=3306;dbname=zimbani_test","root","root_password_ci");echo "MySQL is ready.\n";break;}catch(\Exception $e){echo "Waiting for MySQL...\n";sleep(1);}}'
           php artisan migrate --force
 
       - name: Execute Phase 14 Day 1 Verification Suite (OWASP Security & API Shield)
