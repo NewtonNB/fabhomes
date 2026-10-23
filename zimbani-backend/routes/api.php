@@ -56,6 +56,7 @@ use App\Http\Controllers\Api\PaymentSimulationReconciliationController;
 use App\Http\Controllers\Api\ExecutiveReportingController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\NotificationDripController;
+use App\Http\Controllers\Api\SecurityHardeningController;
 use App\Http\Controllers\Api\WhatsAppWebhookController;
 use App\Http\Controllers\Api\BroadcastingController;
 use Illuminate\Http\Request;
@@ -531,6 +532,13 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::get('/summary', [NotificationDripController::class, 'summary']);
         Route::get('/logs', [NotificationDripController::class, 'logs']);
         Route::post('/run-now', [NotificationDripController::class, 'runNow']);
+    });
+
+    // Enterprise Security Hardening & OWASP Compliance (Phase 14 Day 1)
+    Route::prefix('security')->group(function () {
+        Route::get('/health-check', [SecurityHardeningController::class, 'healthCheck']);
+        Route::get('/audit-logs', [SecurityHardeningController::class, 'auditLogs']);
+        Route::post('/simulate-threat', [SecurityHardeningController::class, 'simulateThreat']);
     });
 
     // Subcontractor Milestone Valuation & Interim Payment Linkages (Phase 8 Day 3)

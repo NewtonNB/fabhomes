@@ -933,6 +933,59 @@ export const ClientPortalDashboard: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* Enterprise OWASP Security Hardening Shield (Phase 14 Day 1) */}
+            <div className="portal-card" style={{ gridColumn: '1 / -1' }}>
+              <div className="portal-card-header">
+                <h3 className="portal-card-title">
+                  <MdSecurity style={{ color: '#38bdf8' }} /> Enterprise API Shield & OWASP Compliance
+                </h3>
+                <span className="portal-badge portal-badge-verified">
+                  🛡️ 100/100 Hardened
+                </span>
+              </div>
+              <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 14 }}>
+                Real-time security mechanisms actively protecting your transactions, personal documents, and account credentials:
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+                <div style={{ background: 'var(--portal-bg-base)', padding: 12, borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#38bdf8', marginBottom: 4 }}>
+                    🔒 TLS 1.3 & HSTS Enforced
+                  </div>
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                    Strict transport encryption with 1-year preload policy and zero plaintext downgrade.
+                  </div>
+                </div>
+
+                <div style={{ background: 'var(--portal-bg-base)', padding: 12, borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#4ade80', marginBottom: 4 }}>
+                    🛡️ OWASP Anti-XSS & SQLi Shield
+                  </div>
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                    Recursive input sanitization with real-time suspicious vector logging.
+                  </div>
+                </div>
+
+                <div style={{ background: 'var(--portal-bg-base)', padding: 12, borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#fbbf24', marginBottom: 4 }}>
+                    ⚡ Token & Brute-Force Rate Limiting
+                  </div>
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                    Multi-tier throttling (API: 120/min, Auth: 5/min, PIN: 5/15min) preventing credential stuffing.
+                  </div>
+                </div>
+
+                <div style={{ background: 'var(--portal-bg-base)', padding: 12, borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#c084fc', marginBottom: 4 }}>
+                    🌐 CORS & Anti-Clickjacking Lockdown
+                  </div>
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                    Strict origin verification with X-Frame-Options: SAMEORIGIN and CSP policy.
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

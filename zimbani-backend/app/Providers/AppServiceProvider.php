@@ -46,7 +46,10 @@ use App\Policies\PunchListItemPolicy;
 use App\Policies\SiteDailyLogPolicy;
 use App\Policies\SafetyIncidentPolicy;
 use App\Policies\SafetyToolboxTalkPolicy;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -111,5 +114,35 @@ class AppServiceProvider extends ServiceProvider
         foreach ($this->policies as $model => $policy) {
             Gate::policy($model, $policy);
         }
+
+        // Enterprise Rate Limiters & API Shielding (Phase 14 Day 1)
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(120)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('auth', function (Request $request) {
+            $email = (string) $request->input('email');
+            return Limit::perMinute(5)->by($email . '|' . $request->ip())->response(function (Request $request, array $headers) {
+                \App\Models\SecurityAuditLog::record(
+                    'rate_limit_exceeded',
+                    ['limiter' => 'auth', 'ip' => $request->ip(), 'email' => $request->input('email')],
+                    null,
+                    'warning',
+                    $request
+                );
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Too many authentication attempts. Rate limit exceeded. Please wait before retrying.',
+                ], 429, $headers);
+            });
+        });
+
+        RateLimiter::for('payments', function (Request $request) {
+            return Limit::perMinute(15)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('pin_verification', function (Request $request) {
+            return Limit::perMinutes(15, 5)->by($request->user()?->id ?: $request->ip());
+        });
     }
 }
