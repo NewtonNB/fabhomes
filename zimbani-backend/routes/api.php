@@ -57,6 +57,7 @@ use App\Http\Controllers\Api\ExecutiveReportingController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\NotificationDripController;
 use App\Http\Controllers\Api\SecurityHardeningController;
+use App\Http\Controllers\Api\PerformanceTuningController;
 use App\Http\Controllers\Api\WhatsAppWebhookController;
 use App\Http\Controllers\Api\BroadcastingController;
 use Illuminate\Http\Request;
@@ -539,6 +540,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::get('/health-check', [SecurityHardeningController::class, 'healthCheck']);
         Route::get('/audit-logs', [SecurityHardeningController::class, 'auditLogs']);
         Route::post('/simulate-threat', [SecurityHardeningController::class, 'simulateThreat']);
+    });
+
+    // Database Performance Tuning, Redis Caching & Universal FullText Search (Phase 14 Day 2)
+    Route::prefix('performance')->group(function () {
+        Route::get('/metrics', [PerformanceTuningController::class, 'metrics']);
+        Route::get('/search', [PerformanceTuningController::class, 'search']);
+        Route::post('/cache/flush', [PerformanceTuningController::class, 'flushCache']);
+        Route::post('/benchmark', [PerformanceTuningController::class, 'benchmark']);
     });
 
     // Subcontractor Milestone Valuation & Interim Payment Linkages (Phase 8 Day 3)

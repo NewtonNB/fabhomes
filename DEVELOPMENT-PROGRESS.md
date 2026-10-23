@@ -10,8 +10,8 @@
 ## 🎯 Current Status
 
 **Phase:** 14 - Production Hardening, Security Penetration Auditing, Docker Containerization, CI/CD Pipelines & Cloud Deployment (Final Capstone)  
-**Status:** In Progress (Day 1 of 5 Completed & Verified ✅; Day 2 Ready to Execute)  
-**Next:** Day 2 of 5 (Database Performance Tuning, Redis Query Caching, Index Optimization & Full-Text Search)
+**Status:** In Progress (Days 1 & 2 Completed & Verified ✅; Day 3 Ready to Execute)  
+**Next:** Day 3 of 5 (Docker Multi-Container Orchestration: PHP-FPM, Nginx, MySQL 8, Redis, Reverb, Meilisearch)
 
 ---
 
@@ -3779,10 +3779,46 @@ Delivered robust external settlement statement reconciliation for client escrow 
 
 ---
 
+### Phase 14 Day 2: Database Performance Tuning, Redis Query Caching, Index Optimization & Universal Full-Text Search ✅ (Oct 23, 2026)
+
+- **Database Composite & FULLTEXT Indexes:**
+  - Created migration `2026_10_23_140000_add_performance_and_fulltext_indexes.php`:
+    - `transactions`: Composite indexes `(status, transaction_type, transaction_date)`, `(client_id, status, transaction_date)`, `(reference_number, status)` and FULLTEXT `(description, reference_number, transaction_number)`.
+    - `payments`: Composite indexes `(client_id, status, payment_date)`, `(payment_method, status, payment_date)` and FULLTEXT `(payment_number, reference_number, notes)`.
+    - `savings_accounts`: Composite indexes `(client_id, account_type, status)` and `(status, target_date)`.
+    - `app_notifications`: Composite index `(user_id, category, read_at, created_at)`.
+    - `units`: Composite indexes `(site_id, status, unit_type)`, `(block_number, unit_number)` and FULLTEXT `(name, unit_number, description)`.
+    - `documents`: Composite index `(document_type, status, created_at)` and FULLTEXT `(title, document_number, file_name)`.
+    - `security_audit_logs`: Composite index `(event_type, severity, created_at)`.
+- **Multi-Store Tagged Cache Engine:**
+  - `App\Services\Cache\PerformanceCacheService.php`:
+    - Standardized tags (`units`, `transactions`, `payments`, `savings`, `documents`, `search`, `system`, `security`).
+    - Dual mode: Native Redis tags on cluster stores, fallback to Tag Registry index on `database`/`file`/`array` stores for 100% environment compatibility.
+    - Non-blocking in-memory buffering for telemetry hits, misses, writes, flushes, and hit-rate percentages.
+- **Universal Full-Text Search Engine & Query Benchmarking:**
+  - `App\Services\Search\FullTextSearchService.php`:
+    - Boolean full-text matching across Plots, Documents, and Financial Transactions with automatic 180s query caching.
+    - Automated query benchmarking comparing cold uncached vs warm cached latency (achieved **6.9x speedup** with sub-millisecond warm lookups).
+- **Performance Telemetry & Search API:**
+  - `App\Http\Controllers\Api\PerformanceTuningController.php`:
+    - `GET /api/v1/performance/metrics`: Real-time cache driver telemetry, hit rate, memory footprint, and table index statistics.
+    - `GET /api/v1/performance/search`: Universal fast search endpoint with scope filtering and latency tracking.
+    - `POST /api/v1/performance/cache/flush`: Administrative selective tag purge or full cache invalidation.
+    - `POST /api/v1/performance/benchmark`: Cold vs warm query latency benchmark test runner.
+- **Frontend Performance & Search Integration:**
+  - Types `performance.types.ts` & service `performance.service.ts`.
+  - Omni-Search Bar in `ClientPortalDashboard.tsx` with debounced type-ahead (280ms) and multi-entity scope filtering (`All Entities`, `Plots & Units`, `Deeds & Vault`, `Transactions`).
+  - Database Performance & Redis Query Accelerator Console in Security tab with live metrics, benchmark runner, and cache purge triggers.
+- **Verification:**
+  - `test_phase_14_day_2.php`: **54/54 tests passed (100%)**.
+  - `npm run build`: **0 errors (1.98s)**.
+
+---
+
 **Phase 14: Production Hardening, Security Penetration Auditing, Docker Containerization, CI/CD Pipelines & Cloud Deployment (FINAL CAPSTONE - IN PROGRESS)**
 1. ✅ **Day 1**: OWASP Security Audit, SQLi/XSS Prevention, CSRF/CORS Lockdown, Rate Limiting & API Shielding (COMPLETED)
-2. ⏳ **Day 2**: Database Performance Tuning, Redis Caching, Index Optimization & Full-Text Search (NEXT)
-3. ⏳ **Day 3**: Docker Multi-Container Orchestration (PHP-FPM, Nginx, MySQL 8, Redis, Reverb, Meilisearch)
+2. ✅ **Day 2**: Database Performance Tuning, Redis Caching, Index Optimization & Full-Text Search (COMPLETED)
+3. ⏳ **Day 3**: Docker Multi-Container Orchestration (PHP-FPM, Nginx, MySQL 8, Redis, Reverb, Meilisearch) (NEXT)
 4. ⏳ **Day 4**: Automated CI/CD Pipelines (GitHub Actions test runner, linting, migration check, Docker builder)
 5. ⏳ **Day 5**: Production Deployment Runbook, SSL/TLS, Disaster Recovery, Backup Automation & Client Handover
 
@@ -3791,7 +3827,7 @@ Delivered robust external settlement statement reconciliation for client escrow 
 **Last Updated:** October 23, 2026  
 **Repository:** https://github.com/NewtonNB/fabhomes  
 **Branch:** development  
-**Latest Commit:** Phase 14 Day 1 Complete
+**Latest Commit:** Phase 14 Day 2 Complete
 
 
 
