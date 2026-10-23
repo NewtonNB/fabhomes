@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { siteService } from '../../services/site.service';
 import { Site, SiteFilters } from '../../types/site.types';
 import { PaginationMeta } from '../../types/common.types';
@@ -7,6 +7,8 @@ import './SitesList.css';
 
 const SitesList: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isEstates = location.pathname.startsWith('/estates');
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,14 +103,14 @@ const SitesList: React.FC = () => {
     <div className="sites-list-container">
       <div className="page-header">
         <div>
-          <h1>Sites Management</h1>
-          <p className="page-description">Manage project sites and locations</p>
+          <h1>{isEstates ? 'Estates & Land Developments' : 'Sites Management'}</h1>
+          <p className="page-description">{isEstates ? 'Manage Fab Homes estates, acreage zonings, cadastral locations, and masterplans' : 'Manage project sites and locations'}</p>
         </div>
         <button 
           className="btn btn-primary"
-          onClick={() => navigate('/sites/new')}
+          onClick={() => navigate(isEstates ? '/estates/new' : '/sites/new')}
         >
-          <span className="icon">+</span> Add New Site
+          <span className="icon">+</span> {isEstates ? 'Add New Estate' : 'Add New Site'}
         </button>
       </div>
 
@@ -124,7 +126,7 @@ const SitesList: React.FC = () => {
           <div className="search-input-group">
             <input
               type="text"
-              placeholder="Search sites by name, code, or location..."
+              placeholder={isEstates ? "Search estates by name, code, or location..." : "Search sites by name, code, or location..."}
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               className="search-input"
@@ -193,9 +195,9 @@ const SitesList: React.FC = () => {
 
       <div className="table-card">
         <div className="table-header">
-          <h2>Sites List</h2>
+          <h2>{isEstates ? 'Estates Directory' : 'Sites List'}</h2>
           <span className="record-count">
-            Showing {pagination.from} to {pagination.to} of {pagination.total} sites
+            Showing {pagination.from} to {pagination.to} of {pagination.total} {isEstates ? 'estates' : 'sites'}
           </span>
         </div>
 
@@ -203,13 +205,13 @@ const SitesList: React.FC = () => {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Site Code</th>
-                <th>Site Name</th>
+                <th>{isEstates ? 'Estate Code' : 'Site Code'}</th>
+                <th>{isEstates ? 'Estate Name' : 'Site Name'}</th>
                 <th>Project</th>
                 <th>Location</th>
                 <th>Size</th>
-                <th>Total Units</th>
-                <th>Site Value</th>
+                <th>{isEstates ? 'Total Plots' : 'Total Units'}</th>
+                <th>{isEstates ? 'Estate Value' : 'Site Value'}</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -218,7 +220,7 @@ const SitesList: React.FC = () => {
               {sites.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="no-data">
-                    No sites found. Click "Add New Site" to create one.
+                    {isEstates ? 'No estates found. Click "Add New Estate" to create one.' : 'No sites found. Click "Add New Site" to create one.'}
                   </td>
                 </tr>
               ) : (
@@ -267,14 +269,14 @@ const SitesList: React.FC = () => {
                     <td>
                       <div className="action-buttons">
                         <button
-                          onClick={() => navigate(`/sites/${site.id}`)}
+                          onClick={() => navigate(isEstates ? `/estates/${site.id}` : `/sites/${site.id}`)}
                           className="btn-icon"
                           title="View Details"
                         >
                           👁️
                         </button>
                         <button
-                          onClick={() => navigate(`/sites/${site.id}/edit`)}
+                          onClick={() => navigate(isEstates ? `/estates/${site.id}/edit` : `/sites/${site.id}/edit`)}
                           className="btn-icon"
                           title="Edit"
                         >

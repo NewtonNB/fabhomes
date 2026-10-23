@@ -47,6 +47,10 @@ import PaymentDetails from './pages/payments/PaymentDetails'
 
 // Document Pages
 import DocumentsPage from './pages/documents/DocumentsPage'
+import LandTitlesPage from './pages/land-titles/LandTitlesPage'
+import ReconciliationPage from './pages/reconciliation/ReconciliationPage'
+import EstateMapPage from './pages/estate-map/EstateMapPage'
+import SupportTicketsPage from './pages/support-tickets/SupportTicketsPage'
 
 // Task Pages
 import TasksList from './pages/tasks/TasksList'
@@ -206,6 +210,40 @@ function App() {
               }
             />
 
+            {/* Estates Routes (Fab Homes Uganda Domain) */}
+            <Route
+              path="estates"
+              element={
+                <PermissionRoute permission="view sites">
+                  <SitesList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="estates/new"
+              element={
+                <PermissionRoute permission="create sites">
+                  <SiteForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="estates/:id"
+              element={
+                <PermissionRoute permission="view sites">
+                  <SiteDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="estates/:id/edit"
+              element={
+                <PermissionRoute permission="edit sites">
+                  <SiteForm />
+                </PermissionRoute>
+              }
+            />
+
             {/* Sites Routes */}
             <Route
               path="sites"
@@ -236,6 +274,60 @@ function App() {
               element={
                 <PermissionRoute permission="edit sites">
                   <SiteForm />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Plots Routes (Fab Homes Uganda Domain) */}
+            <Route
+              path="plots"
+              element={
+                <PermissionRoute permission="view units">
+                  <UnitsList />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="plots/new"
+              element={
+                <PermissionRoute permission="create units">
+                  <UnitForm />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="plots/:uuid"
+              element={
+                <PermissionRoute permission="view units">
+                  <UnitDetails />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="plots/:uuid/edit"
+              element={
+                <PermissionRoute permission="edit units">
+                  <UnitForm />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Land Titles & Cadastral Deeds (Surveyor Manager & Land Ops) */}
+            <Route
+              path="land-titles"
+              element={
+                <PermissionRoute permission="view sites">
+                  <LandTitlesPage />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Interactive Estate Map & Plot Allocations */}
+            <Route
+              path="estate-map"
+              element={
+                <PermissionRoute permission="view sites">
+                  <EstateMapPage />
                 </PermissionRoute>
               }
             />
@@ -308,6 +400,16 @@ function App() {
               }
             />
 
+            {/* Customer Support Desk (Support Officer & Client Relations) */}
+            <Route
+              path="support-tickets"
+              element={
+                <PermissionRoute permission="view clients">
+                  <SupportTicketsPage />
+                </PermissionRoute>
+              }
+            />
+
             {/* Payments Routes */}
             <Route
               path="payments"
@@ -338,6 +440,24 @@ function App() {
               element={
                 <PermissionRoute permission="edit payments">
                   <PaymentForm isEdit={true} />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Bank & MoMo Reconciliation Desk */}
+            <Route
+              path="reconciliation"
+              element={
+                <PermissionRoute permission="view payments">
+                  <ReconciliationPage />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="reconciliation/escrow"
+              element={
+                <PermissionRoute permission="view payments">
+                  <ReconciliationPage />
                 </PermissionRoute>
               }
             />

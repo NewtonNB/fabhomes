@@ -29,7 +29,7 @@ export const SavingsAccountsList: React.FC = () => {
   const [searchParams] = useSearchParams()
 
   const initialClientId = searchParams.get('client_id') || ''
-  const initialType = searchParams.get('account_type') || ''
+  const initialType = searchParams.get('account_type') || searchParams.get('type') || ''
   const initialStatus = searchParams.get('status') || ''
 
   // Data & Stats
@@ -132,6 +132,14 @@ export const SavingsAccountsList: React.FC = () => {
     fetchAccounts()
   }, [fetchAccounts])
 
+  useEffect(() => {
+    const typeParam = searchParams.get('account_type') || searchParams.get('type') || ''
+    setSelectedType(typeParam)
+    const statusParam = searchParams.get('status') || ''
+    setSelectedStatus(statusParam)
+    setPage(1)
+  }, [searchParams])
+
   // Quick Action Handlers
   const handleActivate = async (account: SavingsAccount) => {
     if (!window.confirm(`Activate savings account ${account.account_number}?`)) return
@@ -229,10 +237,19 @@ export const SavingsAccountsList: React.FC = () => {
       <div className="savings-header">
         <div className="savings-title-group">
           <h1>
-            <MdAccountBalance /> Client Savings Accounts & Scheme Enrolment
+            <MdAccountBalance />{' '}
+            {selectedType === 'land_saving'
+              ? 'Land Saving Scheme Portfolio'
+              : selectedType === 'construction_saving'
+              ? 'Construction Saving Scheme Portfolio'
+              : 'Client Savings Accounts & Schemes'}
           </h1>
           <p className="savings-subtitle">
-            Manage land and construction client installment schemes, track target progress, and monitor fund accumulation.
+            {selectedType === 'land_saving'
+              ? 'Track client land installment savings, target parcel deposits, and title deed qualification across Fab Homes estates.'
+              : selectedType === 'construction_saving'
+              ? 'Track client home construction savings pools, structural milestone accumulation, and escrow releases.'
+              : 'Manage land and construction client installment schemes, track target progress, and monitor fund accumulation.'}
           </p>
         </div>
 

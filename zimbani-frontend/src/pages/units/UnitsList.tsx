@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { unitService } from '../../services/unit.service';
 import { Unit, UnitFilters } from '../../types/unit.types';
 import { PaginationMeta } from '../../types/common.types';
@@ -8,6 +8,8 @@ import './UnitsList.css';
 const UnitsList: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const isPlots = location.pathname.startsWith('/plots');
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -107,14 +109,14 @@ const UnitsList: React.FC = () => {
     <div className="units-list-container">
       <div className="page-header">
         <div>
-          <h1>Units Management</h1>
-          <p className="page-description">Manage property units and inventory</p>
+          <h1>{isPlots ? 'Plots & Estate Allocations' : 'Units Management'}</h1>
+          <p className="page-description">{isPlots ? 'Manage land parcels, demarcations, reservation statuses, and client allocations across Fab Homes estates' : 'Manage property units and inventory'}</p>
         </div>
         <button 
           className="btn btn-primary"
-          onClick={() => navigate('/units/new')}
+          onClick={() => navigate(isPlots ? '/plots/new' : '/units/new')}
         >
-          <span className="icon">+</span> Add New Unit
+          <span className="icon">+</span> {isPlots ? 'Add New Plot' : 'Add New Unit'}
         </button>
       </div>
 
@@ -130,7 +132,7 @@ const UnitsList: React.FC = () => {
           <div className="search-input-group">
             <input
               type="text"
-              placeholder="Search units by number, name, or block..."
+              placeholder={isPlots ? 'Search plots by number, name, or block...' : 'Search units by number, name, or block...'}
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               className="search-input"
@@ -231,9 +233,9 @@ const UnitsList: React.FC = () => {
 
       <div className="table-card">
         <div className="table-header">
-          <h2>Units List</h2>
+          <h2>{isPlots ? 'Plots Inventory' : 'Units List'}</h2>
           <span className="record-count">
-            Showing {pagination.from} to {pagination.to} of {pagination.total} units
+            Showing {pagination.from} to {pagination.to} of {pagination.total} {isPlots ? 'plots' : 'units'}
           </span>
         </div>
 
@@ -241,12 +243,12 @@ const UnitsList: React.FC = () => {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Unit No.</th>
-                <th>Unit Name</th>
-                <th>Type</th>
+                <th>{isPlots ? 'Plot No.' : 'Unit No.'}</th>
+                <th>{isPlots ? 'Plot Name' : 'Unit Name'}</th>
+                <th>{isPlots ? 'Plot Type' : 'Type'}</th>
                 <th>Size</th>
                 <th>Bedrooms</th>
-                <th>Price</th>
+                <th>{isPlots ? 'Plot Price' : 'Price'}</th>
                 <th>Status</th>
                 <th>Progress</th>
                 <th>Actions</th>
@@ -256,7 +258,7 @@ const UnitsList: React.FC = () => {
               {units.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="no-data">
-                    No units found. Click "Add New Unit" to create one.
+                    {isPlots ? 'No plots found. Click "Add New Plot" to create one.' : 'No units found. Click "Add New Unit" to create one.'}
                   </td>
                 </tr>
               ) : (
@@ -315,14 +317,14 @@ const UnitsList: React.FC = () => {
                     <td>
                       <div className="action-buttons">
                         <button
-                          onClick={() => navigate(`/units/${unit.uuid || unit.id}`)}
+                          onClick={() => navigate(isPlots ? `/plots/${unit.uuid || unit.id}` : `/units/${unit.uuid || unit.id}`)}
                           className="btn-icon"
                           title="View Details"
                         >
                           👁️
                         </button>
                         <button
-                          onClick={() => navigate(`/units/${unit.uuid || unit.id}/edit`)}
+                          onClick={() => navigate(isPlots ? `/plots/${unit.uuid || unit.id}/edit` : `/units/${unit.uuid || unit.id}/edit`)}
                           className="btn-icon"
                           title="Edit"
                         >

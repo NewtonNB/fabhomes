@@ -18,13 +18,18 @@ import {
   MdHealthAndSafety,
   MdAccountBalance,
   MdReceiptLong,
-  MdHandshake,
+
   MdRequestQuote,
   MdAccountBalanceWallet,
   MdPayments,
   MdAssessment,
   MdVerified,
-  MdClose
+  MdClose,
+  MdLandscape,
+  MdMap,
+  MdCompareArrows,
+  MdLocationCity,
+  MdSupportAgent
 } from 'react-icons/md'
 import './Sidebar.css'
 
@@ -92,123 +97,72 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       items: [
         {
           path: '/dashboard',
-          label: 'Dashboard',
+          label: 'Executive Dashboard',
           icon: <MdDashboard />,
         },
       ],
     },
     {
-      title: 'Projects & Properties',
+      title: 'Land & Estates',
       items: [
         {
-          path: '/projects',
-          label: 'Projects',
-          icon: <MdFolder />,
-          permission: 'view projects',
-        },
-        {
-          path: '/sites',
-          label: 'Sites',
-          icon: <MdConstruction />,
+          path: '/estates',
+          label: 'Estates & Parcels',
+          icon: <MdLocationCity />,
           permission: 'view sites',
         },
         {
-          path: '/units',
-          label: 'Units',
-          icon: <MdHome />,
+          path: '/plots',
+          label: 'Plots & Allocations',
+          icon: <MdLandscape />,
           permission: 'view units',
         },
-      ],
-    },
-    {
-      title: 'Construction & Operations',
-      items: [
         {
-          path: '/tasks',
-          label: 'Tasks & Milestones',
-          icon: <MdAssignment />,
-          permission: 'view tasks',
+          path: '/land-titles',
+          label: 'Land Titles & Deeds',
+          icon: <MdVerified />,
+          permission: 'view sites',
         },
         {
-          path: '/materials',
-          label: 'Materials & Inventory',
-          icon: <MdInventory2 />,
-          permission: 'view materials',
-        },
-        {
-          path: '/equipment',
-          label: 'Equipment & Machinery',
-          icon: <MdPrecisionManufacturing />,
-          permission: 'view equipment',
-        },
-        {
-          path: '/inspections',
-          label: 'Quality & Inspections',
-          icon: <MdFactCheck />,
-          permission: 'view inspections',
-        },
-        {
-          path: '/daily-logs',
-          label: 'Daily Logs & Safety',
-          icon: <MdHealthAndSafety />,
-          permission: 'view daily-logs',
-        },
-        {
-          path: '/documents',
-          label: 'Documents',
-          icon: <MdDescription />,
-          permission: 'view documents',
+          path: '/estate-map',
+          label: 'Interactive Estate Map',
+          icon: <MdMap />,
+          permission: 'view sites',
         },
       ],
     },
     {
-      title: 'Clients & Sales',
+      title: 'Savings & Finance',
       items: [
         {
-          path: '/clients',
-          label: 'Clients',
-          icon: <MdPersonOutline />,
-          permission: 'view clients',
+          path: '/savings-accounts?type=land_saving',
+          label: 'Land Saving Scheme',
+          icon: <MdLandscape />,
+          permission: 'view accounts',
+        },
+        {
+          path: '/savings-accounts?type=construction_saving',
+          label: 'Construction Saving Scheme',
+          icon: <MdConstruction />,
+          permission: 'view accounts',
         },
         {
           path: '/savings-accounts',
-          label: 'Savings Accounts',
+          label: 'All Savings Accounts',
           icon: <MdAccountBalance />,
           permission: 'view accounts',
         },
         {
           path: '/payments',
-          label: 'Payments',
+          label: 'Payments & Collections',
           icon: <MdReceipt />,
           permission: 'view payments',
         },
         {
-          path: '/client-portal',
-          label: 'Client Portal PWA',
-          icon: <MdHome />,
-        },
-        {
-          path: '/client-portal/milestones',
-          label: 'Client Milestones',
-          icon: <MdVerified />,
-          permission: 'view sites',
-        },
-      ],
-    },
-    {
-      title: 'Finance & Cost Control',
-      items: [
-        {
-          path: '/contracts',
-          label: 'Subcontractors',
-          icon: <MdHandshake />,
-          permission: 'view contracts',
-        },
-        {
-          path: '/payment-certificates',
-          label: 'Payment Certificates',
-          icon: <MdRequestQuote />,
-          permission: 'view certificates',
+          path: '/transactions',
+          label: 'Financial Ledger',
+          icon: <MdReceiptLong />,
+          permission: 'view transactions',
         },
         {
           path: '/petty-cash',
@@ -223,10 +177,44 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           permission: 'view expenses',
         },
         {
-          path: '/transactions',
-          label: 'Financial Ledger',
-          icon: <MdReceiptLong />,
-          permission: 'view transactions',
+          path: '/payment-certificates',
+          label: 'Payment Certificates',
+          icon: <MdRequestQuote />,
+          permission: 'view certificates',
+        },
+      ],
+    },
+    {
+      title: 'Reconciliation',
+      items: [
+        {
+          path: '/reconciliation',
+          label: 'Bank & MoMo Reconciliation',
+          icon: <MdCompareArrows />,
+          permission: 'view payments',
+        },
+        {
+          path: '/reconciliation/escrow',
+          label: 'Escrow Milestone Matching',
+          icon: <MdFactCheck />,
+          permission: 'view payments',
+        },
+      ],
+    },
+    {
+      title: 'Construction Projects',
+      items: [
+        {
+          path: '/projects',
+          label: 'Construction Projects',
+          icon: <MdFolder />,
+          permission: 'view projects',
+        },
+        {
+          path: '/tasks',
+          label: 'Milestones & Tasks',
+          icon: <MdAssignment />,
+          permission: 'view tasks',
         },
         {
           path: '/milestone-releases',
@@ -235,8 +223,71 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           permission: 'view payments',
         },
         {
+          path: '/inspections',
+          label: 'Quality & Inspections',
+          icon: <MdFactCheck />,
+          permission: 'view inspections',
+        },
+        {
+          path: '/materials',
+          label: 'Materials & Inventory',
+          icon: <MdInventory2 />,
+          permission: 'view materials',
+        },
+        {
+          path: '/equipment',
+          label: 'Equipment & Machinery',
+          icon: <MdPrecisionManufacturing />,
+          permission: 'view equipment',
+        },
+        {
+          path: '/daily-logs',
+          label: 'Daily Logs & Safety',
+          icon: <MdHealthAndSafety />,
+          permission: 'view daily-logs',
+        },
+      ],
+    },
+    {
+      title: 'Clients & Support',
+      items: [
+        {
+          path: '/clients',
+          label: 'Client Directory (KYC)',
+          icon: <MdPersonOutline />,
+          permission: 'view clients',
+        },
+        {
+          path: '/documents',
+          label: 'Digital Document Vault',
+          icon: <MdDescription />,
+          permission: 'view documents',
+        },
+        {
+          path: '/support-tickets',
+          label: 'Customer Support Desk',
+          icon: <MdSupportAgent />,
+          permission: 'view clients',
+        },
+        {
+          path: '/client-portal',
+          label: 'Client Self-Service PWA',
+          icon: <MdHome />,
+        },
+        {
+          path: '/client-portal/milestones',
+          label: 'Client Milestone Portal',
+          icon: <MdVerified />,
+          permission: 'view sites',
+        },
+      ],
+    },
+    {
+      title: 'Reports & BI',
+      items: [
+        {
           path: '/financial-reports',
-          label: 'Financial Reports',
+          label: 'Financial & Scheme Analytics',
           icon: <MdAssessment />,
           permission: 'view transactions',
         },
@@ -251,19 +302,19 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
         items: [
           {
             path: '/admin/users',
-            label: 'Users',
+            label: 'Staff & Client Users',
             icon: <MdPeople />,
             permission: 'view users',
           },
           {
             path: '/admin/roles',
-            label: 'Roles & Permissions',
+            label: 'Roles & Granular RBAC',
             icon: <MdSecurity />,
             permission: 'view roles',
           },
           {
             path: '/admin/activities',
-            label: 'Activity Logs',
+            label: 'Security & Audit Logs',
             icon: <MdHistory />,
             permission: 'view activities',
           },
@@ -276,6 +327,12 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   const isActive = (path: string): boolean => {
     if (path === '/dashboard') {
       return location.pathname === path
+    }
+    if (path.includes('?')) {
+      return `${location.pathname}${location.search}` === path
+    }
+    if (path === '/savings-accounts') {
+      return location.pathname === '/savings-accounts' && !location.search.includes('type=')
     }
     return location.pathname.startsWith(path)
   }
