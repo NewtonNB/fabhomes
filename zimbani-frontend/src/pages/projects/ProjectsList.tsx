@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import projectService from '../../services/project.service'
 import { Project, ProjectFilters } from '../../types/project.types'
+import { ConstructionEstimatesModal } from '../../components/construction/ConstructionEstimatesModal'
 import './ProjectsList.css'
 
 const ProjectsList = () => {
@@ -12,6 +13,7 @@ const ProjectsList = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
+  const [selectedProjectForEstimates, setSelectedProjectForEstimates] = useState<string | null>(null)
   
   const [filters, setFilters] = useState<ProjectFilters>({
     search: '',
@@ -301,6 +303,7 @@ const ProjectsList = () => {
           )}
         </>
       )}
+      <ConstructionEstimatesModal isOpen={!!selectedProjectForEstimates} onClose={() => setSelectedProjectForEstimates(null)} projectName={selectedProjectForEstimates || ''} />
     </div>
   )
 }

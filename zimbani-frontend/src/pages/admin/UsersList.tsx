@@ -14,12 +14,14 @@ import {
   MdToggleOff
 } from 'react-icons/md'
 import adminService from '../../services/admin.service'
+import employeeService, { Employee } from '../../services/employee.service'
 import { AdminUser, UserFormData, Role } from '../../types/admin.types'
 import './UsersList.css'
 
 const UsersList: React.FC = () => {
   const [users, setUsers] = useState<AdminUser[]>([])
   const [roles, setRoles] = useState<Role[]>([])
+  const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
@@ -81,6 +83,7 @@ const UsersList: React.FC = () => {
   useEffect(() => {
     fetchUsers()
     fetchRoles()
+    employeeService.getEmployees({ per_page: 100 }).then(res => setEmployees(res.data || [])).catch(() => {})
   }, [roleFilter])
 
   const handleOpenCreateModal = () => {
@@ -92,6 +95,7 @@ const UsersList: React.FC = () => {
       password: '',
       status: 'active',
       roles: [],
+      employee_id: null,
     })
     setFormError(null)
     setIsModalOpen(true)
@@ -523,6 +527,35 @@ const UsersList: React.FC = () => {
             )}
 
             <form onSubmit={handleFormSubmit} className="modal-form-admin">
+              <div className="form-group-admin">
+                <label>Link to Employee Profile (Optional)</label>
+                <select
+                  value={formData.employee_id || ''}
+                  onChange={e => {
+                    const empId = e.target.value ? Number(e.target.value) : null;
+                    const chosen = employees.find(emp => emp.id === empId);
+                    if (chosen) {
+                      setFormData(prev => ({
+                        ...prev,
+                        employee_id: empId,
+                        name: prev.name || `${chosen.first_name} ${chosen.last_name}`,
+                        email: prev.email || chosen.email || '',
+                        phone: prev.phone || chosen.phone || '',
+                      }));
+                    } else {
+                      setFormData(prev => ({ ...prev, employee_id: empId }));
+                    }
+                  }}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                >
+                  <option value="">-- No Employee Linked (Independent Account) --</option>
+                  {employees.map(emp => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.first_name} {emp.last_name} ({emp.employee_number} - {emp.position || 'Staff'})
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="form-group-admin">
                 <label>Full Name *</label>
                 <input

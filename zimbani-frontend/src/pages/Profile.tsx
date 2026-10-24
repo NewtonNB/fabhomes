@@ -1,6 +1,7 @@
 import { useState, FormEvent, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { DigitalSignatureModal } from '../components/common/DigitalSignatureModal'
 import './Profile.css'
 
 const Profile = () => {
@@ -18,6 +19,7 @@ const Profile = () => {
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isSigModalOpen, setIsSigModalOpen] = useState(false)
 
   // Initialize form with user data
   useEffect(() => {
@@ -366,6 +368,36 @@ const Profile = () => {
             </div>
           </div>
 
+          <div className="signature-section" style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+            <h4 style={{ margin: '0 0 10px', fontSize: '15px', color: '#0f172a' }}>Official Digital Signature</h4>
+            <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 12px' }}>
+              Your digital signature is appended to authorized valuation certificates, deeds, statements, and payment vouchers.
+            </p>
+            {(user as any)?.signature_data ? (
+              <div style={{ marginBottom: '12px', padding: '10px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #cbd5e1', display: 'inline-block' }}>
+                <img 
+                  src={(user as any).signature_data} 
+                  alt="My Signature" 
+                  style={{ maxHeight: '70px', maxWidth: '240px', display: 'block', backgroundColor: '#fff', borderRadius: '4px' }} 
+                />
+              </div>
+            ) : (
+              <div style={{ marginBottom: '12px', fontSize: '13px', color: '#f59e0b', fontWeight: '500' }}>
+                ⚠️ No digital signature recorded yet.
+              </div>
+            )}
+            <div>
+              <button
+                type="button"
+                onClick={() => setIsSigModalOpen(true)}
+                className="btn btn-secondary"
+                style={{ fontSize: '13px', padding: '6px 14px' }}
+              >
+                {(user as any)?.signature_data ? 'Update Digital Signature' : 'Sign / Upload Signature'}
+              </button>
+            </div>
+          </div>
+
           <div className="danger-zone">
             <h4>Danger Zone</h4>
             <button 
@@ -378,6 +410,15 @@ const Profile = () => {
           </div>
         </div>
       </div>
+          {/* Digital Signature Pad Modal */}
+      <DigitalSignatureModal
+        isOpen={isSigModalOpen}
+        onClose={() => setIsSigModalOpen(false)}
+        onSuccess={() => {
+          setSuccess('Digital signature updated successfully!');
+          setTimeout(() => setSuccess(''), 4000);
+        }}
+      />
     </div>
   )
 }

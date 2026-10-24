@@ -59,16 +59,29 @@ class PaymentRefundDisputeService
                 $paymentIntent = PaymentIntent::where('intent_reference', $payment->reference_number)->first();
             }
 
+            $deductionPercentage = isset($data['deduction_percentage']) ? (float) $data['deduction_percentage'] : 0.00;
+            $deductionAmount = isset($data['deduction_amount']) ? (float) $data['deduction_amount'] : ($requestedAmount * ($deductionPercentage / 100));
+            $balanceAfterRefund = isset($data['balance_after_refund']) ? (float) $data['balance_after_refund'] : max(0, $availableForRefund - $requestedAmount);
+
             $refund = PaymentRefund::create([
                 'payment_id' => $payment->id,
                 'payment_intent_id' => $paymentIntent?->id,
                 'client_id' => $payment->client_id,
                 'savings_account_id' => $data['savings_account_id'] ?? $payment->savings_account_id,
+                'phase_name' => $data['phase_name'] ?? 'Phase 1',
+                'scheme_name' => $data['scheme_name'] ?? 'Mukono Greenfield',
+                'notice_date' => $data['notice_date'] ?? now()->toDateString(),
                 'amount' => $requestedAmount,
+                'deduction_percentage' => $deductionPercentage,
+                'deduction_amount' => $deductionAmount,
+                'balance_after_refund' => $balanceAfterRefund,
                 'currency' => $data['currency'] ?? $payment->currency ?? 'UGX',
                 'fee_refunded' => $data['fee_refunded'] ?? 0.00,
-                'reason_category' => $data['reason_category'] ?? 'other',
-                'reason_description' => $data['reason_description'] ?? 'Refund requested',
+                'reason_category' => $data['reason_category'] ?? 'client_cancellation',
+                'reason_description' => $data['reason_description'] ?? 'Savings withdrawal refund request',
+                'withdrawal_reason' => $data['withdrawal_reason'] ?? $data['reason_description'] ?? 'Client withdrawal',
+                'payment_method' => $data['payment_method'] ?? 'bank_transfer',
+                'notes' => $data['notes'] ?? null,
                 'status' => 'requested',
                 'requested_by' => $requestedBy ?? auth()->id() ?? 1,
                 'metadata' => $data['metadata'] ?? null,

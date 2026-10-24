@@ -6,6 +6,7 @@ export interface AdminUser {
   status: 'active' | 'inactive' | 'suspended' | 'pending'
   roles: string[]
   permissions?: string[]
+  employee_id?: number | null
   created_at: string
   updated_at: string
 }
@@ -17,6 +18,7 @@ export interface UserFormData {
   password?: string
   status?: 'active' | 'inactive' | 'suspended' | 'pending'
   roles?: string[]
+  employee_id?: number | null
 }
 
 export interface UserFilters {

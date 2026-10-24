@@ -13,6 +13,10 @@ return new class extends Migration
     protected function indexExists(string $table, string $indexName): bool
     {
         $connection = Schema::getConnection();
+        if ($connection->getDriverName() !== 'mysql') {
+            return false;
+        }
+
         $dbName = $connection->getDatabaseName();
         
         $result = DB::select(
@@ -29,6 +33,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        $connection = Schema::getConnection();
+        if ($connection->getDriverName() !== 'mysql') {
+            return; // Fulltext and advanced partitioning are MySQL-specific optimizations
+        }
+
         // 1. Transactions Performance & Composite Indexes
         if (Schema::hasTable('transactions')) {
             Schema::table('transactions', function (Blueprint $table) {
@@ -125,6 +134,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (Schema::getConnection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         if (Schema::hasTable('transactions')) {
             Schema::table('transactions', function (Blueprint $table) {
                 if ($this->indexExists('transactions', 'idx_tx_status_type_date')) $table->dropIndex('idx_tx_status_type_date');

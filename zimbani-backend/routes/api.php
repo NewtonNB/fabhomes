@@ -60,6 +60,9 @@ use App\Http\Controllers\Api\SecurityHardeningController;
 use App\Http\Controllers\Api\PerformanceTuningController;
 use App\Http\Controllers\Api\WhatsAppWebhookController;
 use App\Http\Controllers\Api\BroadcastingController;
+use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\MotherTitleController;
+use App\Http\Controllers\Api\CashBookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -335,11 +338,36 @@ Route::prefix('v1')->middleware(['auth:sanctum', app()->environment('production'
     Route::prefix('payment-refunds')->group(function () {
         Route::get('/', [PaymentRefundDisputeController::class, 'refunds']);
         Route::post('/', [PaymentRefundDisputeController::class, 'requestRefund']);
+        Route::post('/calculate-deduction', [PaymentRefundDisputeController::class, 'calculateDeduction']);
         Route::get('/{identifier}', [PaymentRefundDisputeController::class, 'showRefund']);
         Route::post('/{identifier}/approve', [PaymentRefundDisputeController::class, 'approveRefund']);
         Route::post('/{identifier}/reject', [PaymentRefundDisputeController::class, 'rejectRefund']);
         Route::post('/{identifier}/execute', [PaymentRefundDisputeController::class, 'executeRefund']);
     });
+
+    // CashBook Management (Manual Section 9: Overall CashBook & Saving CashBook)
+    Route::prefix('cashbook')->group(function () {
+        Route::get('/overall', [CashBookController::class, 'overallCashBook']);
+        Route::get('/savings', [CashBookController::class, 'savingCashBook']);
+        Route::post('/add-or-draw', [CashBookController::class, 'addOrDrawCash']);
+    });
+
+    // Mother Titles & Cadastral Subdivision (Manual Section 6)
+    Route::get('/mother-titles/subdivisions', [MotherTitleController::class, 'subdivisions']);
+    Route::apiResource('mother-titles', MotherTitleController::class);
+    Route::post('/mother-titles/{id}/transfer', [MotherTitleController::class, 'recordTransfer']);
+    Route::post('/mother-title-transfers/{id}/return', [MotherTitleController::class, 'returnTransfer']);
+
+    // Employees & Department HR Management (Manual Section 10)
+    Route::prefix('employees')->group(function () {
+        Route::get('/statistics', [EmployeeController::class, 'statistics']);
+        Route::get('/departments', [EmployeeController::class, 'departments']);
+        Route::post('/departments', [EmployeeController::class, 'storeDepartment']);
+        Route::get('/leave-requests', [EmployeeController::class, 'leaveRequests']);
+        Route::post('/leave-requests', [EmployeeController::class, 'storeLeaveRequest']);
+        Route::post('/leave-requests/{id}/status', [EmployeeController::class, 'updateLeaveStatus']);
+    });
+    Route::apiResource('employees', EmployeeController::class);
 
     Route::prefix('payment-disputes')->group(function () {
         Route::get('/', [PaymentRefundDisputeController::class, 'disputes']);

@@ -75,6 +75,7 @@ class UserManagementController extends Controller
             'phone' => 'nullable|string|max:20|unique:users',
             'password' => 'required|string|min:8',
             'status' => 'sometimes|in:active,inactive,suspended,pending',
+            'employee_id' => 'nullable|exists:employees,id',
             'roles' => 'sometimes|array',
             'roles.*' => 'exists:roles,name',
         ]);
@@ -94,6 +95,7 @@ class UserManagementController extends Controller
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
             'status' => $request->status ?? 'pending',
+            'employee_id' => $request->employee_id,
         ]);
 
         // Assign roles if provided
@@ -148,6 +150,7 @@ class UserManagementController extends Controller
             'phone' => 'sometimes|nullable|string|max:20|unique:users,phone,' . $user->id,
             'password' => 'sometimes|required|string|min:8',
             'status' => 'sometimes|in:active,inactive,suspended,pending',
+            'employee_id' => 'sometimes|nullable|exists:employees,id',
         ]);
 
         if ($validator->fails()) {
@@ -158,7 +161,7 @@ class UserManagementController extends Controller
             ], 422);
         }
 
-        $data = $request->only(['name', 'email', 'phone', 'status']);
+        $data = $request->only(['name', 'email', 'phone', 'status', 'employee_id']);
 
         if ($request->has('password')) {
             $data['password'] = Hash::make($request->password);

@@ -78,6 +78,38 @@ class PaymentRefundDisputeController extends Controller
     }
 
     /**
+     * Calculate refund deduction and balance according to manual rules.
+     */
+    public function calculateDeduction(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'amount_paid' => 'required|numeric|min:0',
+            'requested_amount' => 'required|numeric|min:0',
+            'deduction_percentage' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $amountPaid = (float) $validated['amount_paid'];
+        $requestedAmount = (float) $validated['requested_amount'];
+        $deductionPct = (float) $validated['deduction_percentage'];
+
+        $deductionAmount = round($requestedAmount * ($deductionPct / 100), 2);
+        $netPayableToClient = max(0, round($requestedAmount - $deductionAmount, 2));
+        $balanceAfterRefund = max(0, round($amountPaid - $requestedAmount, 2));
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'amount_paid' => $amountPaid,
+                'requested_amount' => $requestedAmount,
+                'deduction_percentage' => $deductionPct,
+                'deduction_amount' => $deductionAmount,
+                'net_payable_to_client' => $netPayableToClient,
+                'balance_after_refund' => $balanceAfterRefund,
+            ],
+        ]);
+    }
+
+    /**
      * Request a refund for a payment.
      */
     public function requestRefund(Request $request): JsonResponse
@@ -86,10 +118,19 @@ class PaymentRefundDisputeController extends Controller
             'payment_id' => 'required',
             'amount' => 'required|numeric|min:0.01',
             'currency' => 'nullable|string|size:3',
-            'reason_category' => 'required|in:escrow_surplus,duplicate_payment,client_cancellation,milestone_variation,disputed_chargeback,other',
-            'reason_description' => 'required|string|max:1000',
+            'reason_category' => 'nullable|in:escrow_surplus,duplicate_payment,client_cancellation,milestone_variation,disputed_chargeback,other',
+            'reason_description' => 'nullable|string|max:1000',
             'savings_account_id' => 'nullable|integer|exists:savings_accounts,id',
             'fee_refunded' => 'nullable|numeric|min:0',
+            'phase_name' => 'nullable|string|max:100',
+            'scheme_name' => 'nullable|string|max:100',
+            'notice_date' => 'nullable|date',
+            'deduction_percentage' => 'nullable|numeric|min:0|max:100',
+            'deduction_amount' => 'nullable|numeric|min:0',
+            'balance_after_refund' => 'nullable|numeric|min:0',
+            'withdrawal_reason' => 'nullable|string|max:1000',
+            'payment_method' => 'nullable|string|max:100',
+            'notes' => 'nullable|string|max:1000',
             'metadata' => 'nullable|array',
         ]);
 

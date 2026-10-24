@@ -29,7 +29,9 @@ import {
   MdMap,
   MdCompareArrows,
   MdLocationCity,
-  MdSupportAgent
+  MdSupportAgent,
+  MdMoneyOff,
+  MdBadge
 } from 'react-icons/md'
 import './Sidebar.css'
 
@@ -163,6 +165,18 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           label: 'Financial Ledger',
           icon: <MdReceiptLong />,
           permission: 'view transactions',
+        },
+        {
+          path: '/cashbook',
+          label: 'The CashBook',
+          icon: <MdAccountBalanceWallet />,
+          permission: 'view transactions',
+        },
+        {
+          path: '/client-refunds',
+          label: 'Client Refunds',
+          icon: <MdMoneyOff />,
+          permission: 'view payments',
         },
         {
           path: '/petty-cash',
@@ -300,6 +314,12 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
     ? {
         title: 'Administration',
         items: [
+          {
+            path: '/employees',
+            label: 'Employees & HR',
+            icon: <MdBadge />,
+            permission: 'view users',
+          },
           {
             path: '/admin/users',
             label: 'Staff & Client Users',

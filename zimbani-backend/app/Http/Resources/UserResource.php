@@ -23,6 +23,8 @@ class UserResource extends JsonResource
             'email_verified_at' => $this->email_verified_at,
             'last_login_at' => $this->last_login_at,
             'metadata' => $this->metadata,
+            'signature_data' => $this->signature_data,
+            'employee_id' => $this->employee_id,
             'roles' => $this->getRoleNames(),
             'permissions' => $this->when(
                 $request->user()?->hasRole('Super Admin') || $request->user()?->id === $this->id,

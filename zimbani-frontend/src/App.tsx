@@ -82,6 +82,9 @@ import SavingsAccountDetails from './pages/savings-accounts/SavingsAccountDetail
 
 // Financial Transactions & Ledger Pages
 import TransactionsList from './pages/transactions/TransactionsList'
+import CashBookPage from './pages/cashbook/CashBookPage'
+import ClientRefundsPage from './pages/refunds/ClientRefundsPage'
+import EmployeesPage from './pages/employees/EmployeesPage'
 import TransactionDetails from './pages/transactions/TransactionDetails'
 
 // Subcontractor Contracts & Payment Certificates Pages
@@ -510,6 +513,36 @@ function App() {
               element={
                 <PermissionRoute permission="transactions.view">
                   <TransactionDetails />
+                </PermissionRoute>
+              }
+            />
+
+            {/* The CashBook & Treasury Routes (Manual Section 9) */}
+            <Route
+              path="cashbook"
+              element={
+                <PermissionRoute roles={['Super Admin', 'Admin', 'Finance Manager', 'Finance Officer', 'Director']}>
+                  <CashBookPage />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Client Refunds & Withdrawal Desk (Manual Section 12) */}
+            <Route
+              path="client-refunds"
+              element={
+                <PermissionRoute roles={['Super Admin', 'Admin', 'Finance Manager', 'Finance Officer', 'Director']}>
+                  <ClientRefundsPage />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Employees & HR Management (Manual Section 10) */}
+            <Route
+              path="employees"
+              element={
+                <PermissionRoute roles={['Super Admin', 'Admin', 'Company Admin', 'Director', 'Finance Manager']}>
+                  <EmployeesPage />
                 </PermissionRoute>
               }
             />

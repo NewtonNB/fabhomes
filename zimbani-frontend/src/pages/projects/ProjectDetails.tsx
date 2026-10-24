@@ -4,6 +4,7 @@ import projectService from '../../services/project.service'
 import { Project } from '../../types/project.types'
 import { Site } from '../../types/site.types'
 import { MilestoneTracker } from '../../components/milestones/MilestoneTracker'
+import { ConstructionEstimatesModal } from '../../components/construction/ConstructionEstimatesModal'
 import './ProjectDetails.css'
 
 const ProjectDetails = () => {
@@ -14,6 +15,7 @@ const ProjectDetails = () => {
   const [sites, setSites] = useState<Site[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showEstimatesModal, setShowEstimatesModal] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -161,6 +163,7 @@ const ProjectDetails = () => {
           <button onClick={() => navigate('/projects')} className="btn btn-secondary">
             ← Back
           </button>
+          <button onClick={() => setShowEstimatesModal(true)} className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>📐 Estimates & BoQ</button>
           <Link to={`/projects/${project.uuid}/edit`} className="btn btn-primary">
             ✏️ Edit Project
           </Link>
@@ -461,6 +464,7 @@ const ProjectDetails = () => {
           <span className="timestamp-value">{new Date(project.updated_at).toLocaleString()}</span>
         </div>
       </div>
+      <ConstructionEstimatesModal isOpen={showEstimatesModal} onClose={() => setShowEstimatesModal(false)} projectName={project.name} />
     </div>
   )
 }

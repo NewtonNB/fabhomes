@@ -219,6 +219,22 @@ class ExecutiveReportingService
         $wonDisputes = PaymentDispute::where('status', 'won')->count();
         $disputeWinRate = $totalDisputes > 0 ? round(($wonDisputes / $totalDisputes) * 100, 1) : 100.0;
 
+        // Legacy Manual Dashboard KPIs:
+        // 1. Employees Demographic Breakdown
+        $empTotal = \App\Models\Employee::count();
+        $empMale = \App\Models\Employee::where('gender', 'male')->count();
+        $empFemale = \App\Models\Employee::where('gender', 'female')->count();
+
+        // 2. Construction Projects Breakdown
+        $projTotal = \App\Models\Project::count();
+        $projOngoing = \App\Models\Project::whereIn('status', ['active', 'planning', 'in_progress'])->count();
+        $projDone = \App\Models\Project::where('status', 'completed')->count();
+
+        // 3. Schemes Breakdown
+        $schemeTotal = \App\Models\ConstructionSavingScheme::count();
+        $schemeOngoing = \App\Models\ConstructionSavingScheme::where('is_active', true)->count();
+        $schemeClosed = \App\Models\ConstructionSavingScheme::where('is_active', false)->count();
+
         return [
             'month_to_date_revenue' => $monthToDateRevenue,
             'year_to_date_revenue' => $yearToDateRevenue,
@@ -226,6 +242,21 @@ class ExecutiveReportingService
             'retention_warranty_reserves' => $retentionReservesHeld,
             'active_clients_count' => $totalActiveClients,
             'dispute_win_rate_percentage' => $disputeWinRate,
+            'employees' => [
+                'total' => $empTotal,
+                'male' => $empMale,
+                'female' => $empFemale,
+            ],
+            'construction' => [
+                'total_projects' => $projTotal,
+                'ongoing' => $projOngoing,
+                'done' => $projDone,
+            ],
+            'schemes' => [
+                'total_schemes' => $schemeTotal,
+                'ongoing' => $schemeOngoing,
+                'closed' => $schemeClosed,
+            ],
             'currency' => 'UGX',
             'computed_at' => Carbon::now()->toIso8601String(),
         ];

@@ -31,6 +31,8 @@ class User extends Authenticatable
         'status',
         'last_login_at',
         'metadata',
+        'signature_data',
+        'employee_id',
         'company_id',
     ];
 
@@ -117,5 +119,13 @@ class User extends Authenticatable
     public function clientSecurityProfile()
     {
         return $this->hasOne(ClientSecurityProfile::class, 'user_id');
+    }
+
+    /**
+     * Get employee record linked to this user.
+     */
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class, 'employee_id');
     }
 }

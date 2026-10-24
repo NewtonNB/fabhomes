@@ -182,6 +182,8 @@ class AuthController extends Controller
             'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'sometimes|nullable|string|max:20|unique:users,phone,' . $user->id,
             'password' => 'sometimes|required|string|min:8|confirmed',
+            'signature_data' => 'sometimes|nullable|string',
+            'employee_id' => 'sometimes|nullable|exists:employees,id',
         ]);
 
         if ($validator->fails()) {
@@ -192,7 +194,7 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $data = $request->only(['name', 'email', 'phone']);
+        $data = $request->only(['name', 'email', 'phone', 'signature_data', 'employee_id']);
 
         if ($request->has('password')) {
             $data['password'] = Hash::make($request->password);
