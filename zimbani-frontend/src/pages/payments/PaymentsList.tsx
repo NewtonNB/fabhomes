@@ -12,6 +12,7 @@ import {
   MdVerified,
   MdRefresh,
   MdPayment,
+  MdPhoneIphone,
 } from 'react-icons/md'
 import { paymentService } from '../../services/payment.service'
 import { Payment, PaymentStatistics } from '../../types/payment.types'
@@ -292,7 +293,7 @@ const PaymentsList: React.FC = () => {
             gap: '8px',
           }}
         >
-          <span>📱</span>
+          <MdPhoneIphone size={18} />
           Mobile Money Console (MTN & Airtel)
         </button>
 
@@ -393,7 +394,9 @@ const PaymentsList: React.FC = () => {
       {/* Error Alert */}
       {error && (
         <div className="alert-box alert-error">
-          <span>⚠️ {error}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <MdWarning size={18} /> {error}
+          </span>
           <button onClick={() => setError(null)}>×</button>
         </div>
       )}

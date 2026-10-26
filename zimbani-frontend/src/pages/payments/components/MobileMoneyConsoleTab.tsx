@@ -10,6 +10,7 @@ import {
   MdAccountBalanceWallet,
   MdCallMade,
   MdCallReceived,
+  MdFlashOn,
 } from 'react-icons/md'
 import mobileMoneyService from '../../../services/mobile-money.service'
 import {
@@ -243,7 +244,7 @@ export const MobileMoneyConsoleTab: React.FC<Props> = ({ onRefreshParent }) => {
             <span>●</span> Airtel Money Gateway (UG)
           </div>
           <div className="mm-provider-badge mock">
-            <span>⚡</span> Automated Waterfall & Reconciliation Active
+            <MdFlashOn size={14} /> Automated Waterfall & Reconciliation Active
           </div>
         </div>
 

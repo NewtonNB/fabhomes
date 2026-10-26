@@ -18,6 +18,13 @@ import {
   MdBarChart,
   MdCampaign,
   MdReplay,
+  MdFiberManualRecord,
+  MdChat,
+  MdAttachMoney,
+  MdHourglassEmpty,
+  MdHandshake,
+  MdDoneAll,
+  MdDone,
 } from 'react-icons/md'
 import {
   AppNotificationItem,
@@ -590,7 +597,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
               color: activeTab === 'whatsapp' ? '#4ade80' : undefined,
             }}
           >
-            <span style={{ fontSize: '13px' }}>🟢</span> WhatsApp Cloud Stream
+            <MdFiberManualRecord style={{ fontSize: '13px', color: '#22c55e' }} /> WhatsApp Cloud Stream
           </button>
           <button
             className={`notification-filter-tab ${activeTab === 'drips' ? 'active' : ''}`}
@@ -643,7 +650,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
           ) : activeTab === 'whatsapp' ? (
             whatsappMessages.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>
-                <span style={{ fontSize: '42px', display: 'block', marginBottom: '8px' }}>💬</span>
+                <MdChat style={{ fontSize: '42px', display: 'block', margin: '0 auto 8px', color: '#4ade80' }} />
                 <h4 style={{ margin: '0 0 4px 0', color: '#f1f5f9' }}>No WhatsApp activity logged</h4>
                 <p style={{ margin: 0, fontSize: '13px' }}>
                   Outbound deposit receipts and inbound client commands will appear here in real-time.
@@ -687,9 +694,18 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                             fontSize: '11px',
                             fontWeight: 600,
                             color: msg.status === 'read' ? '#38bdf8' : msg.status === 'delivered' ? '#34d399' : '#fbbf24',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px',
                           }}
                         >
-                          {msg.status === 'read' ? '✓✓ Read' : msg.status === 'delivered' ? '✓✓ Delivered' : '✓ Sent'}
+                          {msg.status === 'read' ? (
+                            <><MdDoneAll size={14} /> Read</>
+                          ) : msg.status === 'delivered' ? (
+                            <><MdDoneAll size={14} /> Delivered</>
+                          ) : (
+                            <><MdDone size={14} /> Sent</>
+                          )}
                         </span>
                       </div>
 
@@ -797,7 +813,9 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
                 <div style={{ background: 'rgba(15, 23, 42, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9' }}>💰 Target Savings Reminders</span>
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <MdAttachMoney style={{ color: '#10b981' }} /> Target Savings Reminders
+                    </span>
                     <span style={{ fontSize: '10px', background: '#15803d', color: '#fff', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>ACTIVE</span>
                   </div>
                   <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#94a3b8' }}>
@@ -810,7 +828,9 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
 
                 <div style={{ background: 'rgba(15, 23, 42, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9' }}>⏳ Plot Expiry Countdown</span>
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <MdHourglassEmpty style={{ color: '#f59e0b' }} /> Plot Expiry Countdown
+                    </span>
                     <span style={{ fontSize: '10px', background: '#15803d', color: '#fff', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>ACTIVE</span>
                   </div>
                   <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#94a3b8' }}>
@@ -823,7 +843,9 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
 
                 <div style={{ background: 'rgba(15, 23, 42, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9' }}>🏗️ Milestone Inspection Sign-Off</span>
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <MdConstruction style={{ color: '#06b6d4' }} /> Milestone Inspection Sign-Off
+                    </span>
                     <span style={{ fontSize: '10px', background: '#15803d', color: '#fff', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>ACTIVE</span>
                   </div>
                   <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#94a3b8' }}>
@@ -836,7 +858,9 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
 
                 <div style={{ background: 'rgba(15, 23, 42, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9' }}>🤝 Dormant Account Re-engagement</span>
+                    <span style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <MdHandshake style={{ color: '#8b5cf6' }} /> Dormant Account Re-engagement
+                    </span>
                     <span style={{ fontSize: '10px', background: '#15803d', color: '#fff', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>ACTIVE</span>
                   </div>
                   <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#94a3b8' }}>

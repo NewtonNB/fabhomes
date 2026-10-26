@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import {
+  MdWarning,
+  MdArchitecture,
+  MdEdit,
+  MdDelete,
+  MdAttachMoney,
+  MdTrendingUp,
+  MdConstruction,
+  MdApartment,
+  MdVisibility,
+} from 'react-icons/md'
 import projectService from '../../services/project.service'
 import { Project } from '../../types/project.types'
 import { Site } from '../../types/site.types'
@@ -117,7 +128,7 @@ const ProjectDetails = () => {
     return (
       <div className="error-container">
         <div className="alert alert-error">
-          <span>⚠️</span>
+          <MdWarning size={18} />
           <span>{error || 'Project not found'}</span>
         </div>
         <button onClick={() => navigate('/projects')} className="btn btn-secondary">
@@ -163,12 +174,14 @@ const ProjectDetails = () => {
           <button onClick={() => navigate('/projects')} className="btn btn-secondary">
             ← Back
           </button>
-          <button onClick={() => setShowEstimatesModal(true)} className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>📐 Estimates & BoQ</button>
-          <Link to={`/projects/${project.uuid}/edit`} className="btn btn-primary">
-            ✏️ Edit Project
+          <button onClick={() => setShowEstimatesModal(true)} className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <MdArchitecture size={16} /> Estimates & BoQ
+          </button>
+          <Link to={`/projects/${project.uuid}/edit`} className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <MdEdit size={16} /> Edit Project
           </Link>
-          <button onClick={handleDelete} className="btn btn-danger">
-            🗑️ Delete
+          <button onClick={handleDelete} className="btn btn-danger" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <MdDelete size={16} /> Delete
           </button>
         </div>
       </div>
@@ -176,7 +189,7 @@ const ProjectDetails = () => {
       {/* Stats Cards */}
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon">💰</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdAttachMoney size={26} color="#16a34a" /></div>
           <div className="stat-content">
             <div className="stat-value">{formatCurrency(project.total_budget, project.currency)}</div>
             <div className="stat-label">Total Budget</div>
@@ -189,7 +202,7 @@ const ProjectDetails = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">📈</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdTrendingUp size={26} color="#0284c7" /></div>
           <div className="stat-content">
             <div className="stat-value">{project.progress_percentage || 0}%</div>
             <div className="stat-label">Project Progress</div>
@@ -203,7 +216,7 @@ const ProjectDetails = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">🏗️</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdConstruction size={26} color="#d97706" /></div>
           <div className="stat-content">
             <div className="stat-value">{project.sites_count !== undefined ? project.sites_count : sites.length}</div>
             <div className="stat-label">Associated Sites</div>
@@ -212,7 +225,7 @@ const ProjectDetails = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">🏢</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdApartment size={26} color="#6366f1" /></div>
           <div className="stat-content">
             <div className="stat-value">{project.units_count || 0}</div>
             <div className="stat-label">Total Units Planned</div>
@@ -441,7 +454,7 @@ const ProjectDetails = () => {
                           className="btn-icon"
                           title="View Site"
                         >
-                          👁️
+                          <MdVisibility size={18} />
                         </Link>
                       </td>
                     </tr>

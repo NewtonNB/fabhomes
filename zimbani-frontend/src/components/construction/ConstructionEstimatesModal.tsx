@@ -5,7 +5,8 @@ import {
   MdDelete,
   MdPrint,
   MdSave,
-  MdConstruction
+  MdConstruction,
+  MdCheckCircle,
 } from 'react-icons/md'
 
 interface LineItem {
@@ -421,8 +422,8 @@ export const ConstructionEstimatesModal: React.FC<ConstructionEstimatesModalProp
           </div>
 
           {savedSuccess && (
-            <div style={{ marginTop: '14px', padding: '10px', backgroundColor: '#ecfdf5', color: '#065f46', borderRadius: '6px', textAlign: 'center', fontSize: '13px', fontWeight: '600' }}>
-              ✓ Construction Estimate & Bill of Quantities saved successfully!
+            <div style={{ marginTop: '14px', padding: '10px', backgroundColor: '#ecfdf5', color: '#065f46', borderRadius: '6px', textAlign: 'center', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <MdCheckCircle size={16} color="#059669" /> Construction Estimate & Bill of Quantities saved successfully!
             </div>
           )}
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { MdVisibility, MdEdit, MdDelete, MdWarning } from 'react-icons/md'
 import projectService from '../../services/project.service'
 import { Project, ProjectFilters } from '../../types/project.types'
 import { ConstructionEstimatesModal } from '../../components/construction/ConstructionEstimatesModal'
@@ -171,7 +172,7 @@ const ProjectsList = () => {
 
       {error && (
         <div className="alert alert-error">
-          <span>⚠️</span>
+          <MdWarning size={18} />
           <span>{error}</span>
         </div>
       )}
@@ -253,21 +254,21 @@ const ProjectsList = () => {
                             className="btn-icon"
                             title="View"
                           >
-                            👁️
+                            <MdVisibility size={18} />
                           </button>
                           <button
                             onClick={() => navigate(`/projects/${project.uuid}/edit`)}
                             className="btn-icon"
                             title="Edit"
                           >
-                            ✏️
+                            <MdEdit size={18} />
                           </button>
                           <button
                             onClick={() => handleDelete(project.uuid, project.name)}
                             className="btn-icon btn-danger"
                             title="Delete"
                           >
-                            🗑️
+                            <MdDelete size={18} />
                           </button>
                         </div>
                       </td>

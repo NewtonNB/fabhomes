@@ -19,6 +19,7 @@ import {
   MdReceiptLong,
   MdAccountBalance,
   MdSync,
+  MdCheck,
 } from 'react-icons/md'
 import milestoneReleaseService from '../../services/milestone-release.service'
 import subcontractorMilestoneService from '../../services/subcontractor-milestone.service'
@@ -944,16 +945,18 @@ export const MilestoneReleasesList: React.FC = () => {
                         <span
                           className={`signoff-badge ${item.site_engineer_id ? 'completed' : 'pending'}`}
                           title={item.site_engineer ? `Signed by ${item.site_engineer.name}` : 'Awaiting Site Eng'}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}
                         >
-                          ENG {item.site_engineer_id ? '✓' : '—'}
+                          ENG {item.site_engineer_id ? <MdCheck size={11} /> : '—'}
                         </span>
                         <span
                           className={`signoff-badge ${item.quantity_surveyor_id ? 'completed' : 'pending'}`}
                           title={
                             item.quantity_surveyor ? `Certified by ${item.quantity_surveyor.name}` : 'Awaiting QS'
                           }
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}
                         >
-                          QS {item.quantity_surveyor_id ? '✓' : '—'}
+                          QS {item.quantity_surveyor_id ? <MdCheck size={11} /> : '—'}
                         </span>
                         <span
                           className={`signoff-badge ${
@@ -962,11 +965,12 @@ export const MilestoneReleasesList: React.FC = () => {
                               : 'pending'
                           }`}
                           title={`Client: ${item.client_approval_status}`}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}
                         >
                           CLIENT{' '}
                           {item.client_approval_status === 'approved' ||
                           item.client_approval_status === 'waived_by_admin'
-                            ? '✓'
+                            ? <MdCheck size={11} />
                             : '—'}
                         </span>
                       </div>
@@ -1213,7 +1217,9 @@ export const MilestoneReleasesList: React.FC = () => {
                         {formatCurrency(rel.retention_amount)} ({rel.retention_percentage}%)
                       </div>
                       {rel.retention_released_at ? (
-                        <span style={{ fontSize: '0.7rem', color: '#059669', fontWeight: 600 }}>Released ✓</span>
+                        <span style={{ fontSize: '0.7rem', color: '#059669', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                          <MdCheck size={11} /> Released
+                        </span>
                       ) : (
                         <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Held in Reserve</span>
                       )}
@@ -1278,8 +1284,8 @@ export const MilestoneReleasesList: React.FC = () => {
                         )}
 
                         {rel.status === 'disbursed' && rel.retention_released_at && (
-                          <span style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600, padding: '0.3rem' }}>
-                            Settled ✓
+                          <span style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600, padding: '0.3rem', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                            <MdCheck size={12} /> Settled
                           </span>
                         )}
                       </div>

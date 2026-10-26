@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import {
+  MdEdit,
+  MdDelete,
+  MdLocationOn,
+  MdStraighten,
+  MdApartment,
+  MdAttachMoney,
+  MdHome,
+  MdAssessment,
+  MdInventory2,
+  MdPrecisionManufacturing,
+  MdFactCheck,
+  MdHealthAndSafety,
+} from 'react-icons/md';
 import { siteService } from '../../services/site.service';
 import { Site } from '../../types/site.types';
 import './SiteDetails.css';
@@ -118,14 +132,16 @@ const SiteDetails: React.FC = () => {
           <button 
             onClick={() => navigate(`/sites/${site.id}/edit`)}
             className="btn btn-primary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            ✏️ Edit Site
+            <MdEdit size={16} /> Edit Site
           </button>
           <button 
             onClick={handleDelete}
             className="btn btn-danger"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            🗑️ Delete
+            <MdDelete size={16} /> Delete
           </button>
         </div>
       </div>
@@ -133,7 +149,7 @@ const SiteDetails: React.FC = () => {
       {/* Stats Cards */}
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon">📍</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdLocationOn size={26} color="#0d9488" /></div>
           <div className="stat-content">
             <div className="stat-label">Location</div>
             <div className="stat-value">{site.location}</div>
@@ -141,7 +157,7 @@ const SiteDetails: React.FC = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">📏</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdStraighten size={26} color="#0284c7" /></div>
           <div className="stat-content">
             <div className="stat-label">Site Size</div>
             <div className="stat-value">
@@ -151,7 +167,7 @@ const SiteDetails: React.FC = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">🏢</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdApartment size={26} color="#6366f1" /></div>
           <div className="stat-content">
             <div className="stat-label">Total Units</div>
             <div className="stat-value">{site.total_units || 0}</div>
@@ -159,7 +175,7 @@ const SiteDetails: React.FC = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">💰</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdAttachMoney size={26} color="#16a34a" /></div>
           <div className="stat-content">
             <div className="stat-label">Site Value</div>
             <div className="stat-value">{formatCurrency(site.total_site_value || 0)}</div>
@@ -308,7 +324,7 @@ const SiteDetails: React.FC = () => {
             className="action-button"
             onClick={() => navigate(`/units?site_id=${site.id}`)}
           >
-            <span className="action-icon">🏠</span>
+            <span className="action-icon"><MdHome size={22} color="#0d9488" /></span>
             <div>
               <div className="action-title">View Units</div>
               <div className="action-description">Manage units in this site</div>
@@ -318,7 +334,7 @@ const SiteDetails: React.FC = () => {
             className="action-button"
             onClick={() => navigate(`/projects/${site.project_id}`)}
           >
-            <span className="action-icon">📊</span>
+            <span className="action-icon"><MdAssessment size={22} color="#0284c7" /></span>
             <div>
               <div className="action-title">View Project</div>
               <div className="action-description">Go to parent project</div>
@@ -328,7 +344,7 @@ const SiteDetails: React.FC = () => {
             className="action-button"
             onClick={() => navigate(`/materials?site_id=${site.id}`)}
           >
-            <span className="action-icon">📦</span>
+            <span className="action-icon"><MdInventory2 size={22} color="#d97706" /></span>
             <div>
               <div className="action-title">Materials & Stock</div>
               <div className="action-description">Manage site inventory & requisitions</div>
@@ -338,7 +354,7 @@ const SiteDetails: React.FC = () => {
             className="action-button"
             onClick={() => navigate(`/equipment?site_id=${site.id}`)}
           >
-            <span className="action-icon">🚜</span>
+            <span className="action-icon"><MdPrecisionManufacturing size={22} color="#ea580c" /></span>
             <div>
               <div className="action-title">Equipment & Machinery</div>
               <div className="action-description">View fleet & operating hours on site</div>
@@ -348,7 +364,7 @@ const SiteDetails: React.FC = () => {
             className="action-button"
             onClick={() => navigate(`/inspections?site_id=${site.id}`)}
           >
-            <span className="action-icon">📋</span>
+            <span className="action-icon"><MdFactCheck size={22} color="#16a34a" /></span>
             <div>
               <div className="action-title">Quality & Inspections</div>
               <div className="action-description">Checklists, punch lists & defect tracking</div>
@@ -358,7 +374,7 @@ const SiteDetails: React.FC = () => {
             className="action-button"
             onClick={() => navigate(`/daily-logs?site_id=${site.id}`)}
           >
-            <span className="action-icon">🦺</span>
+            <span className="action-icon"><MdHealthAndSafety size={22} color="#4f46e5" /></span>
             <div>
               <div className="action-title">Daily Logs & Safety</div>
               <div className="action-description">Supervisor logs, safety incidents & toolbox talks</div>

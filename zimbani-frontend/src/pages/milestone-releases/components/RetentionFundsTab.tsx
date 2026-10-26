@@ -896,21 +896,27 @@ export const RetentionFundsTab: React.FC<RetentionFundsTabProps> = ({
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.75rem' }}>
                           <div>
                             {c.engineer_signed_at ? (
-                              <span style={{ color: '#16a34a' }}>✓ Eng Signed</span>
+                              <span style={{ color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                <MdCheckCircle size={12} /> Eng Signed
+                              </span>
                             ) : (
                               <span style={{ color: '#94a3b8' }}>○ Eng Pending</span>
                             )}
                           </div>
                           <div>
                             {c.qs_signed_at ? (
-                              <span style={{ color: '#16a34a' }}>✓ QS Signed</span>
+                              <span style={{ color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                <MdCheckCircle size={12} /> QS Signed
+                              </span>
                             ) : (
                               <span style={{ color: '#94a3b8' }}>○ QS Pending</span>
                             )}
                           </div>
                           <div>
                             {c.client_signed_at ? (
-                              <span style={{ color: '#16a34a' }}>✓ Client Signed</span>
+                              <span style={{ color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                <MdCheckCircle size={12} /> Client Signed
+                              </span>
                             ) : (
                               <span style={{ color: '#94a3b8' }}>○ Client Pending</span>
                             )}
@@ -1517,8 +1523,8 @@ export const RetentionFundsTab: React.FC<RetentionFundsTabProps> = ({
                   <div>
                     <div style={{ color: '#64748b' }}>Site Engineer</div>
                     {selectedCert.engineer_signed_at ? (
-                      <div style={{ color: '#16a34a', fontWeight: 600 }}>
-                        ✓ {selectedCert.engineer_signed_at.slice(0, 10)}
+                      <div style={{ color: '#16a34a', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <MdCheckCircle size={13} /> {selectedCert.engineer_signed_at.slice(0, 10)}
                       </div>
                     ) : (
                       <div style={{ color: '#eab308' }}>Pending Signature</div>
@@ -1527,8 +1533,8 @@ export const RetentionFundsTab: React.FC<RetentionFundsTabProps> = ({
                   <div>
                     <div style={{ color: '#64748b' }}>Quantity Surveyor</div>
                     {selectedCert.qs_signed_at ? (
-                      <div style={{ color: '#16a34a', fontWeight: 600 }}>
-                        ✓ {selectedCert.qs_signed_at.slice(0, 10)}
+                      <div style={{ color: '#16a34a', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <MdCheckCircle size={13} /> {selectedCert.qs_signed_at.slice(0, 10)}
                       </div>
                     ) : (
                       <div style={{ color: '#eab308' }}>Pending Signature</div>
@@ -1537,8 +1543,8 @@ export const RetentionFundsTab: React.FC<RetentionFundsTabProps> = ({
                   <div>
                     <div style={{ color: '#64748b' }}>Client / Developer</div>
                     {selectedCert.client_signed_at ? (
-                      <div style={{ color: '#16a34a', fontWeight: 600 }}>
-                        ✓ {selectedCert.client_signed_at.slice(0, 10)}
+                      <div style={{ color: '#16a34a', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <MdCheckCircle size={13} /> {selectedCert.client_signed_at.slice(0, 10)}
                       </div>
                     ) : (
                       <div style={{ color: '#eab308' }}>Pending Signature</div>

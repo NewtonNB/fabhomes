@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import {
+  MdWarning,
+  MdEdit,
+  MdDelete,
+  MdFolder,
+  MdPeople,
+  MdApartment,
+  MdBadge,
+} from 'react-icons/md'
 import companyService from '../../services/company.service'
 import { Company } from '../../types/company.types'
 import './CompanyDetails.css'
@@ -79,7 +88,7 @@ const CompanyDetails = () => {
     return (
       <div className="error-container">
         <div className="alert alert-error">
-          <span>⚠️</span>
+          <MdWarning size={18} />
           <span>{error || 'Company not found'}</span>
         </div>
         <button onClick={() => navigate('/companies')} className="btn btn-secondary">
@@ -112,11 +121,11 @@ const CompanyDetails = () => {
           <button onClick={() => navigate('/companies')} className="btn btn-secondary">
             ← Back
           </button>
-          <Link to={`/companies/${company.uuid}/edit`} className="btn btn-primary">
-            ✏️ Edit
+          <Link to={`/companies/${company.uuid}/edit`} className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <MdEdit size={16} /> Edit
           </Link>
-          <button onClick={handleDelete} className="btn btn-danger">
-            🗑️ Delete
+          <button onClick={handleDelete} className="btn btn-danger" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <MdDelete size={16} /> Delete
           </button>
         </div>
       </div>
@@ -124,28 +133,28 @@ const CompanyDetails = () => {
       {/* Stats Cards */}
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon">📁</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdFolder size={26} color="#0d9488" /></div>
           <div className="stat-content">
             <div className="stat-value">{company.projects_count || 0}</div>
             <div className="stat-label">Projects</div>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon">👥</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdPeople size={26} color="#0284c7" /></div>
           <div className="stat-content">
             <div className="stat-value">{company.users_count || 0}</div>
             <div className="stat-label">Users</div>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon">🏢</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdApartment size={26} color="#6366f1" /></div>
           <div className="stat-content">
             <div className="stat-value">{company.subsidiaries_count || 0}</div>
             <div className="stat-label">Subsidiaries</div>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon">👔</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdBadge size={26} color="#d97706" /></div>
           <div className="stat-content">
             <div className="stat-value">{company.employee_count || 0}</div>
             <div className="stat-label">Employees</div>

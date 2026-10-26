@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import {
+  MdEdit,
+  MdDelete,
+  MdAttachMoney,
+  MdAssessment,
+  MdStraighten,
+  MdCreditCard,
+  MdLock,
+  MdCheckCircle,
+  MdConstruction,
+  MdPayments,
+  MdReceipt,
+  MdSearch,
+} from 'react-icons/md';
 import { unitService } from '../../services/unit.service';
 import ReserveUnitModal from './modals/ReserveUnitModal';
 import SellUnitModal from './modals/SellUnitModal';
@@ -201,14 +215,16 @@ const UnitDetails: React.FC = () => {
           <button 
             onClick={() => navigate(`/units/${unit.uuid}/edit`)}
             className="btn btn-primary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            ✏️ Edit Unit
+            <MdEdit size={16} /> Edit Unit
           </button>
           <button 
             onClick={handleDelete}
             className="btn btn-danger"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            🗑️ Delete
+            <MdDelete size={16} /> Delete
           </button>
         </div>
       </div>
@@ -216,7 +232,7 @@ const UnitDetails: React.FC = () => {
       {/* Stats Cards */}
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon">💰</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdAttachMoney size={26} color="#16a34a" /></div>
           <div className="stat-content">
             <div className="stat-label">Current Price</div>
             <div className="stat-value">{formatCurrency(unit.current_price)}</div>
@@ -229,7 +245,7 @@ const UnitDetails: React.FC = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">📊</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdAssessment size={26} color="#0284c7" /></div>
           <div className="stat-content">
             <div className="stat-label">Completion Progress</div>
             <div className="stat-value">{unit.completion_percentage}%</div>
@@ -243,7 +259,7 @@ const UnitDetails: React.FC = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon">📏</div>
+          <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdStraighten size={26} color="#d97706" /></div>
           <div className="stat-content">
             <div className="stat-label">Floor Area</div>
             <div className="stat-value">
@@ -257,7 +273,7 @@ const UnitDetails: React.FC = () => {
 
         {unit.status === 'sold' && (
           <div className="stat-card">
-            <div className="stat-icon">💳</div>
+            <div className="stat-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MdCreditCard size={26} color="#8b5cf6" /></div>
             <div className="stat-content">
               <div className="stat-label">Payment Status</div>
               <div className="stat-value">
@@ -278,7 +294,7 @@ const UnitDetails: React.FC = () => {
               className="action-button action-reserve"
               onClick={() => setShowReserveModal(true)}
             >
-              <span className="action-icon">🔒</span>
+              <span className="action-icon"><MdLock size={22} color="#f59e0b" /></span>
               <div>
                 <div className="action-title">Reserve Unit</div>
                 <div className="action-description">Reserve for a client</div>
@@ -291,7 +307,7 @@ const UnitDetails: React.FC = () => {
               className="action-button action-sell"
               onClick={() => setShowSellModal(true)}
             >
-              <span className="action-icon">✅</span>
+              <span className="action-icon"><MdCheckCircle size={22} color="#10b981" /></span>
               <div>
                 <div className="action-title">Sell Unit</div>
                 <div className="action-description">Complete sale to client</div>
@@ -304,7 +320,7 @@ const UnitDetails: React.FC = () => {
               className="action-button"
               onClick={() => setShowProgressModal(true)}
             >
-              <span className="action-icon">🏗️</span>
+              <span className="action-icon"><MdConstruction size={22} color="#06b6d4" /></span>
               <div>
                 <div className="action-title">Update Progress</div>
                 <div className="action-description">Update construction status</div>
@@ -317,7 +333,7 @@ const UnitDetails: React.FC = () => {
               className="action-button action-payment"
               onClick={() => navigate(`/payments/new?unit_id=${unit.uuid}`)}
             >
-              <span className="action-icon">💵</span>
+              <span className="action-icon"><MdPayments size={22} color="#10b981" /></span>
               <div>
                 <div className="action-title">Record Payment</div>
                 <div className="action-description">Add client payment receipt</div>
@@ -330,7 +346,7 @@ const UnitDetails: React.FC = () => {
               className="action-button"
               onClick={() => navigate(`/payments?search=${encodeURIComponent(unit.unit_number)}`)}
             >
-              <span className="action-icon">🧾</span>
+              <span className="action-icon"><MdReceipt size={22} color="#6366f1" /></span>
               <div>
                 <div className="action-title">Payment History</div>
                 <div className="action-description">View unit transactions</div>
@@ -342,7 +358,7 @@ const UnitDetails: React.FC = () => {
             className="action-button"
             onClick={() => setShowInspectionModal(true)}
           >
-            <span className="action-icon">🔍</span>
+            <span className="action-icon"><MdSearch size={22} color="#64748b" /></span>
             <div>
               <div className="action-title">Record Inspection</div>
               <div className="action-description">Log inspection details</div>

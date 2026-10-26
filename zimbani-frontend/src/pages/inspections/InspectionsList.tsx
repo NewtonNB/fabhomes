@@ -828,8 +828,8 @@ export const InspectionsList: React.FC = () => {
                         <td>
                           <div>{insp.inspector?.name || 'Unassigned'}</div>
                           {insp.supervisor ? (
-                            <small style={{ color: '#64748b' }}>
-                              Sup: {insp.supervisor.name} {insp.is_signed_off ? '✓' : '(pending)'}
+                            <small style={{ color: '#64748b', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                              Sup: {insp.supervisor.name} {insp.is_signed_off ? <MdCheckCircle size={12} color="#16a34a" /> : '(pending)'}
                             </small>
                           ) : (
                             <small style={{ color: '#94a3b8' }}>No supervisor</small>

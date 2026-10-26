@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { MdVisibility, MdEdit, MdDelete } from 'react-icons/md';
 import { siteService } from '../../services/site.service';
 import { Site, SiteFilters } from '../../types/site.types';
 import { PaginationMeta } from '../../types/common.types';
@@ -273,21 +274,21 @@ const SitesList: React.FC = () => {
                           className="btn-icon"
                           title="View Details"
                         >
-                          👁️
+                          <MdVisibility size={18} />
                         </button>
                         <button
                           onClick={() => navigate(isEstates ? `/estates/${site.id}/edit` : `/sites/${site.id}/edit`)}
                           className="btn-icon"
                           title="Edit"
                         >
-                          ✏️
+                          <MdEdit size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(site.id)}
                           className="btn-icon btn-icon-danger"
                           title="Delete"
                         >
-                          🗑️
+                          <MdDelete size={18} />
                         </button>
                       </div>
                     </td>

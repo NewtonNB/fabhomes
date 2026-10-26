@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { MdWarning } from 'react-icons/md'
 import projectService from '../../services/project.service'
 import { ProjectFormData } from '../../types/project.types'
 import '../companies/CompanyForm.css'
@@ -121,7 +122,7 @@ const ProjectForm = ({ isEdit = false }: ProjectFormProps) => {
 
       {error && (
         <div className="alert alert-error">
-          <span>⚠️</span>
+          <MdWarning size={18} />
           <span>{error}</span>
         </div>
       )}

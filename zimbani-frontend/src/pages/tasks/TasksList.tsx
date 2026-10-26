@@ -14,6 +14,8 @@ import {
   MdAccessTime,
   MdApartment,
   MdRefresh,
+  MdCheck,
+  MdBlock,
 } from 'react-icons/md'
 import {
   Task,
@@ -406,16 +408,18 @@ export const TasksList: React.FC = () => {
                             <button
                               className="btn-kanban-action"
                               onClick={() => handleQuickStatusChange(task.uuid, 'completed')}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                             >
-                              ✓ Done
+                              <MdCheck size={14} /> Done
                             </button>
                           )}
                           {col.status !== 'blocked' && col.status !== 'completed' && (
                             <button
                               className="btn-kanban-action"
                               onClick={() => handleQuickStatusChange(task.uuid, 'blocked')}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                             >
-                              ✕ Block
+                              <MdBlock size={14} /> Block
                             </button>
                           )}
                         </div>

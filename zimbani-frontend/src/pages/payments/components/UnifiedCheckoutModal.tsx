@@ -422,10 +422,14 @@ export const UnifiedCheckoutModal: React.FC<UnifiedCheckoutModalProps> = ({
                           fontWeight: 700,
                           fontSize: '13px',
                           cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
                         }}
                         onClick={() => setMomoProvider('mtn_momo')}
                       >
-                        🟡 MTN Mobile Money
+                        <MdPhoneAndroid size={16} color="#ca8a04" /> MTN Mobile Money
                       </button>
                       <button
                         type="button"
@@ -438,10 +442,14 @@ export const UnifiedCheckoutModal: React.FC<UnifiedCheckoutModalProps> = ({
                           fontWeight: 700,
                           fontSize: '13px',
                           cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
                         }}
                         onClick={() => setMomoProvider('airtel_money')}
                       >
-                        🔴 Airtel Money
+                        <MdPhoneAndroid size={16} color="#dc2626" /> Airtel Money
                       </button>
                     </div>
                   </div>

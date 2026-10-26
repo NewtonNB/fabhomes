@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { MdVisibility, MdEdit, MdDelete, MdWarning } from 'react-icons/md'
 import companyService from '../../services/company.service'
 import { Company, CompanyFilters } from '../../types/company.types'
 import './CompaniesList.css'
@@ -151,7 +152,7 @@ const CompaniesList = () => {
       {/* Error Message */}
       {error && (
         <div className="alert alert-error">
-          <span>⚠️</span>
+          <MdWarning size={18} />
           <span>{error}</span>
         </div>
       )}
@@ -225,21 +226,21 @@ const CompaniesList = () => {
                             className="btn-icon"
                             title="View"
                           >
-                            👁️
+                            <MdVisibility size={18} />
                           </button>
                           <button
                             onClick={() => navigate(`/companies/${company.uuid}/edit`)}
                             className="btn-icon"
                             title="Edit"
                           >
-                            ✏️
+                            <MdEdit size={18} />
                           </button>
                           <button
                             onClick={() => handleDelete(company.uuid, company.name)}
                             className="btn-icon btn-danger"
                             title="Delete"
                           >
-                            🗑️
+                            <MdDelete size={18} />
                           </button>
                         </div>
                       </td>

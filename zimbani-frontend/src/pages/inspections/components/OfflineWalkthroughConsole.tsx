@@ -654,10 +654,10 @@ export const OfflineWalkthroughConsole: React.FC<Props> = ({ onInspectionSaved }
                 value={weatherCondition}
                 onChange={(e) => setWeatherCondition(e.target.value)}
               >
-                <option value="sunny">Sunny ☀️</option>
-                <option value="cloudy">Cloudy ⛅</option>
-                <option value="rainy">Rainy 🌧️</option>
-                <option value="muddy">Wet / Muddy 🚜</option>
+                <option value="sunny">Sunny</option>
+                <option value="cloudy">Cloudy</option>
+                <option value="rainy">Rainy</option>
+                <option value="muddy">Wet / Muddy</option>
               </select>
             </div>
 

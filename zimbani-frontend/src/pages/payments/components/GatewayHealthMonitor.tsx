@@ -6,6 +6,7 @@ import {
   MdCreditCard,
   MdPhoneAndroid,
   MdAccountBalance,
+  MdClose,
 } from 'react-icons/md'
 import paymentIntegrationService from '../../../services/payment-integration.service'
 import {
@@ -120,9 +121,9 @@ export const GatewayHealthMonitor: React.FC = () => {
           <span>{feedback.text}</span>
           <button
             onClick={() => setFeedback(null)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', display: 'flex', alignItems: 'center' }}
           >
-            ✕
+            <MdClose size={16} />
           </button>
         </div>
       )}

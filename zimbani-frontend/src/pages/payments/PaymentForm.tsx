@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { MdArrowBack, MdSave, MdAttachMoney, MdHome, MdInfoOutline } from 'react-icons/md'
+import { MdArrowBack, MdSave, MdAttachMoney, MdHome, MdInfoOutline, MdWarning } from 'react-icons/md'
 import { paymentService } from '../../services/payment.service'
 import { clientService } from '../../services/client.service'
 import { unitService } from '../../services/unit.service'
@@ -176,7 +176,9 @@ const PaymentForm: React.FC<{ isEdit?: boolean }> = ({ isEdit = false }) => {
 
       {error && (
         <div className="alert-box alert-error">
-          <span>⚠️ {error}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <MdWarning size={18} /> {error}
+          </span>
           <button onClick={() => setError(null)}>×</button>
         </div>
       )}

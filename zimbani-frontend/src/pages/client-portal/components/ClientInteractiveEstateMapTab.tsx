@@ -12,6 +12,7 @@ import {
   MdReceipt,
   MdClose,
   MdRefresh,
+  MdStar,
 } from 'react-icons/md'
 import { clientPortalPlotService } from '../../../services/client-portal-plots.service'
 import {
@@ -176,10 +177,10 @@ export const ClientInteractiveEstateMapTab: React.FC<ClientInteractiveEstateMapT
             {summary && summary.my_plots_count > 0 && (
               <button
                 className={`portal-filter-pill ${statusFilter === 'mine' ? 'active' : ''}`}
-                style={{ borderColor: '#fbbf24', color: '#fbbf24' }}
+                style={{ borderColor: '#fbbf24', color: '#fbbf24', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                 onClick={() => setStatusFilter('mine')}
               >
-                ★ My Plots ({summary.my_plots_count})
+                <MdStar size={14} /> My Plots ({summary.my_plots_count})
               </button>
             )}
           </div>
@@ -393,7 +394,7 @@ export const ClientInteractiveEstateMapTab: React.FC<ClientInteractiveEstateMapT
                         fontWeight="600"
                         textAnchor="middle"
                       >
-                        {isMine ? '★ MY PLOT' : isAvailable ? formatUGX(plot.current_price) : plot.status.toUpperCase()}
+                        {isMine ? 'MY PLOT' : isAvailable ? formatUGX(plot.current_price) : plot.status.toUpperCase()}
                       </text>
                     </g>
                   )
@@ -427,7 +428,7 @@ export const ClientInteractiveEstateMapTab: React.FC<ClientInteractiveEstateMapT
                   }`}
                 >
                   {selectedPlot.is_my_plot
-                    ? '★ My Plot'
+                    ? 'My Plot'
                     : selectedPlot.status === 'available'
                     ? 'Available'
                     : selectedPlot.status === 'reserved'
@@ -552,7 +553,7 @@ export const ClientInteractiveEstateMapTab: React.FC<ClientInteractiveEstateMapT
                         : 'sold'
                     }`}
                   >
-                    {plot.is_my_plot ? '★ Mine' : plot.status}
+                    {plot.is_my_plot ? 'My Plot' : plot.status}
                   </span>
                 </div>
 

@@ -579,7 +579,9 @@ export const MilestoneSavingsPoolsCard: React.FC<MilestoneSavingsPoolsCardProps>
                           Shortfall: {fmt(p.remaining_to_target)}
                         </div>
                       ) : (
-                        <div style={{ fontSize: '0.75rem', color: '#16a34a' }}>✓ 100% Funded</div>
+                        <div style={{ fontSize: '0.75rem', color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <MdCheckCircle size={13} /> 100% Funded
+                        </div>
                       )}
                     </td>
 

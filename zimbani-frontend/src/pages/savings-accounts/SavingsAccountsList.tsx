@@ -540,7 +540,7 @@ export const SavingsAccountsList: React.FC = () => {
                           <span className="progress-rem">
                             {acc.remaining_amount > 0
                               ? `UGX ${acc.remaining_amount.toLocaleString()} left`
-                              : 'Goal Met 🎉'}
+                              : 'Goal Met'}
                           </span>
                         </div>
                         <div className="progress-track">

@@ -25,6 +25,10 @@ import {
   MdSpeed,
   MdSearch,
   MdStorage,
+  MdBolt,
+  MdPublic,
+  MdCreditCard,
+  MdClose,
 } from 'react-icons/md'
 import { performanceService } from '../../services/performance.service'
 import { PerformanceMetricsData, UniversalSearchData, BenchmarkData } from '../../types/performance.types'
@@ -527,8 +531,8 @@ export const ClientPortalDashboard: React.FC = () => {
             <button className="portal-install-btn" onClick={handleInstallClick}>
               Install Now
             </button>
-            <button className="portal-dismiss-btn" onClick={() => setShowInstallBanner(false)}>
-              ✕
+            <button className="portal-dismiss-btn" onClick={() => setShowInstallBanner(false)} style={{ display: 'flex', alignItems: 'center' }}>
+              <MdClose size={16} />
             </button>
           </div>
         </div>
@@ -555,9 +559,9 @@ export const ClientPortalDashboard: React.FC = () => {
           <span>{actionMessage.text}</span>
           <button
             onClick={() => setActionMessage(null)}
-            style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
+            style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
           >
-            ✕
+            <MdClose size={16} />
           </button>
         </div>
       )}
@@ -672,15 +676,18 @@ export const ClientPortalDashboard: React.FC = () => {
                       borderRadius: 4,
                       background: searchResults.source === 'cache' ? 'rgba(74, 222, 128, 0.15)' : 'rgba(56, 189, 248, 0.15)',
                       color: searchResults.source === 'cache' ? '#4ade80' : '#38bdf8',
-                      fontWeight: 700
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4
                     }}>
-                      ⚡ {searchResults.execution_time_ms} ms ({searchResults.source})
+                      <MdBolt size={13} /> {searchResults.execution_time_ms} ms ({searchResults.source})
                     </span>
                     <button
                       onClick={() => setShowSearchResults(false)}
-                      style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 14 }}
+                      style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center' }}
                     >
-                      ✕
+                      <MdClose size={16} />
                     </button>
                   </div>
                 </div>
@@ -704,7 +711,9 @@ export const ClientPortalDashboard: React.FC = () => {
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ fontSize: 11, color: '#38bdf8', fontWeight: 700 }}>🏡 {u.category}</span>
+                          <span style={{ fontSize: 11, color: '#38bdf8', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <MdHome size={13} /> {u.category}
+                          </span>
                           <span style={{ fontSize: 11, color: '#4ade80', fontWeight: 600 }}>{u.price || u.status}</span>
                         </div>
                         <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{u.title}</div>
@@ -725,7 +734,9 @@ export const ClientPortalDashboard: React.FC = () => {
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ fontSize: 11, color: '#fbbf24', fontWeight: 700 }}>📄 {d.category}</span>
+                          <span style={{ fontSize: 11, color: '#fbbf24', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <MdDescription size={13} /> {d.category}
+                          </span>
                           <span style={{ fontSize: 11, color: '#94a3b8' }}>{d.file_size}</span>
                         </div>
                         <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{d.title}</div>
@@ -746,7 +757,9 @@ export const ClientPortalDashboard: React.FC = () => {
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ fontSize: 11, color: '#a78bfa', fontWeight: 700 }}>💳 {t.category}</span>
+                          <span style={{ fontSize: 11, color: '#a78bfa', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <MdCreditCard size={13} /> {t.category}
+                          </span>
                           <span style={{ fontSize: 11, color: '#38bdf8', fontWeight: 600 }}>{t.amount}</span>
                         </div>
                         <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{t.title}</div>
@@ -1184,8 +1197,8 @@ export const ClientPortalDashboard: React.FC = () => {
                 <h3 className="portal-card-title">
                   <MdSecurity style={{ color: '#38bdf8' }} /> Enterprise API Shield & OWASP Compliance
                 </h3>
-                <span className="portal-badge portal-badge-verified">
-                  🛡️ 100/100 Hardened
+                <span className="portal-badge portal-badge-verified" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <MdSecurity size={14} /> 100/100 Hardened
                 </span>
               </div>
               <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 14 }}>
@@ -1194,8 +1207,8 @@ export const ClientPortalDashboard: React.FC = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
                 <div style={{ background: 'var(--portal-bg-base)', padding: 12, borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#38bdf8', marginBottom: 4 }}>
-                    🔒 TLS 1.3 & HSTS Enforced
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#38bdf8', marginBottom: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <MdLock size={14} /> TLS 1.3 & HSTS Enforced
                   </div>
                   <div style={{ fontSize: 11, color: '#94a3b8' }}>
                     Strict transport encryption with 1-year preload policy and zero plaintext downgrade.
@@ -1203,8 +1216,8 @@ export const ClientPortalDashboard: React.FC = () => {
                 </div>
 
                 <div style={{ background: 'var(--portal-bg-base)', padding: 12, borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#4ade80', marginBottom: 4 }}>
-                    🛡️ OWASP Anti-XSS & SQLi Shield
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#4ade80', marginBottom: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <MdSecurity size={14} /> OWASP Anti-XSS & SQLi Shield
                   </div>
                   <div style={{ fontSize: 11, color: '#94a3b8' }}>
                     Recursive input sanitization with real-time suspicious vector logging.
@@ -1212,8 +1225,8 @@ export const ClientPortalDashboard: React.FC = () => {
                 </div>
 
                 <div style={{ background: 'var(--portal-bg-base)', padding: 12, borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#fbbf24', marginBottom: 4 }}>
-                    ⚡ Token & Brute-Force Rate Limiting
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#fbbf24', marginBottom: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <MdBolt size={14} /> Token & Brute-Force Rate Limiting
                   </div>
                   <div style={{ fontSize: 11, color: '#94a3b8' }}>
                     Multi-tier throttling (API: 120/min, Auth: 5/min, PIN: 5/15min) preventing credential stuffing.
@@ -1221,8 +1234,8 @@ export const ClientPortalDashboard: React.FC = () => {
                 </div>
 
                 <div style={{ background: 'var(--portal-bg-base)', padding: 12, borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#c084fc', marginBottom: 4 }}>
-                    🌐 CORS & Anti-Clickjacking Lockdown
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#c084fc', marginBottom: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <MdPublic size={14} /> CORS & Anti-Clickjacking Lockdown
                   </div>
                   <div style={{ fontSize: 11, color: '#94a3b8' }}>
                     Strict origin verification with X-Frame-Options: SAMEORIGIN and CSP policy.
@@ -1237,8 +1250,8 @@ export const ClientPortalDashboard: React.FC = () => {
                 <h3 className="portal-card-title">
                   <MdSpeed style={{ color: '#4ade80' }} /> Database Performance Tuning & Redis Query Accelerator
                 </h3>
-                <span className="portal-badge portal-badge-verified">
-                  ⚡ 100% Optimized
+                <span className="portal-badge portal-badge-verified" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <MdBolt size={14} /> 100% Optimized
                 </span>
               </div>
               <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 14 }}>
@@ -1314,8 +1327,8 @@ export const ClientPortalDashboard: React.FC = () => {
                     <span style={{ color: '#fbbf24' }}>Cold: {benchmarkResult.cold_query_ms} ms</span>
                     <span>→</span>
                     <span style={{ color: '#4ade80', fontWeight: 700 }}>Warm: {benchmarkResult.warm_cached_ms} ms</span>
-                    <span style={{ padding: '3px 8px', borderRadius: 4, background: 'rgba(74, 222, 128, 0.2)', color: '#4ade80', fontWeight: 800 }}>
-                      ⚡ {benchmarkResult.speedup_multiplier} FASTER
+                    <span style={{ padding: '3px 8px', borderRadius: 4, background: 'rgba(74, 222, 128, 0.2)', color: '#4ade80', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <MdBolt size={14} /> {benchmarkResult.speedup_multiplier} FASTER
                     </span>
                   </div>
                 )}

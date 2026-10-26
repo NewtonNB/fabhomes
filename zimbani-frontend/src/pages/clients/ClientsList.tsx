@@ -10,7 +10,8 @@ import {
   MdCancel, 
   MdRefresh,
   MdToggleOn,
-  MdToggleOff
+  MdToggleOff,
+  MdWarning
 } from 'react-icons/md'
 import { clientService } from '../../services/client.service'
 import { Client } from '../../types/client.types'
@@ -146,7 +147,9 @@ const ClientsList: React.FC = () => {
 
       {error && (
         <div className="alert alert-error">
-          <span>⚠️ {error}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <MdWarning size={18} /> {error}
+          </span>
           <button onClick={() => setError(null)}>×</button>
         </div>
       )}

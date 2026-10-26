@@ -347,7 +347,9 @@ export const SavingsAccountDetails: React.FC = () => {
                 </strong>
               </span>
             ) : (
-              <strong style={{ color: '#0d9488' }}>Target Goal Achieved! 🎉</strong>
+              <strong style={{ color: '#0d9488', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                <MdCheckCircle /> Target Goal Achieved!
+              </strong>
             )}
           </div>
         </div>

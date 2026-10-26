@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { MdVisibility, MdEdit, MdDelete } from 'react-icons/md';
 import { unitService } from '../../services/unit.service';
 import { Unit, UnitFilters } from '../../types/unit.types';
 import { PaginationMeta } from '../../types/common.types';
@@ -321,21 +322,21 @@ const UnitsList: React.FC = () => {
                           className="btn-icon"
                           title="View Details"
                         >
-                          👁️
+                          <MdVisibility size={18} />
                         </button>
                         <button
                           onClick={() => navigate(isPlots ? `/plots/${unit.uuid || unit.id}/edit` : `/units/${unit.uuid || unit.id}/edit`)}
                           className="btn-icon"
                           title="Edit"
                         >
-                          ✏️
+                          <MdEdit size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(unit.uuid || unit.id)}
                           className="btn-icon btn-icon-danger"
                           title="Delete"
                         >
-                          🗑️
+                          <MdDelete size={18} />
                         </button>
                       </div>
                     </td>

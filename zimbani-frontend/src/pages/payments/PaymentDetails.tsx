@@ -13,6 +13,7 @@ import {
   MdAccountBalance,
   MdDoneAll,
   MdShare,
+  MdWarning,
 } from 'react-icons/md'
 import { paymentService } from '../../services/payment.service'
 import { Payment } from '../../types/payment.types'
@@ -377,7 +378,9 @@ const PaymentDetails: React.FC = () => {
 
       {error && (
         <div className="alert-box alert-error no-print">
-          <span>⚠️ {error}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <MdWarning size={18} /> {error}
+          </span>
           <button onClick={() => setError(null)}>×</button>
         </div>
       )}

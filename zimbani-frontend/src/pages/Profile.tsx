@@ -1,4 +1,5 @@
 import { useState, FormEvent, useEffect } from 'react'
+import { MdCheckCircle, MdWarning } from 'react-icons/md'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { DigitalSignatureModal } from '../components/common/DigitalSignatureModal'
@@ -360,7 +361,9 @@ const Profile = () => {
               <label>Email Verified:</label>
               <span>
                 {user.email_verified_at ? (
-                  <span className="verified">✓ Verified</span>
+                  <span className="verified" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <MdCheckCircle size={14} /> Verified
+                  </span>
                 ) : (
                   <span className="unverified">Not verified</span>
                 )}
@@ -382,8 +385,8 @@ const Profile = () => {
                 />
               </div>
             ) : (
-              <div style={{ marginBottom: '12px', fontSize: '13px', color: '#f59e0b', fontWeight: '500' }}>
-                ⚠️ No digital signature recorded yet.
+              <div style={{ marginBottom: '12px', fontSize: '13px', color: '#f59e0b', fontWeight: '500', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <MdWarning size={16} /> No digital signature recorded yet.
               </div>
             )}
             <div>
