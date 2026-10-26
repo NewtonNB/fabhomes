@@ -178,6 +178,12 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           permission: 'accounts.view',
         },
         {
+          path: '/savings-accounts?type=tuzimbe_group',
+          label: 'Tuzimbe Group Scheme',
+          icon: <MdPeople />,
+          permission: 'accounts.view',
+        },
+        {
           path: '/savings-accounts',
           label: 'All Savings Accounts',
           icon: <MdAccountBalance />,

@@ -455,6 +455,11 @@ const PaymentsList: React.FC = () => {
             <option value="installment">Installment</option>
             <option value="balance">Balance</option>
             <option value="full_payment">Full Payment</option>
+            <option value="legal_fee">Legal & Documentation Fee</option>
+            <option value="survey_fee">Survey & Boundary Fee</option>
+            <option value="title_fee">Land Title Processing Fee</option>
+            <option value="site_visit_fee">Site Visit & Inspection Fee</option>
+            <option value="membership_fee">Scheme Membership Fee</option>
             <option value="penalty">Penalty</option>
             <option value="refund">Refund</option>
           </select>

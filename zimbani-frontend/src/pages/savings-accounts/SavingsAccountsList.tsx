@@ -15,6 +15,8 @@ import {
   MdAttachMoney,
   MdClose,
   MdConstruction,
+  MdCompareArrows,
+  MdPeople,
 } from 'react-icons/md'
 import {
   SavingsAccount,
@@ -22,6 +24,7 @@ import {
 } from '../../types/savings-account.types'
 import savingsAccountService from '../../services/savings-account.service'
 import constructionSavingSchemeService from '../../services/construction-scheme.service'
+import schemeTransferService, { SchemeTransferItem } from '../../services/scheme-transfer.service'
 import { ConstructionSavingScheme } from '../../types/construction-scheme.types'
 import './SavingsAccountsList.css'
 
@@ -89,6 +92,59 @@ export const SavingsAccountsList: React.FC = () => {
   const triggerSuccess = (msg: string) => {
     setSuccessMessage(msg)
     setTimeout(() => setSuccessMessage(null), 4000)
+  }
+
+  // Scheme Transfers Modal State (Legacy Manual Section 2.7)
+  const [showTransfersModal, setShowTransfersModal] = useState<boolean>(false)
+  const [transfersList, setTransfersList] = useState<SchemeTransferItem[]>([])
+  const [transfersLoading, setTransfersLoading] = useState<boolean>(false)
+  const [transferActionLoading, setTransferActionLoading] = useState<boolean>(false)
+
+  const handleOpenTransfers = async () => {
+    setShowTransfersModal(true)
+    fetchTransfers()
+  }
+
+  const fetchTransfers = async () => {
+    try {
+      setTransfersLoading(true)
+      const res = await schemeTransferService.getTransfers()
+      setTransfersList(res.data?.data || res.data || [])
+    } catch (err: any) {
+      console.error('Failed to load transfers', err)
+    } finally {
+      setTransfersLoading(false)
+    }
+  }
+
+  const handleApproveTransfer = async (uuid: string) => {
+    try {
+      setTransferActionLoading(true)
+      await schemeTransferService.approveTransfer(uuid)
+      triggerSuccess('Scheme transfer approved and balances updated successfully!')
+      fetchTransfers()
+      fetchAccounts()
+      fetchStatistics()
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || 'Failed to approve transfer')
+    } finally {
+      setTransferActionLoading(false)
+    }
+  }
+
+  const handleRejectTransfer = async (uuid: string) => {
+    const reason = prompt('Please enter the reason for rejecting this transfer:')
+    if (!reason) return
+    try {
+      setTransferActionLoading(true)
+      await schemeTransferService.rejectTransfer(uuid, reason)
+      triggerSuccess('Scheme transfer marked as rejected.')
+      fetchTransfers()
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || 'Failed to reject transfer')
+    } finally {
+      setTransferActionLoading(false)
+    }
   }
 
   // Fetch Accounts
@@ -242,6 +298,8 @@ export const SavingsAccountsList: React.FC = () => {
               ? 'Land Saving Scheme Portfolio'
               : selectedType === 'construction_saving'
               ? 'Construction Saving Scheme Portfolio'
+              : selectedType === 'tuzimbe_group'
+              ? 'Tuzimbe Group Savings Program'
               : 'Client Savings Accounts & Schemes'}
           </h1>
           <p className="savings-subtitle">
@@ -249,11 +307,21 @@ export const SavingsAccountsList: React.FC = () => {
               ? 'Track client land installment savings, target parcel deposits, and title deed qualification across Fab Homes estates.'
               : selectedType === 'construction_saving'
               ? 'Track client home construction savings pools, structural milestone accumulation, and escrow releases.'
+              : selectedType === 'tuzimbe_group'
+              ? 'Track structured cohort group savings, package contributions, and milestone achievements under the Tuzimbe program.'
               : 'Manage land and construction client installment schemes, track target progress, and monitor fund accumulation.'}
           </p>
         </div>
 
         <div className="savings-header-actions">
+          <button
+            className="btn btn-secondary"
+            onClick={handleOpenTransfers}
+            title="Client Scheme & Phase Transfer Requests (Legacy Manual Section 2.7)"
+          >
+            <MdCompareArrows /> Scheme Transfers
+          </button>
+
           <button
             className="btn btn-secondary"
             onClick={handleOpenSchemes}
@@ -375,6 +443,7 @@ export const SavingsAccountsList: React.FC = () => {
           <option value="">All Scheme Types</option>
           <option value="land_saving">Land Saving Scheme</option>
           <option value="construction_saving">Construction Saving Scheme</option>
+          <option value="tuzimbe_group">Tuzimbe Group Scheme</option>
         </select>
 
         <select
@@ -444,11 +513,11 @@ export const SavingsAccountsList: React.FC = () => {
                     <td>
                       <span
                         className={`scheme-type-badge ${
-                          acc.account_type === 'land_saving' ? 'scheme-land' : 'scheme-construction'
+                          acc.account_type === 'land_saving' ? 'scheme-land' : acc.account_type === 'tuzimbe_group' ? 'scheme-tuzimbe' : 'scheme-construction'
                         }`}
                       >
-                        {acc.account_type === 'land_saving' ? <MdLandscape /> : <MdHomeRepairService />}
-                        {acc.account_type === 'land_saving' ? 'Land Saving' : 'Construction Saving'}
+                        {acc.account_type === 'land_saving' ? <MdLandscape /> : acc.account_type === 'tuzimbe_group' ? <MdPeople /> : <MdHomeRepairService />}
+                        {acc.account_type === 'land_saving' ? 'Land Saving' : acc.account_type === 'tuzimbe_group' ? 'Tuzimbe Group' : 'Construction Saving'}
                       </span>
                       {acc.scheme_name && (
                         <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.2rem' }}>
@@ -874,6 +943,146 @@ export const SavingsAccountsList: React.FC = () => {
 
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" onClick={() => setShowSchemesModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* MODAL: SCHEME & PHASE TRANSFERS (Legacy Manual Section 2.7) */}
+      {/* ============================================================ */}
+      {showTransfersModal && (
+        <div className="modal-backdrop">
+          <div className="modal-content" style={{ maxWidth: '900px', width: '95%' }}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <MdCompareArrows size={22} style={{ color: '#047857' }} />
+                <h3>Client Scheme & Phase Transfers</h3>
+              </div>
+              <button className="modal-close-btn" onClick={() => setShowTransfersModal(false)}>
+                <MdClose />
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+                Review, authorize, and track client balance transfers between Estates, Phases, and Savings Schemes.
+                Approved transfers automatically update balances and record immutable ledger transactions.
+              </p>
+
+              {transfersLoading ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                  Loading transfer requests...
+                </div>
+              ) : transfersList.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2.5rem', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+                  <p style={{ color: '#64748b', margin: 0 }}>No scheme transfer requests found.</p>
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="savings-table" style={{ fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr>
+                        <th>Client</th>
+                        <th>From Scheme</th>
+                        <th>To Scheme</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {transfersList.map((tr) => (
+                        <tr key={tr.uuid}>
+                          <td>
+                            <strong>{tr.client?.full_name || tr.client?.first_name || 'Client'}</strong>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                              {tr.client?.client_number}
+                            </div>
+                          </td>
+                          <td>
+                            <span style={{ color: '#b91c1c', fontWeight: 600 }}>{tr.from_scheme_name}</span>
+                          </td>
+                          <td>
+                            <span style={{ color: '#047857', fontWeight: 600 }}>{tr.to_scheme_name}</span>
+                          </td>
+                          <td style={{ fontWeight: 700 }}>
+                            UGX {Number(tr.amount).toLocaleString()}
+                          </td>
+                          <td>
+                            <span
+                              style={{
+                                display: 'inline-block',
+                                padding: '0.2rem 0.5rem',
+                                borderRadius: '4px',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                textTransform: 'uppercase',
+                                background:
+                                  tr.status === 'approved'
+                                    ? '#ecfdf5'
+                                    : tr.status === 'rejected'
+                                    ? '#fef2f2'
+                                    : '#fffbeb',
+                                color:
+                                  tr.status === 'approved'
+                                    ? '#047857'
+                                    : tr.status === 'rejected'
+                                    ? '#b91c1c'
+                                    : '#b45309',
+                                border:
+                                  tr.status === 'approved'
+                                    ? '1px solid #a7f3d0'
+                                    : tr.status === 'rejected'
+                                    ? '1px solid #fecaca'
+                                    : '1px solid #fde68a',
+                              }}
+                            >
+                              {tr.status}
+                            </span>
+                          </td>
+                          <td style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                            {new Date(tr.created_at).toLocaleDateString()}
+                          </td>
+                          <td>
+                            {tr.status === 'pending' ? (
+                              <div style={{ display: 'flex', gap: '0.35rem' }}>
+                                <button
+                                  type="button"
+                                  className="btn btn-primary"
+                                  style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+                                  disabled={transferActionLoading}
+                                  onClick={() => handleApproveTransfer(tr.uuid)}
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-danger"
+                                  style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+                                  disabled={transferActionLoading}
+                                  onClick={() => handleRejectTransfer(tr.uuid)}
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Processed</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={() => setShowTransfersModal(false)}>
                 Close
               </button>
             </div>

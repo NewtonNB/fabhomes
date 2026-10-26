@@ -582,6 +582,33 @@ class FabHomesRealisticDataSeeder extends Seeder
                     'status' => 'active',
                     'notes' => 'Enrolled via Mobile Money; initial 20% commitment saved.',
                 ],
+                // Tuzimbe Group Savings Program (Legacy Manual Section 2.4 B)
+                [
+                    'account_number' => 'GRP1-2024-PKG-A-0012',
+                    'client' => $seededClients['FAB-CLI-1001'],
+                    'account_type' => 'tuzimbe_group',
+                    'scheme_name' => 'Tuzimbe Matugga Cohort 2024 - Gold Package',
+                    'group_code' => 'GRP1',
+                    'cohort_year' => '2024',
+                    'package_code' => 'PKG-A',
+                    'target_amount' => 50000000,
+                    'current_balance' => 32000000,
+                    'status' => 'active',
+                    'notes' => 'Tuzimbe Group Savings Cohort 2024; Monthly group pooling.',
+                ],
+                [
+                    'account_number' => 'GRP2-2025-PKG-B-0008',
+                    'client' => $seededClients['FAB-CLI-1002'],
+                    'account_type' => 'tuzimbe_group',
+                    'scheme_name' => 'Tuzimbe Gayaza Cohort 2025 - Silver Package',
+                    'group_code' => 'GRP2',
+                    'cohort_year' => '2025',
+                    'package_code' => 'PKG-B',
+                    'target_amount' => 40000000,
+                    'current_balance' => 18000000,
+                    'status' => 'active',
+                    'notes' => 'Tuzimbe Group Savings Cohort 2025; Bi-weekly contributions.',
+                ],
             ];
 
             foreach ($savingsData as $sd) {
@@ -592,6 +619,9 @@ class FabHomesRealisticDataSeeder extends Seeder
                         'client_id' => $sd['client']->id,
                         'account_type' => $sd['account_type'],
                         'scheme_name' => $sd['scheme_name'],
+                        'group_code' => $sd['group_code'] ?? null,
+                        'cohort_year' => $sd['cohort_year'] ?? null,
+                        'package_code' => $sd['package_code'] ?? null,
                         'target_amount' => $sd['target_amount'],
                         'current_balance' => $sd['current_balance'],
                         'currency' => 'UGX',

@@ -1,6 +1,6 @@
 // Savings Accounts & Scheme Enrolment Types for Fab Homes ZIMBANI Platform
 
-export type AccountType = 'land_saving' | 'construction_saving'
+export type AccountType = 'land_saving' | 'construction_saving' | 'tuzimbe_group'
 
 export type AccountStatus = 'active' | 'suspended' | 'completed' | 'closed'
 

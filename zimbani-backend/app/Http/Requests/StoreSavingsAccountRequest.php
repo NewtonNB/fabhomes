@@ -18,7 +18,7 @@ class StoreSavingsAccountRequest extends FormRequest
     {
         return [
             'client_id' => 'required',
-            'account_type' => 'required|in:land_saving,construction_saving',
+            'account_type' => 'required|in:land_saving,construction_saving,tuzimbe_group',
             'scheme_name' => 'nullable|string|max:100',
             'target_amount' => 'required|numeric|min:1000',
             'currency' => 'nullable|string|size:3|in:UGX,USD,EUR',

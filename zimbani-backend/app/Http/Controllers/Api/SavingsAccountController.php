@@ -366,6 +366,9 @@ class SavingsAccountController extends Controller
         $constructionAccounts = (clone $query)->where('account_type', 'construction_saving')->count();
         $constructionBalance = (float) (clone $query)->where('account_type', 'construction_saving')->sum('current_balance');
 
+        $tuzimbeAccounts = (clone $query)->where('account_type', 'tuzimbe_group')->count();
+        $tuzimbeBalance = (float) (clone $query)->where('account_type', 'tuzimbe_group')->sum('current_balance');
+
         $overallProgress = $totalTarget > 0 ? round(($totalBalance / $totalTarget) * 100, 1) : 0;
 
         return response()->json([
@@ -385,6 +388,10 @@ class SavingsAccountController extends Controller
                 'construction_savings' => [
                     'count' => $constructionAccounts,
                     'balance_ugx' => $constructionBalance,
+                ],
+                'tuzimbe_group' => [
+                    'count' => $tuzimbeAccounts,
+                    'balance_ugx' => $tuzimbeBalance,
                 ],
             ],
         ]);

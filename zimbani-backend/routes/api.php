@@ -345,6 +345,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', app()->environment('production'
         Route::post('/{identifier}/execute', [PaymentRefundDisputeController::class, 'executeRefund']);
     });
 
+    // Scheme Transfers (Legacy Manual Section 2.7: Transfer Requests)
+    Route::prefix('scheme-transfers')->middleware('permission:accounts.view|accounts.adjust-balance')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\SchemeTransferController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\SchemeTransferController::class, 'store']);
+        Route::post('/{uuid}/approve', [\App\Http\Controllers\Api\SchemeTransferController::class, 'approve']);
+        Route::post('/{uuid}/reject', [\App\Http\Controllers\Api\SchemeTransferController::class, 'reject']);
+    });
+
     // CashBook Management (Manual Section 9: Overall CashBook & Saving CashBook)
     Route::prefix('cashbook')->middleware('permission:cashbook.view|transactions.view')->group(function () {
         Route::get('/overall', [CashBookController::class, 'overallCashBook']);

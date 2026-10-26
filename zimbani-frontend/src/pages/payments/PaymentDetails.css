@@ -456,6 +456,118 @@
   margin-top: 16px;
 }
 
+/* WhatsApp button */
+.btn-whatsapp {
+  background: #25d366 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+.btn-whatsapp:hover {
+  background: #128c7e !important;
+}
+
+/* Amount in words */
+.amount-in-words-box {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-left: 4px solid #047857;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.words-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+  color: #64748b;
+}
+.words-content {
+  font-weight: 600;
+  font-style: italic;
+  color: #0f172a;
+}
+
+/* Barcode & Digital Seal Strip */
+.receipt-auth-strip {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px dashed #cbd5e1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.receipt-barcode-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.barcode-bars {
+  display: flex;
+  align-items: stretch;
+  height: 38px;
+  gap: 2px;
+}
+.barcode-bars span {
+  background: #0f172a;
+  border-radius: 1px;
+}
+.barcode-number {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  color: #334155;
+  font-weight: 700;
+}
+
+.receipt-digital-seal {
+  display: flex;
+  justify-content: center;
+}
+.seal-border {
+  border: 2px double #1e3a8a;
+  border-radius: 8px;
+  padding: 8px 16px;
+  text-align: center;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.seal-brand {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #1e3a8a;
+}
+.seal-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #047857;
+  letter-spacing: 0.5px;
+}
+.seal-sign {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: #334155;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 2px 0;
+  margin: 2px 0;
+}
+.seal-status {
+  font-size: 0.6rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
 /* Print Styles */
 @media print {
   .no-print,

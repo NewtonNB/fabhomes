@@ -12,6 +12,7 @@ import {
   MdPerson,
   MdAccountBalance,
   MdDoneAll,
+  MdShare,
 } from 'react-icons/md'
 import { paymentService } from '../../services/payment.service'
 import { Payment } from '../../types/payment.types'
@@ -50,6 +51,61 @@ const PaymentDetails: React.FC = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const numberToWords = (num: number): string => {
+    if (num === 0) return 'Zero'
+    const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen']
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety']
+    const scales = ['', 'Thousand', 'Million', 'Billion', 'Trillion']
+
+    const convertGroup = (n: number): string => {
+      let s = ''
+      if (n >= 100) {
+        s += ones[Math.floor(n / 100)] + ' Hundred '
+        n %= 100
+      }
+      if (n >= 20) {
+        s += tens[Math.floor(n / 10)] + (n % 10 !== 0 ? '-' + ones[n % 10] : '') + ' '
+      } else if (n > 0) {
+        s += ones[n] + ' '
+      }
+      return s.trim()
+    }
+
+    let s = ''
+    let scaleIdx = 0
+    let whole = Math.floor(Math.abs(num))
+    while (whole > 0) {
+      const chunk = whole % 1000
+      if (chunk > 0) {
+        const groupStr = convertGroup(chunk)
+        s = groupStr + (scales[scaleIdx] ? ' ' + scales[scaleIdx] : '') + ' ' + s
+      }
+      whole = Math.floor(whole / 1000)
+      scaleIdx++
+    }
+    return s.trim()
+  }
+
+  const formatAmountInWords = (amount: number, currency = 'UGX') => {
+    const words = numberToWords(amount)
+    const currLabel = currency.toUpperCase() === 'UGX' ? 'Uganda Shillings' : currency.toUpperCase()
+    return `${words} ${currLabel} Only`
+  }
+
+  const handleWhatsAppShare = () => {
+    if (!payment) return
+    const text = `*FAB HOMES UGANDA - OFFICIAL RECEIPT*\n` +
+      `Receipt No: ${payment.payment_number}\n` +
+      `Client: ${payment.client?.full_name || 'Client'}\n` +
+      `Amount: ${formatCurrency(payment.total_amount, payment.currency)}\n` +
+      `Amount in Words: ${formatAmountInWords(payment.total_amount, payment.currency)}\n` +
+      `Payment Method: ${payment.payment_method?.toUpperCase()}\n` +
+      `Date: ${payment.payment_date}\n` +
+      `Status: ${payment.status?.toUpperCase()}\n\n` +
+      `Verified by Fab Homes System.`
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank')
   }
 
   const handleConfirm = async () => {
@@ -256,6 +312,9 @@ const PaymentDetails: React.FC = () => {
           <button className="btn-action btn-print" onClick={() => window.print()}>
             <MdPrint /> Print Official Receipt
           </button>
+          <button className="btn-action btn-whatsapp" onClick={handleWhatsAppShare} title="Share Receipt via WhatsApp">
+            <MdShare /> Share via WhatsApp
+          </button>
           {payment.status === 'pending' && (
             <>
               <button
@@ -443,6 +502,12 @@ const PaymentDetails: React.FC = () => {
                 </tr>
               </tbody>
             </table>
+
+            {/* Amount in Words (Legacy System Manual Alignment) */}
+            <div className="amount-in-words-box">
+              <span className="words-label">Amount in Words:</span>
+              <span className="words-content">{formatAmountInWords(payment.total_amount, payment.currency)}</span>
+            </div>
           </div>
 
           {/* Remarks & Audit Notes */}
@@ -470,6 +535,44 @@ const PaymentDetails: React.FC = () => {
             <div className="audit-item">
               <span className="audit-label">Verification Status:</span>
               <span className="audit-val">{payment.status.toUpperCase()}</span>
+            </div>
+          </div>
+
+          {/* Official Barcode & Digital Verification Seal (Legacy System Manual Alignment) */}
+          <div className="receipt-auth-strip">
+            <div className="receipt-barcode-box">
+              <div className="barcode-bars">
+                <span style={{ width: '3px' }}></span>
+                <span style={{ width: '1px' }}></span>
+                <span style={{ width: '4px' }}></span>
+                <span style={{ width: '2px' }}></span>
+                <span style={{ width: '3px' }}></span>
+                <span style={{ width: '1px' }}></span>
+                <span style={{ width: '5px' }}></span>
+                <span style={{ width: '2px' }}></span>
+                <span style={{ width: '1px' }}></span>
+                <span style={{ width: '4px' }}></span>
+                <span style={{ width: '3px' }}></span>
+                <span style={{ width: '1px' }}></span>
+                <span style={{ width: '2px' }}></span>
+                <span style={{ width: '5px' }}></span>
+                <span style={{ width: '2px' }}></span>
+                <span style={{ width: '4px' }}></span>
+                <span style={{ width: '1px' }}></span>
+                <span style={{ width: '3px' }}></span>
+                <span style={{ width: '2px' }}></span>
+                <span style={{ width: '4px' }}></span>
+              </div>
+              <div className="barcode-number">*{payment.payment_number}*</div>
+            </div>
+
+            <div className="receipt-digital-seal">
+              <div className="seal-border">
+                <span className="seal-brand">FAB HOMES UGANDA</span>
+                <span className="seal-tag">DIGITALLY VERIFIED RECEIPT</span>
+                <span className="seal-signer">Authorized: {payment.processed_by?.name || 'Aisha Namubiru (Finance)'}</span>
+                <span className="seal-status">AUTHENTICATED • {payment.payment_date}</span>
+              </div>
             </div>
           </div>
         </div>

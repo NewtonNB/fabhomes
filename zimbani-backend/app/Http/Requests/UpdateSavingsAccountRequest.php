@@ -16,7 +16,7 @@ class UpdateSavingsAccountRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'account_type' => 'nullable|in:land_saving,construction_saving',
+            'account_type' => 'nullable|in:land_saving,construction_saving,tuzimbe_group',
             'scheme_name' => 'nullable|string|max:100',
             'target_amount' => 'nullable|numeric|min:1000',
             'status' => 'nullable|in:active,suspended,completed,closed',
