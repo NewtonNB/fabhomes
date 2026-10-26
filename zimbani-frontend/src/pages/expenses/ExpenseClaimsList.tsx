@@ -193,6 +193,130 @@ export const ExpenseClaimsList: React.FC = () => {
         </div>
       </div>
 
+      {/* Draft Section & Status Navigation Filter Chips */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('')
+            setPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === '' ? '#2563eb' : '#cbd5e1'}`,
+            background: statusFilter === '' ? '#2563eb' : '#ffffff',
+            color: statusFilter === '' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          All Claims
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('draft')
+            setPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === 'draft' ? '#d97706' : '#cbd5e1'}`,
+            background: statusFilter === 'draft' ? '#d97706' : '#ffffff',
+            color: statusFilter === 'draft' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Draft Section
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('submitted')
+            setPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === 'submitted' ? '#3b82f6' : '#cbd5e1'}`,
+            background: statusFilter === 'submitted' ? '#3b82f6' : '#ffffff',
+            color: statusFilter === 'submitted' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Submitted / Under Review
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('approved_by_finance')
+            setPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === 'approved_by_finance' ? '#16a34a' : '#cbd5e1'}`,
+            background: statusFilter === 'approved_by_finance' ? '#16a34a' : '#ffffff',
+            color: statusFilter === 'approved_by_finance' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Approved by Finance
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('reimbursed')
+            setPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === 'reimbursed' ? '#059669' : '#cbd5e1'}`,
+            background: statusFilter === 'reimbursed' ? '#059669' : '#ffffff',
+            color: statusFilter === 'reimbursed' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Reimbursed
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('rejected')
+            setPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === 'rejected' ? '#dc2626' : '#cbd5e1'}`,
+            background: statusFilter === 'rejected' ? '#dc2626' : '#ffffff',
+            color: statusFilter === 'rejected' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Rejected
+        </button>
+      </div>
+
       {/* Filter Toolbar */}
       <div className="contracts-card" style={{ marginBottom: '1.5rem', padding: '1rem' }}>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>

@@ -8,9 +8,11 @@ import {
   MdPeople,
   MdApartment,
   MdBadge,
+  MdCheckCircle,
 } from 'react-icons/md'
 import companyService from '../../services/company.service'
 import { Company } from '../../types/company.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './CompanyDetails.css'
 
 const CompanyDetails = () => {
@@ -20,6 +22,9 @@ const CompanyDetails = () => {
   const [company, setCompany] = useState<Company | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   useEffect(() => {
     if (id) {
@@ -45,16 +50,22 @@ const CompanyDetails = () => {
     }
   }
 
-  const handleDelete = async () => {
-    if (!company || !window.confirm(`Are you sure you want to delete "${company.name}"?`)) {
-      return
-    }
+  const handleConfirmDelete = async () => {
+    if (!company) return
 
+    setIsDeleting(true)
     try {
       await companyService.deleteCompany(company.uuid)
+      setShowDeleteConfirm(false)
       navigate('/companies')
     } catch (err: any) {
-      alert(err.message || 'Failed to delete company')
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to delete company'
+      })
+      setShowDeleteConfirm(false)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -124,11 +135,39 @@ const CompanyDetails = () => {
           <Link to={`/companies/${company.uuid}/edit`} className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
             <MdEdit size={16} /> Edit
           </Link>
-          <button onClick={handleDelete} className="btn btn-danger" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+          <button onClick={() => setShowDeleteConfirm(true)} className="btn btn-danger" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
             <MdDelete size={16} /> Delete
           </button>
         </div>
       </div>
+
+      {actionFeedback && (
+        <div
+          className={`alert ${actionFeedback.type === 'success' ? 'alert-success' : 'alert-error'}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            backgroundColor: actionFeedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: actionFeedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${actionFeedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
+            {actionFeedback.type === 'success' ? <MdCheckCircle size={18} color="#059669" /> : <MdWarning size={18} color="#dc2626" />}
+            {actionFeedback.message}
+          </span>
+          <button
+            onClick={() => setActionFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="stats-grid">
@@ -345,6 +384,19 @@ const CompanyDetails = () => {
           </span>
         </div>
       </div>
+
+      {/* Soft Confirmation Modal for Deletion */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete Company"
+        message={`Are you sure you want to delete "${company.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setShowDeleteConfirm(false)}
+      />
     </div>
   )
 }

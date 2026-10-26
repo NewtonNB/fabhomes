@@ -79,7 +79,7 @@ export const PettyCashDetails: React.FC = () => {
 
     const amt = Number(topUpAmount)
     if (isNaN(amt) || amt <= 0) {
-      alert('Please enter a valid replenishment amount.')
+      setError('Please enter a valid replenishment amount.')
       return
     }
 
@@ -111,12 +111,12 @@ export const PettyCashDetails: React.FC = () => {
 
     const amt = Number(returnAmount)
     if (isNaN(amt) || amt <= 0) {
-      alert('Please enter a valid return amount.')
+      setError('Please enter a valid return amount.')
       return
     }
 
     if (amt > account.current_balance) {
-      alert(`Cannot return more than current float balance: ${formatCurrency(account.current_balance, account.currency)}`)
+      setError(`Cannot return more than current float balance: ${formatCurrency(account.current_balance, account.currency)}`)
       return
     }
 

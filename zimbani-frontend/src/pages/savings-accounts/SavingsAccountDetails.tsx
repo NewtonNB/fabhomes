@@ -25,6 +25,7 @@ import { DocumentsTable } from '../../components/documents/DocumentsTable'
 import { MilestoneSavingsPoolsCard } from './components/MilestoneSavingsPoolsCard'
 import projectService from '../../services/project.service'
 import { Project } from '../../types/project.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './SavingsAccountDetails.css'
 
 export const SavingsAccountDetails: React.FC = () => {
@@ -37,6 +38,7 @@ export const SavingsAccountDetails: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [showActivateConfirm, setShowActivateConfirm] = useState<boolean>(false)
 
   // Modals
   const [actionLoading, setActionLoading] = useState<boolean>(false)
@@ -98,16 +100,21 @@ export const SavingsAccountDetails: React.FC = () => {
     setTimeout(() => setSuccessMessage(null), 5000)
   }
 
-  const handleActivate = async () => {
+  const handleActivate = () => {
+    setShowActivateConfirm(true)
+  }
+
+  const executeActivate = async () => {
     if (!account) return
-    if (!window.confirm('Reactivate this savings account?')) return
     try {
       setActionLoading(true)
       await savingsAccountService.activateSavingsAccount(account.uuid)
+      setShowActivateConfirm(false)
       triggerSuccess('Savings account successfully reactivated!')
       fetchAccount()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to reactivate account.')
+      setError(err?.response?.data?.message || 'Failed to reactivate account.')
+      setShowActivateConfirm(false)
     } finally {
       setActionLoading(false)
     }
@@ -118,7 +125,7 @@ export const SavingsAccountDetails: React.FC = () => {
     if (!account) return
     const amt = Number(adjustAmount)
     if (isNaN(amt) || amt <= 0) {
-      alert('Please enter a valid positive adjustment amount.')
+      setError('Please enter a valid positive adjustment amount.')
       return
     }
 
@@ -135,7 +142,7 @@ export const SavingsAccountDetails: React.FC = () => {
       triggerSuccess('Account balance adjusted successfully!')
       fetchAccount()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to adjust balance.')
+      setError(err?.response?.data?.message || 'Failed to adjust balance.')
     } finally {
       setActionLoading(false)
     }
@@ -152,7 +159,7 @@ export const SavingsAccountDetails: React.FC = () => {
       triggerSuccess('Savings account suspended.')
       fetchAccount()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to suspend account.')
+      setError(err?.response?.data?.message || 'Failed to suspend account.')
     } finally {
       setActionLoading(false)
     }
@@ -169,7 +176,7 @@ export const SavingsAccountDetails: React.FC = () => {
       triggerSuccess('Savings account closed successfully.')
       fetchAccount()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to close account.')
+      setError(err?.response?.data?.message || 'Failed to close account.')
     } finally {
       setActionLoading(false)
     }
@@ -806,6 +813,19 @@ export const SavingsAccountDetails: React.FC = () => {
           title="Upload Savings Scheme Contract or Receipt"
         />
       )}
+
+      {/* Soft Confirmation Modal for Reactivation */}
+      <ConfirmDialog
+        isOpen={showActivateConfirm}
+        title="Reactivate Savings Account"
+        message={`Are you sure you want to reactivate savings account #${account?.account_number}?`}
+        confirmText="Reactivate Account"
+        cancelText="Cancel"
+        variant="primary"
+        isLoading={actionLoading}
+        onConfirm={executeActivate}
+        onClose={() => setShowActivateConfirm(false)}
+      />
     </div>
   )
 }

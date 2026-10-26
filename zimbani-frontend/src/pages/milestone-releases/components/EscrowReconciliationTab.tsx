@@ -26,6 +26,7 @@ import {
 } from '../../../types/escrow-reconciliation.types'
 import { Project } from '../../../types/project.types'
 import { SavingsAccount } from '../../../types/savings-account.types'
+import { ConfirmDialog } from '../../../components/common/ConfirmDialog'
 
 interface EscrowReconciliationTabProps {
   projects: Project[]
@@ -66,6 +67,7 @@ export const EscrowReconciliationTab: React.FC<EscrowReconciliationTabProps> = (
   const [showResolveModal, setShowResolveModal] = useState<boolean>(false)
   const [selectedReconciliation, setSelectedReconciliation] = useState<EscrowReconciliation | null>(null)
   const [selectedItem, setSelectedItem] = useState<EscrowReconciliationItem | null>(null)
+  const [recToApprove, setRecToApprove] = useState<EscrowReconciliation | null>(null)
 
   // Create Form State
   const [createForm, setCreateForm] = useState<{
@@ -184,7 +186,7 @@ export const EscrowReconciliationTab: React.FC<EscrowReconciliationTabProps> = (
   // Handle Add Item to Create Form
   const handleAddItemToForm = () => {
     if (!newItem.external_reference || !newItem.statement_amount) {
-      alert('Please specify external reference and statement amount.')
+      setError('Please specify external reference and statement amount.')
       return
     }
     setCreateForm((prev) => ({
@@ -290,10 +292,13 @@ export const EscrowReconciliationTab: React.FC<EscrowReconciliationTabProps> = (
   }
 
   // Handle Approve Reconciliation
-  const handleApproveReconciliation = async (rec: EscrowReconciliation) => {
-    if (!window.confirm(`Are you sure you want to approve escrow reconciliation ${rec.reconciliation_number}?`)) {
-      return
-    }
+  const handleApproveReconciliation = (rec: EscrowReconciliation) => {
+    setRecToApprove(rec)
+  }
+
+  const confirmApproveReconciliation = async () => {
+    if (!recToApprove) return
+    const rec = recToApprove
     try {
       setActionLoading(true)
       setError(null)
@@ -302,6 +307,7 @@ export const EscrowReconciliationTab: React.FC<EscrowReconciliationTabProps> = (
       if (selectedReconciliation && selectedReconciliation.uuid === rec.uuid) {
         setShowDetailModal(false)
       }
+      setRecToApprove(null)
       refreshCurrentView()
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to approve escrow reconciliation.')
@@ -1243,6 +1249,18 @@ export const EscrowReconciliationTab: React.FC<EscrowReconciliationTabProps> = (
           </div>
         </div>
       )}
+      {/* Soft Confirmation Dialog for Approval */}
+      <ConfirmDialog
+        isOpen={!!recToApprove}
+        title="Approve Escrow Reconciliation"
+        message={`Are you sure you want to approve escrow reconciliation ${recToApprove?.reconciliation_number}? This will finalize and verify all balances.`}
+        confirmLabel="Approve Reconciliation"
+        cancelLabel="Cancel"
+        variant="primary"
+        loading={actionLoading}
+        onConfirm={confirmApproveReconciliation}
+        onCancel={() => setRecToApprove(null)}
+      />
     </div>
   )
 }

@@ -45,6 +45,7 @@ import { NotificationBellDropdown } from '../../components/notifications/Notific
 import { NotificationCenterModal } from '../../components/notifications/NotificationCenterModal'
 import { RealtimeToastContainer } from '../../components/notifications/RealtimeToastContainer'
 import { echoService } from '../../services/echo.service'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './ClientPortalLayout.css'
 
 export const ClientPortalDashboard: React.FC = () => {
@@ -78,6 +79,8 @@ export const ClientPortalDashboard: React.FC = () => {
   const [newPin, setNewPin] = useState<string>('')
   const [currentPassword, setCurrentPassword] = useState<string>('')
   const [isSubmittingPin, setIsSubmittingPin] = useState<boolean>(false)
+  const [showRevokeConfirm, setShowRevokeConfirm] = useState<boolean>(false)
+  const [revokingSessions, setRevokingSessions] = useState<boolean>(false)
 
   // Profile Edit State
   const [editForm, setEditForm] = useState({
@@ -415,14 +418,21 @@ export const ClientPortalDashboard: React.FC = () => {
   }
 
   // Revoke Other Sessions
-  const handleRevokeOtherSessions = async () => {
-    if (!confirm('Are you sure you want to sign out from all other devices?')) return
+  const handleRevokeOtherSessions = () => {
+    setShowRevokeConfirm(true)
+  }
+
+  const confirmRevokeOtherSessions = async () => {
     try {
+      setRevokingSessions(true)
       const res = await clientPortalAuthService.revokeOtherSessions()
       setActionMessage({ text: res.message, type: 'success' })
+      setShowRevokeConfirm(false)
       await loadSessions()
     } catch (err: any) {
       setActionMessage({ text: 'Failed to revoke sessions', type: 'error' })
+    } finally {
+      setRevokingSessions(false)
     }
   }
 
@@ -1712,6 +1722,19 @@ export const ClientPortalDashboard: React.FC = () => {
       <RealtimeToastContainer
         userId={resolvedUserId}
         onNavigateAction={handleNotificationNavigate}
+      />
+
+      {/* Soft Confirmation for Revoking Sessions */}
+      <ConfirmDialog
+        isOpen={showRevokeConfirm}
+        title="Revoke Other Active Sessions"
+        message="Are you sure you want to sign out from all other devices and active browser sessions? Only this current session will remain active."
+        confirmLabel="Sign Out Other Devices"
+        cancelLabel="Cancel"
+        variant="warning"
+        loading={revokingSessions}
+        onConfirm={confirmRevokeOtherSessions}
+        onCancel={() => setShowRevokeConfirm(false)}
       />
     </div>
   )

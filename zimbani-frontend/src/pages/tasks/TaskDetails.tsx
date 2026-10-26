@@ -12,6 +12,8 @@ import {
   MdCloudUpload,
   MdAttachFile,
   MdClose,
+  MdCheckCircle,
+  MdWarning,
 } from 'react-icons/md'
 import { Task, TaskStatus } from '../../types/task.types'
 import { Document } from '../../types/document.types'
@@ -19,6 +21,7 @@ import taskService from '../../services/task.service'
 import documentService from '../../services/document.service'
 import { DocumentUploadModal } from '../../components/documents/DocumentUploadModal'
 import { DocumentsTable } from '../../components/documents/DocumentsTable'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './TaskDetails.css'
 
 export const TaskDetails: React.FC = () => {
@@ -29,6 +32,9 @@ export const TaskDetails: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false)
+  const [isDeleting, setIsDeleting] = useState<boolean>(false)
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   // Status Change Modal
   const [statusModalOpen, setStatusModalOpen] = useState<boolean>(false)
@@ -91,24 +97,39 @@ export const TaskDetails: React.FC = () => {
       setTask(updated)
       setStatusModalOpen(false)
       setStatusNotes('')
+      setActionFeedback({
+        type: 'success',
+        message: `Task status updated to ${newStatus.replace('_', ' ')}.`
+      })
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to update status')
+      setActionFeedback({
+        type: 'error',
+        message: err?.response?.data?.message || 'Failed to update status'
+      })
     } finally {
       setSubmittingStatus(false)
     }
   }
 
-  const handleDeleteTask = async () => {
-    if (!task) return
-    if (!window.confirm(`Are you sure you want to delete task "${task.title}"?`)) {
-      return
-    }
+  const handleDeleteTask = () => {
+    setShowDeleteConfirm(true)
+  }
 
+  const executeDeleteTask = async () => {
+    if (!task) return
+    setIsDeleting(true)
     try {
       await taskService.deleteTask(task.uuid)
+      setShowDeleteConfirm(false)
       navigate('/tasks')
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to delete task')
+      setActionFeedback({
+        type: 'error',
+        message: err?.response?.data?.message || 'Failed to delete task'
+      })
+      setShowDeleteConfirm(false)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -191,6 +212,34 @@ export const TaskDetails: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {actionFeedback && (
+        <div
+          className={`alert ${actionFeedback.type === 'success' ? 'alert-success' : 'alert-error'}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            backgroundColor: actionFeedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: actionFeedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${actionFeedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
+            {actionFeedback.type === 'success' ? <MdCheckCircle size={18} color="#059669" /> : <MdWarning size={18} color="#dc2626" />}
+            {actionFeedback.message}
+          </span>
+          <button
+            onClick={() => setActionFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Hero Banner */}
       <div className="task-details-hero">
@@ -495,6 +544,19 @@ export const TaskDetails: React.FC = () => {
           title={`Upload File for Task ${task.task_number}`}
         />
       )}
+
+      {/* Soft Confirmation Modal for Task Deletion */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete Task"
+        message={`Are you sure you want to delete task "${task?.title}" (${task?.task_number})? This action cannot be undone.`}
+        confirmText="Delete Task"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={executeDeleteTask}
+        onClose={() => setShowDeleteConfirm(false)}
+      />
     </div>
   )
 }

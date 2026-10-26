@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   MdFileDownload,
   MdDeleteOutline,
@@ -10,9 +10,11 @@ import {
   MdInsertDriveFile,
   MdVerified,
   MdHelpOutline,
+  MdWarning,
 } from 'react-icons/md'
 import { Document } from '../../types/document.types'
 import documentService from '../../services/document.service'
+import { ConfirmDialog } from '../common/ConfirmDialog'
 import './DocumentsTable.css'
 
 interface DocumentsTableProps {
@@ -30,6 +32,9 @@ export const DocumentsTable: React.FC<DocumentsTableProps> = ({
   canVerify = true,
   canDelete = true,
 }) => {
+  const [confirmAction, setConfirmAction] = useState<{ type: 'verify' | 'delete'; doc: Document } | null>(null)
+  const [actionLoading, setActionLoading] = useState<boolean>(false)
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const getFileIcon = (doc: Document) => {
     const ext = (doc.file_extension || '').toLowerCase()
     const mime = (doc.mime_type || '').toLowerCase()
@@ -77,27 +82,47 @@ export const DocumentsTable: React.FC<DocumentsTableProps> = ({
     try {
       await documentService.downloadDocument(doc.uuid, doc.file_name)
     } catch (err: any) {
-      alert(err.message || 'Failed to download document')
+      setFeedback({
+        type: 'error',
+        message: err.message || 'Failed to download document'
+      })
     }
   }
 
-  const handleVerify = async (doc: Document) => {
-    if (!window.confirm(`Verify document "${doc.title}"?`)) return
-    try {
-      await documentService.verifyDocument(doc.uuid)
-      onRefresh()
-    } catch (err: any) {
-      alert(err.message || 'Failed to verify document')
-    }
+  const handleVerify = (doc: Document) => {
+    setConfirmAction({ type: 'verify', doc })
   }
 
-  const handleDelete = async (doc: Document) => {
-    if (!window.confirm(`Delete document "${doc.title}"?`)) return
+  const handleDelete = (doc: Document) => {
+    setConfirmAction({ type: 'delete', doc })
+  }
+
+  const executeConfirmAction = async () => {
+    if (!confirmAction) return
+    setActionLoading(true)
     try {
-      await documentService.deleteDocument(doc.uuid)
+      if (confirmAction.type === 'verify') {
+        await documentService.verifyDocument(confirmAction.doc.uuid)
+        setFeedback({
+          type: 'success',
+          message: `Document "${confirmAction.doc.title}" was verified successfully.`
+        })
+      } else {
+        await documentService.deleteDocument(confirmAction.doc.uuid)
+        setFeedback({
+          type: 'success',
+          message: `Document "${confirmAction.doc.title}" was deleted.`
+        })
+      }
+      setConfirmAction(null)
       onRefresh()
     } catch (err: any) {
-      alert(err.message || 'Failed to delete document')
+      setFeedback({
+        type: 'error',
+        message: err.message || `Failed to ${confirmAction.type} document`
+      })
+    } finally {
+      setActionLoading(false)
     }
   }
 
@@ -117,6 +142,35 @@ export const DocumentsTable: React.FC<DocumentsTableProps> = ({
 
   return (
     <div className="doc-table-container">
+      {feedback && (
+        <div
+          className={`alert ${feedback.type === 'success' ? 'alert-success' : 'alert-error'}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '0.75rem',
+            padding: '10px 14px',
+            borderRadius: '6px',
+            backgroundColor: feedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: feedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${feedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+            fontSize: '0.85rem'
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+            {feedback.type === 'success' ? <MdCheckCircle size={16} color="#059669" /> : <MdWarning size={16} color="#dc2626" />}
+            {feedback.message}
+          </span>
+          <button
+            onClick={() => setFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       <table className="doc-table">
         <thead>
           <tr>
@@ -233,6 +287,23 @@ export const DocumentsTable: React.FC<DocumentsTableProps> = ({
           ))}
         </tbody>
       </table>
+
+      {/* Soft Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={Boolean(confirmAction)}
+        title={confirmAction?.type === 'verify' ? 'Verify Document' : 'Delete Document'}
+        message={
+          confirmAction?.type === 'verify'
+            ? `Mark "${confirmAction.doc.title}" as verified and compliance-cleared?`
+            : `Are you sure you want to permanently delete "${confirmAction?.doc.title}"?`
+        }
+        confirmText={confirmAction?.type === 'verify' ? 'Verify' : 'Delete'}
+        cancelText="Cancel"
+        variant={confirmAction?.type === 'verify' ? 'primary' : 'danger'}
+        isLoading={actionLoading}
+        onConfirm={executeConfirmAction}
+        onClose={() => setConfirmAction(null)}
+      />
     </div>
   )
 }

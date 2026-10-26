@@ -19,6 +19,7 @@ import api from '../../config/api'
 import { SubcontractorContract } from '../../types/contract.types'
 import { PaymentCertificate } from '../../types/certificate.types'
 import { ContractMilestone, ContractMilestoneProgress } from '../../types/subcontractor-milestone.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './ContractDetails.css'
 
 export const ContractDetails: React.FC = () => {
@@ -30,6 +31,7 @@ export const ContractDetails: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [showActivateConfirm, setShowActivateConfirm] = useState<boolean>(false)
 
   // Subcontractor Milestone Valuation States (Phase 8 Day 3)
   const [contractMilestones, setContractMilestones] = useState<ContractMilestone[]>([])
@@ -85,16 +87,21 @@ export const ContractDetails: React.FC = () => {
     fetchContract()
   }, [fetchContract])
 
-  const handleActivate = async () => {
+  const handleActivate = () => {
+    setShowActivateConfirm(true)
+  }
+
+  const executeActivate = async () => {
     if (!contract) return
-    if (!window.confirm(`Activate contract ${contract.contract_number}?`)) return
     try {
       setActionLoading(true)
       const updated = await contractService.activateSubcontractorContract(contract.uuid)
       setContract(updated)
+      setShowActivateConfirm(false)
       notifySuccess(`Contract ${updated.contract_number} has been activated.`)
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to activate contract.')
+      setShowActivateConfirm(false)
     } finally {
       setActionLoading(false)
     }
@@ -118,7 +125,7 @@ export const ContractDetails: React.FC = () => {
 
   const handleTerminate = async () => {
     if (!contract || !terminateReason.trim()) {
-      alert('Termination reason is required.')
+      setError('Termination reason is required.')
       return
     }
     try {
@@ -1004,6 +1011,19 @@ export const ContractDetails: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Soft Confirmation Modal for Contract Activation */}
+      <ConfirmDialog
+        isOpen={showActivateConfirm}
+        title="Activate Subcontractor Contract"
+        message={`Are you sure you want to activate contract ${contract?.contract_number} for ${contract?.subcontractor_name}? This will lock baseline terms and allow payment certificates.`}
+        confirmText="Activate Contract"
+        cancelText="Cancel"
+        variant="primary"
+        isLoading={actionLoading}
+        onConfirm={executeActivate}
+        onClose={() => setShowActivateConfirm(false)}
+      />
     </div>
   )
 }

@@ -33,6 +33,7 @@ import dailyLogService from '../../services/daily-log.service'
 import documentService from '../../services/document.service'
 import { DocumentUploadModal } from '../../components/documents/DocumentUploadModal'
 import { DocumentsTable } from '../../components/documents/DocumentsTable'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './DailyLogDetails.css'
 
 export const DailyLogDetails: React.FC = () => {
@@ -45,6 +46,7 @@ export const DailyLogDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'incidents' | 'toolbox' | 'documents'>('overview')
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState<boolean>(false)
 
   // Modals & Action States
   const [actionLoading, setActionLoading] = useState<boolean>(false)
@@ -120,16 +122,21 @@ export const DailyLogDetails: React.FC = () => {
     setTimeout(() => setSuccessMessage(null), 5000)
   }
 
-  const handleSubmitLog = async () => {
+  const handleSubmitLog = () => {
+    setShowSubmitConfirm(true)
+  }
+
+  const executeSubmitLog = async () => {
     if (!log) return
-    if (!window.confirm('Are you sure you want to submit this daily log for site manager approval?')) return
     try {
       setActionLoading(true)
       await dailyLogService.submitDailyLog(log.uuid)
+      setShowSubmitConfirm(false)
       triggerSuccess('Daily log successfully submitted for manager approval!')
       fetchLog()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to submit log.')
+      setError(err?.response?.data?.message || 'Failed to submit log.')
+      setShowSubmitConfirm(false)
     } finally {
       setActionLoading(false)
     }
@@ -146,7 +153,7 @@ export const DailyLogDetails: React.FC = () => {
       triggerSuccess('Daily log successfully approved!')
       fetchLog()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to approve log.')
+      setError(err?.response?.data?.message || 'Failed to approve log.')
     } finally {
       setActionLoading(false)
     }
@@ -182,7 +189,7 @@ export const DailyLogDetails: React.FC = () => {
       fetchLog()
       setActiveTab('incidents')
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to report safety incident.')
+      setError(err?.response?.data?.message || 'Failed to report safety incident.')
     } finally {
       setActionLoading(false)
     }
@@ -220,7 +227,7 @@ export const DailyLogDetails: React.FC = () => {
       fetchLog()
       setActiveTab('toolbox')
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to record toolbox talk.')
+      setError(err?.response?.data?.message || 'Failed to record toolbox talk.')
     } finally {
       setActionLoading(false)
     }
@@ -240,7 +247,7 @@ export const DailyLogDetails: React.FC = () => {
       triggerSuccess('Investigation officially launched for incident!')
       fetchLog()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to start investigation.')
+      setError(err?.response?.data?.message || 'Failed to start investigation.')
     } finally {
       setActionLoading(false)
     }
@@ -262,7 +269,7 @@ export const DailyLogDetails: React.FC = () => {
       triggerSuccess('Safety incident closed with root cause analysis and preventative measures!')
       fetchLog()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to close incident.')
+      setError(err?.response?.data?.message || 'Failed to close incident.')
     } finally {
       setActionLoading(false)
     }
@@ -1275,6 +1282,19 @@ export const DailyLogDetails: React.FC = () => {
           title="Upload Daily Site Photo or Report"
         />
       )}
+
+      {/* Soft Confirmation Modal for Log Submission */}
+      <ConfirmDialog
+        isOpen={showSubmitConfirm}
+        title="Submit Daily Log"
+        message={`Are you sure you want to submit daily log #${log?.log_number} (${log?.log_date}) for site manager review and formal sign-off?`}
+        confirmText="Submit Daily Log"
+        cancelText="Cancel"
+        variant="primary"
+        isLoading={actionLoading}
+        onConfirm={executeSubmitLog}
+        onClose={() => setShowSubmitConfirm(false)}
+      />
     </div>
   )
 }

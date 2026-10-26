@@ -42,6 +42,7 @@ import { siteService } from '../../services/site.service'
 import { projectService } from '../../services/project.service'
 import taskService from '../../services/task.service'
 import { adminService } from '../../services/admin.service'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './EquipmentList.css'
 
 export const EquipmentList: React.FC = () => {
@@ -59,6 +60,14 @@ export const EquipmentList: React.FC = () => {
   const [maintenanceLogs, setMaintenanceLogs] = useState<EquipmentMaintenanceLog[]>([])
   const [utilizationLogs, setUtilizationLogs] = useState<EquipmentUtilizationLog[]>([])
   const [stats, setStats] = useState<EquipmentStatistics | null>(null)
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    variant: 'danger' | 'warning' | 'primary'
+    confirmText?: string
+    onConfirm: () => void
+  } | null>(null)
 
   // Lookups
   const [sites, setSites] = useState<Site[]>([])
@@ -373,21 +382,29 @@ export const EquipmentList: React.FC = () => {
     }
   }
 
-  const handleActivateDispatch = async (dispatchItem: EquipmentDispatch) => {
-    if (!window.confirm(`Confirm delivery and activation of ${dispatchItem.equipment?.name} at ${dispatchItem.to_site?.name}?`)) {
-      return
-    }
-    setActionLoading(true)
-    try {
-      await equipmentService.activateDispatch(dispatchItem.uuid)
-      setSuccessMessage(`Equipment marked as Active On-Site at ${dispatchItem.to_site?.name}.`)
-      loadDispatches()
-      loadStats()
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to activate dispatch')
-    } finally {
-      setActionLoading(false)
-    }
+  const handleActivateDispatch = (dispatchItem: EquipmentDispatch) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Confirm Equipment Delivery & Activation',
+      message: `Confirm delivery and activation of ${dispatchItem.equipment?.name} at ${dispatchItem.to_site?.name}?`,
+      variant: 'primary',
+      confirmText: 'Activate On-Site',
+      onConfirm: async () => {
+        setActionLoading(true)
+        try {
+          await equipmentService.activateDispatch(dispatchItem.uuid)
+          setSuccessMessage(`Equipment marked as Active On-Site at ${dispatchItem.to_site?.name}.`)
+          setConfirmDialog(null)
+          loadDispatches()
+          loadStats()
+        } catch (err: any) {
+          setError(err?.response?.data?.message || 'Failed to activate dispatch')
+          setConfirmDialog(null)
+        } finally {
+          setActionLoading(false)
+        }
+      }
+    })
   }
 
   const handleOpenReturnModal = (dispatchItem: EquipmentDispatch) => {
@@ -461,21 +478,29 @@ export const EquipmentList: React.FC = () => {
     }
   }
 
-  const handleStartMaintenance = async (log: EquipmentMaintenanceLog) => {
-    if (!window.confirm(`Start maintenance for ${log.equipment?.name}? This will mark it Under Maintenance.`)) {
-      return
-    }
-    setActionLoading(true)
-    try {
-      await equipmentService.startMaintenance(log.uuid)
-      setSuccessMessage('Maintenance started. Equipment is now under maintenance.')
-      loadMaintenance()
-      loadStats()
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to start maintenance')
-    } finally {
-      setActionLoading(false)
-    }
+  const handleStartMaintenance = (log: EquipmentMaintenanceLog) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Start Equipment Maintenance',
+      message: `Start maintenance for ${log.equipment?.name}? This will mark it as Under Maintenance.`,
+      variant: 'warning',
+      confirmText: 'Start Maintenance',
+      onConfirm: async () => {
+        setActionLoading(true)
+        try {
+          await equipmentService.startMaintenance(log.uuid)
+          setSuccessMessage('Maintenance started. Equipment is now under maintenance.')
+          setConfirmDialog(null)
+          loadMaintenance()
+          loadStats()
+        } catch (err: any) {
+          setError(err?.response?.data?.message || 'Failed to start maintenance')
+          setConfirmDialog(null)
+        } finally {
+          setActionLoading(false)
+        }
+      }
+    })
   }
 
   const handleOpenCompleteMaintModal = (log: EquipmentMaintenanceLog) => {
@@ -564,21 +589,29 @@ export const EquipmentList: React.FC = () => {
   }
 
   // Delete Equipment Handler
-  const handleDeleteEquipment = async (item: Equipment) => {
-    if (!window.confirm(`Are you sure you want to remove ${item.name} (${item.equipment_code}) from the fleet?`)) {
-      return
-    }
-    setActionLoading(true)
-    try {
-      await equipmentService.deleteEquipment(item.uuid)
-      setSuccessMessage(`Equipment ${item.name} deleted successfully.`)
-      loadFleet()
-      loadStats()
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to delete equipment')
-    } finally {
-      setActionLoading(false)
-    }
+  const handleDeleteEquipment = (item: Equipment) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Remove Equipment From Fleet',
+      message: `Are you sure you want to remove ${item.name} (${item.equipment_code}) from the fleet?`,
+      variant: 'danger',
+      confirmText: 'Remove Equipment',
+      onConfirm: async () => {
+        setActionLoading(true)
+        try {
+          await equipmentService.deleteEquipment(item.uuid)
+          setSuccessMessage(`Equipment ${item.name} deleted successfully.`)
+          setConfirmDialog(null)
+          loadFleet()
+          loadStats()
+        } catch (err: any) {
+          setError(err?.response?.data?.message || 'Failed to delete equipment')
+          setConfirmDialog(null)
+        } finally {
+          setActionLoading(false)
+        }
+      }
+    })
   }
 
   return (
@@ -2053,6 +2086,21 @@ export const EquipmentList: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Soft Confirmation Dialog */}
+      {confirmDialog && (
+        <ConfirmDialog
+          isOpen={confirmDialog.isOpen}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmText={confirmDialog.confirmText || 'Confirm'}
+          cancelText="Cancel"
+          variant={confirmDialog.variant}
+          isLoading={actionLoading}
+          onConfirm={confirmDialog.onConfirm}
+          onClose={() => setConfirmDialog(null)}
+        />
       )}
     </div>
   )

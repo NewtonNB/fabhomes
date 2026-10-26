@@ -15,6 +15,7 @@ import {
 } from 'react-icons/md'
 import expenseService from '../../services/expense.service'
 import { ExpenseClaim, ExpenseClaimStatus, ExpenseCategory } from '../../types/expense.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import '../contracts/ContractsList.css'
 import '../contracts/ContractDetails.css'
 import './Expenses.css'
@@ -28,6 +29,7 @@ export const ExpenseClaimDetails: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState<boolean>(false)
 
   // Modals
   const [verifyModalOpen, setVerifyModalOpen] = useState<boolean>(false)
@@ -73,16 +75,21 @@ export const ExpenseClaimDetails: React.FC = () => {
   }
 
   // Workflow Handlers
-  const handleSubmitClaim = async () => {
+  const handleSubmitClaim = () => {
+    setShowSubmitConfirm(true)
+  }
+
+  const executeSubmitClaim = async () => {
     if (!claim) return
-    if (!window.confirm('Submit this expense claim for Site Manager verification?')) return
     try {
       setActionLoading(true)
       const updated = await expenseService.submitExpenseClaim(claim.uuid)
       setClaim(updated)
+      setShowSubmitConfirm(false)
       notifySuccess('Claim submitted successfully for site manager verification.')
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to submit claim.')
+      setShowSubmitConfirm(false)
     } finally {
       setActionLoading(false)
     }
@@ -857,6 +864,19 @@ export const ExpenseClaimDetails: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Soft Confirmation Modal for Expense Claim Submission */}
+      <ConfirmDialog
+        isOpen={showSubmitConfirm}
+        title="Submit Expense Claim"
+        message={`Are you sure you want to submit claim "${claim?.claim_number}" (${formatCurrency(claim?.total_amount ?? 0, claim?.currency)}) for Site Manager verification?`}
+        confirmText="Submit Claim"
+        cancelText="Cancel"
+        variant="primary"
+        isLoading={actionLoading}
+        onConfirm={executeSubmitClaim}
+        onClose={() => setShowSubmitConfirm(false)}
+      />
     </div>
   )
 }

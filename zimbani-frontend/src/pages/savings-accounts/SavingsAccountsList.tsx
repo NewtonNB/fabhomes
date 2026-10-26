@@ -26,6 +26,7 @@ import savingsAccountService from '../../services/savings-account.service'
 import constructionSavingSchemeService from '../../services/construction-scheme.service'
 import schemeTransferService, { SchemeTransferItem } from '../../services/scheme-transfer.service'
 import { ConstructionSavingScheme } from '../../types/construction-scheme.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './SavingsAccountsList.css'
 
 export const SavingsAccountsList: React.FC = () => {
@@ -41,6 +42,7 @@ export const SavingsAccountsList: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [accountToActivate, setAccountToActivate] = useState<SavingsAccount | null>(null)
 
   // Filters
   const [search, setSearch] = useState<string>('')
@@ -126,7 +128,7 @@ export const SavingsAccountsList: React.FC = () => {
       fetchAccounts()
       fetchStatistics()
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message || 'Failed to approve transfer')
+      setError(err.response?.data?.message || err.message || 'Failed to approve transfer')
     } finally {
       setTransferActionLoading(false)
     }
@@ -141,7 +143,7 @@ export const SavingsAccountsList: React.FC = () => {
       triggerSuccess('Scheme transfer marked as rejected.')
       fetchTransfers()
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message || 'Failed to reject transfer')
+      setError(err.response?.data?.message || err.message || 'Failed to reject transfer')
     } finally {
       setTransferActionLoading(false)
     }
@@ -197,16 +199,22 @@ export const SavingsAccountsList: React.FC = () => {
   }, [searchParams])
 
   // Quick Action Handlers
-  const handleActivate = async (account: SavingsAccount) => {
-    if (!window.confirm(`Activate savings account ${account.account_number}?`)) return
+  const handleActivate = (account: SavingsAccount) => {
+    setAccountToActivate(account)
+  }
+
+  const executeActivate = async () => {
+    if (!accountToActivate) return
     try {
       setActionLoading(true)
-      await savingsAccountService.activateSavingsAccount(account.uuid)
-      triggerSuccess(`Account ${account.account_number} reactivated successfully!`)
+      await savingsAccountService.activateSavingsAccount(accountToActivate.uuid)
+      triggerSuccess(`Account ${accountToActivate.account_number} reactivated successfully!`)
+      setAccountToActivate(null)
       fetchAccounts()
       fetchStatistics()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to activate account.')
+      setError(err?.response?.data?.message || 'Failed to activate account.')
+      setAccountToActivate(null)
     } finally {
       setActionLoading(false)
     }
@@ -217,7 +225,7 @@ export const SavingsAccountsList: React.FC = () => {
     if (!adjustTarget) return
     const amt = Number(adjustAmount)
     if (isNaN(amt) || amt <= 0) {
-      alert('Please enter a valid positive adjustment amount.')
+      setError('Please enter a valid positive adjustment amount.')
       return
     }
 
@@ -236,7 +244,7 @@ export const SavingsAccountsList: React.FC = () => {
       fetchAccounts()
       fetchStatistics()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to adjust balance.')
+      setError(err?.response?.data?.message || 'Failed to adjust balance.')
     } finally {
       setActionLoading(false)
     }
@@ -255,7 +263,7 @@ export const SavingsAccountsList: React.FC = () => {
       fetchAccounts()
       fetchStatistics()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to suspend account.')
+      setError(err?.response?.data?.message || 'Failed to suspend account.')
     } finally {
       setActionLoading(false)
     }
@@ -274,7 +282,7 @@ export const SavingsAccountsList: React.FC = () => {
       fetchAccounts()
       fetchStatistics()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to close account.')
+      setError(err?.response?.data?.message || 'Failed to close account.')
     } finally {
       setActionLoading(false)
     }
@@ -1089,6 +1097,19 @@ export const SavingsAccountsList: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Soft Confirmation Modal for Account Activation */}
+      <ConfirmDialog
+        isOpen={Boolean(accountToActivate)}
+        title="Activate Savings Account"
+        message={`Are you sure you want to reactivate savings account "${accountToActivate?.account_number}" (${accountToActivate?.client?.first_name} ${accountToActivate?.client?.last_name})?`}
+        confirmText="Activate Account"
+        cancelText="Cancel"
+        variant="primary"
+        isLoading={actionLoading}
+        onConfirm={executeActivate}
+        onClose={() => setAccountToActivate(null)}
+      />
     </div>
   )
 }

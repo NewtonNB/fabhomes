@@ -102,7 +102,7 @@ const PaymentsList: React.FC = () => {
       fetchStatistics()
     } catch (err: any) {
       fetchPayments(true)
-      alert(err.message || 'Failed to confirm payment')
+      setError(err.message || 'Failed to confirm payment')
     } finally {
       setActionLoading(null)
     }
@@ -117,7 +117,7 @@ const PaymentsList: React.FC = () => {
       fetchStatistics()
     } catch (err: any) {
       fetchPayments(true)
-      alert(err.message || 'Failed to verify payment')
+      setError(err.message || 'Failed to verify payment')
     } finally {
       setActionLoading(null)
     }

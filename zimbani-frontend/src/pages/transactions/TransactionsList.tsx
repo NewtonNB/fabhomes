@@ -131,7 +131,7 @@ export const TransactionsList: React.FC = () => {
       const report = await transactionService.getReconciliation()
       setReconciliation(report)
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to perform ledger reconciliation')
+      setError(err?.response?.data?.message || 'Failed to perform ledger reconciliation')
     } finally {
       setReconciling(false)
     }
@@ -141,7 +141,7 @@ export const TransactionsList: React.FC = () => {
     e.preventDefault()
     if (!reversalTarget) return
     if (!reversalReason.trim() || reversalReason.length < 5) {
-      alert('A detailed justification (min 5 characters) is required to reverse a posted transaction.')
+      setError('A detailed justification (min 5 characters) is required to reverse a posted transaction.')
       return
     }
 
@@ -157,7 +157,7 @@ export const TransactionsList: React.FC = () => {
         handleRunReconciliation()
       }
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Reversal failed')
+      setError(err?.response?.data?.message || 'Reversal failed')
     } finally {
       setReversalSubmitting(false)
     }
@@ -166,16 +166,16 @@ export const TransactionsList: React.FC = () => {
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!postClientId) {
-      alert('Please select a client account owner')
+      setError('Please select a client account owner')
       return
     }
     const amt = parseFloat(postAmount)
     if (isNaN(amt) || amt === 0) {
-      alert('Please enter a valid non-zero amount')
+      setError('Please enter a valid non-zero amount')
       return
     }
     if (!postDescription.trim()) {
-      alert('Description is required')
+      setError('Description is required')
       return
     }
 
@@ -200,7 +200,7 @@ export const TransactionsList: React.FC = () => {
         handleRunReconciliation()
       }
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to post transaction')
+      setError(err?.response?.data?.message || 'Failed to post transaction')
     } finally {
       setPostSubmitting(false)
     }

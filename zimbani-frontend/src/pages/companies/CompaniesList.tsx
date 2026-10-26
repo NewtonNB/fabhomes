@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MdVisibility, MdEdit, MdDelete, MdWarning } from 'react-icons/md'
+import { MdVisibility, MdEdit, MdDelete, MdWarning, MdCheckCircle } from 'react-icons/md'
 import companyService from '../../services/company.service'
 import { Company, CompanyFilters } from '../../types/company.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './CompaniesList.css'
 
 const CompaniesList = () => {
@@ -14,6 +15,11 @@ const CompaniesList = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
   
+  // Soft Replies & Confirm Modal States
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null)
+  const [deletingCompany, setDeletingCompany] = useState(false)
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
   // Filters
   const [filters, setFilters] = useState<CompanyFilters>({
     search: '',
@@ -54,16 +60,25 @@ const CompaniesList = () => {
     setFilters((prev) => ({ ...prev, [key]: value }))
   }
 
-  const handleDelete = async (uuid: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      return
-    }
+  const handleConfirmDelete = async () => {
+    if (!companyToDelete) return
 
+    setDeletingCompany(true)
     try {
-      await companyService.deleteCompany(uuid)
+      await companyService.deleteCompany(companyToDelete.uuid)
+      setActionFeedback({
+        type: 'success',
+        message: `Company "${companyToDelete.name}" was successfully deleted.`
+      })
+      setCompanyToDelete(null)
       fetchCompanies()
     } catch (err: any) {
-      alert(err.message || 'Failed to delete company')
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to delete company. It may be linked to active projects or users.'
+      })
+    } finally {
+      setDeletingCompany(false)
     }
   }
 
@@ -94,6 +109,118 @@ const CompaniesList = () => {
         <Link to="/companies/create" className="btn btn-primary">
           + Add Company
         </Link>
+      </div>
+
+      {actionFeedback && (
+        <div
+          className={`alert ${actionFeedback.type === 'success' ? 'alert-success' : 'alert-error'}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            backgroundColor: actionFeedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: actionFeedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${actionFeedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
+            {actionFeedback.type === 'success' ? <MdCheckCircle size={18} color="#059669" /> : <MdWarning size={18} color="#dc2626" />}
+            {actionFeedback.message}
+          </span>
+          <button
+            onClick={() => setActionFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Status Filter Chips */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+        <button
+          type="button"
+          onClick={() => {
+            setFilters(prev => ({ ...prev, status: '' }))
+            setCurrentPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${!filters.status ? '#0d9488' : '#cbd5e1'}`,
+            background: !filters.status ? '#0d9488' : '#ffffff',
+            color: !filters.status ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          All Companies ({total || companies.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setFilters(prev => ({ ...prev, status: 'active' }))
+            setCurrentPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${filters.status === 'active' ? '#16a34a' : '#cbd5e1'}`,
+            background: filters.status === 'active' ? '#16a34a' : '#ffffff',
+            color: filters.status === 'active' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Active
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setFilters(prev => ({ ...prev, status: 'inactive' }))
+            setCurrentPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${filters.status === 'inactive' ? '#64748b' : '#cbd5e1'}`,
+            background: filters.status === 'inactive' ? '#64748b' : '#ffffff',
+            color: filters.status === 'inactive' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Inactive
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setFilters(prev => ({ ...prev, status: 'suspended' }))
+            setCurrentPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${filters.status === 'suspended' ? '#dc2626' : '#cbd5e1'}`,
+            background: filters.status === 'suspended' ? '#dc2626' : '#ffffff',
+            color: filters.status === 'suspended' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Suspended
+        </button>
       </div>
 
       {/* Filters */}
@@ -236,7 +363,7 @@ const CompaniesList = () => {
                             <MdEdit size={18} />
                           </button>
                           <button
-                            onClick={() => handleDelete(company.uuid, company.name)}
+                            onClick={() => setCompanyToDelete(company)}
                             className="btn-icon btn-danger"
                             title="Delete"
                           >
@@ -277,6 +404,19 @@ const CompaniesList = () => {
           )}
         </>
       )}
+
+      {/* Soft Confirmation Modal for Company Deletion */}
+      <ConfirmDialog
+        isOpen={Boolean(companyToDelete)}
+        title="Delete Company"
+        message={`Are you sure you want to delete company "${companyToDelete?.name}"? All associated settings will be removed.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={deletingCompany}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setCompanyToDelete(null)}
+      />
     </div>
   )
 }

@@ -16,6 +16,7 @@ import {
 } from 'react-icons/md';
 import { siteService } from '../../services/site.service';
 import { Site } from '../../types/site.types';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import './SiteDetails.css';
 
 const SiteDetails: React.FC = () => {
@@ -24,6 +25,8 @@ const SiteDetails: React.FC = () => {
   const [site, setSite] = useState<Site | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -45,16 +48,18 @@ const SiteDetails: React.FC = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!site || !window.confirm('Are you sure you want to delete this site?')) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!site) return;
 
+    setIsDeleting(true);
     try {
       await siteService.deleteSite(site.uuid || site.id);
-      navigate('/sites');
+      navigate('/estates');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete site');
+      setError(err.response?.data?.message || 'Failed to delete site. Ensure no active units are attached.');
+      setShowDeleteConfirm(false);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -137,7 +142,7 @@ const SiteDetails: React.FC = () => {
             <MdEdit size={16} /> Edit Site
           </button>
           <button 
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             className="btn btn-danger"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
           >
@@ -382,6 +387,18 @@ const SiteDetails: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete Estate / Site"
+        message={`Are you sure you want to delete "${site.name}" (${site.site_code})? This will permanently remove the site record.`}
+        confirmText="Delete Site"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 };

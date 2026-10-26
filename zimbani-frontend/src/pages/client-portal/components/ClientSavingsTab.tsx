@@ -10,6 +10,7 @@ import {
   MdSearch,
   MdClose,
   MdAccountBalance,
+  MdErrorOutline,
 } from 'react-icons/md'
 import { clientPortalSavingsService } from '../../../services/client-portal-savings.service'
 import {
@@ -49,6 +50,7 @@ export const ClientSavingsTab: React.FC<ClientSavingsTabProps> = ({ onNotify }) 
   // Confirmation / Receipt State
   const [activeIntent, setActiveIntent] = useState<DepositIntentResponse | null>(null)
   const [receipt, setReceipt] = useState<DepositReceipt | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
 
   const loadOverview = async () => {
     setLoading(true)
@@ -97,8 +99,9 @@ export const ClientSavingsTab: React.FC<ClientSavingsTabProps> = ({ onNotify }) 
 
   const handleInitiateDeposit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setFormError(null)
     if (!selectedAccountId || depositAmount < 1000) {
-      alert('Please enter a valid deposit amount (min UGX 1,000).')
+      setFormError('Please enter a valid deposit amount (min UGX 1,000).')
       return
     }
 
@@ -326,6 +329,12 @@ export const ClientSavingsTab: React.FC<ClientSavingsTabProps> = ({ onNotify }) 
             {/* Step 1: Input Form */}
             {!activeIntent && !receipt && (
               <form onSubmit={handleInitiateDeposit}>
+                {formError && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 6, background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#fca5a5', marginBottom: 12, fontSize: 13 }}>
+                    <MdErrorOutline />
+                    <span>{formError}</span>
+                  </div>
+                )}
                 {/* Account Picker */}
                 <div className="portal-input-group">
                   <label>Select Target Savings Scheme</label>

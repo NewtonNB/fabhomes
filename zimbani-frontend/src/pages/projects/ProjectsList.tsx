@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MdVisibility, MdEdit, MdDelete, MdWarning } from 'react-icons/md'
+import { MdVisibility, MdEdit, MdDelete, MdWarning, MdCheckCircle } from 'react-icons/md'
 import projectService from '../../services/project.service'
 import { Project, ProjectFilters } from '../../types/project.types'
 import { ConstructionEstimatesModal } from '../../components/construction/ConstructionEstimatesModal'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './ProjectsList.css'
 
 const ProjectsList = () => {
@@ -16,6 +17,11 @@ const ProjectsList = () => {
   const [total, setTotal] = useState(0)
   const [selectedProjectForEstimates, setSelectedProjectForEstimates] = useState<string | null>(null)
   
+  // Soft Replies & Confirm Modal States
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null)
+  const [deletingProject, setDeletingProject] = useState(false)
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
   const [filters, setFilters] = useState<ProjectFilters>({
     search: '',
     project_type: '',
@@ -56,16 +62,25 @@ const ProjectsList = () => {
     setFilters((prev) => ({ ...prev, [key]: value }))
   }
 
-  const handleDelete = async (uuid: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      return
-    }
+  const handleConfirmDelete = async () => {
+    if (!projectToDelete) return
 
+    setDeletingProject(true)
     try {
-      await projectService.deleteProject(uuid)
+      await projectService.deleteProject(projectToDelete.uuid)
+      setActionFeedback({
+        type: 'success',
+        message: `Project "${projectToDelete.name}" was successfully deleted.`
+      })
+      setProjectToDelete(null)
       fetchProjects()
     } catch (err: any) {
-      alert(err.message || 'Failed to delete project')
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to delete project. Please check associated sites and contracts.'
+      })
+    } finally {
+      setDeletingProject(false)
     }
   }
 
@@ -100,6 +115,138 @@ const ProjectsList = () => {
         <Link to="/projects/create" className="btn btn-primary">
           + Add Project
         </Link>
+      </div>
+
+      {actionFeedback && (
+        <div
+          className={`alert ${actionFeedback.type === 'success' ? 'alert-success' : 'alert-error'}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            backgroundColor: actionFeedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: actionFeedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${actionFeedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
+            {actionFeedback.type === 'success' ? <MdCheckCircle size={18} color="#059669" /> : <MdWarning size={18} color="#dc2626" />}
+            {actionFeedback.message}
+          </span>
+          <button
+            onClick={() => setActionFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Category / Status & Draft Filter Chips */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+        <button
+          type="button"
+          onClick={() => {
+            setFilters(prev => ({ ...prev, status: '' }))
+            setCurrentPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${!filters.status ? '#0d9488' : '#cbd5e1'}`,
+            background: !filters.status ? '#0d9488' : '#ffffff',
+            color: !filters.status ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          All Projects ({total || projects.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setFilters(prev => ({ ...prev, status: 'active' }))
+            setCurrentPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${filters.status === 'active' ? '#16a34a' : '#cbd5e1'}`,
+            background: filters.status === 'active' ? '#16a34a' : '#ffffff',
+            color: filters.status === 'active' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Active
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setFilters(prev => ({ ...prev, status: 'planning' }))
+            setCurrentPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${filters.status === 'planning' ? '#d97706' : '#cbd5e1'}`,
+            background: filters.status === 'planning' ? '#d97706' : '#ffffff',
+            color: filters.status === 'planning' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Draft / Planning Section
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setFilters(prev => ({ ...prev, status: 'on_hold' }))
+            setCurrentPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${filters.status === 'on_hold' ? '#64748b' : '#cbd5e1'}`,
+            background: filters.status === 'on_hold' ? '#64748b' : '#ffffff',
+            color: filters.status === 'on_hold' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          On Hold
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setFilters(prev => ({ ...prev, status: 'completed' }))
+            setCurrentPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${filters.status === 'completed' ? '#0284c7' : '#cbd5e1'}`,
+            background: filters.status === 'completed' ? '#0284c7' : '#ffffff',
+            color: filters.status === 'completed' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Completed
+        </button>
       </div>
 
       <div className="filters-section">
@@ -264,7 +411,7 @@ const ProjectsList = () => {
                             <MdEdit size={18} />
                           </button>
                           <button
-                            onClick={() => handleDelete(project.uuid, project.name)}
+                            onClick={() => setProjectToDelete(project)}
                             className="btn-icon btn-danger"
                             title="Delete"
                           >
@@ -305,6 +452,19 @@ const ProjectsList = () => {
         </>
       )}
       <ConstructionEstimatesModal isOpen={!!selectedProjectForEstimates} onClose={() => setSelectedProjectForEstimates(null)} projectName={selectedProjectForEstimates || ''} />
+
+      {/* Soft Confirmation Modal for Project Deletion */}
+      <ConfirmDialog
+        isOpen={Boolean(projectToDelete)}
+        title="Delete Project"
+        message={`Are you sure you want to delete project "${projectToDelete?.name}" (${projectToDelete?.code})? This will permanently remove the project and unlink associated sites.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={deletingProject}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setProjectToDelete(null)}
+      />
     </div>
   )
 }

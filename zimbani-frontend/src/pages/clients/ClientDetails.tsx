@@ -18,6 +18,7 @@ import { clientService } from '../../services/client.service';
 import { paymentService } from '../../services/payment.service';
 import { Client, ClientUnit } from '../../types/client.types';
 import { Payment } from '../../types/payment.types';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import './ClientDetails.css';
 
 const ClientDetails: React.FC = () => {
@@ -30,6 +31,19 @@ const ClientDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Soft Replies & Confirm Dialog states
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    variant: 'danger' | 'primary' | 'warning' | 'success';
+    confirmText?: string;
+    onConfirm: () => void;
+  } | null>(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
     if (uuid) {
@@ -72,46 +86,88 @@ const ClientDetails: React.FC = () => {
     }
   };
 
-  const handleVerifyKyc = async () => {
-    if (!uuid || !window.confirm('Are you sure you want to verify this client\'s KYC?')) return;
-
+  const executeVerifyKyc = async () => {
+    if (!uuid) return;
     try {
       setActionLoading(true);
       await clientService.verifyKyc(uuid);
-      if (uuid) loadClientData(uuid);
+      setActionFeedback({
+        type: 'success',
+        message: `KYC for "${client?.full_name}" has been verified successfully.`
+      });
+      setConfirmModal(null);
+      loadClientData(uuid);
     } catch (err: any) {
-      alert(err.message || 'Failed to verify KYC');
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to verify KYC'
+      });
+      setConfirmModal(null);
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleRejectKyc = async () => {
-    const reason = window.prompt('Enter reason for KYC rejection:');
-    if (!reason || !uuid) return;
+  const handleVerifyKyc = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Verify Client KYC',
+      message: `Are you sure you want to mark KYC documentation as verified for "${client?.full_name}"? This will permit land deed allocations and contract signing.`,
+      variant: 'primary',
+      confirmText: 'Verify KYC',
+      onConfirm: executeVerifyKyc,
+    });
+  };
 
+  const executeRejectKyc = async () => {
+    if (!uuid) return;
     try {
       setActionLoading(true);
       await clientService.rejectKyc(uuid);
-      if (uuid) loadClientData(uuid);
+      setActionFeedback({
+        type: 'success',
+        message: `KYC for "${client?.full_name}" has been rejected: ${rejectReason || 'Document criteria not met'}.`
+      });
+      setShowRejectModal(false);
+      setRejectReason('');
+      loadClientData(uuid);
     } catch (err: any) {
-      alert(err.message || 'Failed to reject KYC');
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to reject KYC'
+      });
+      setShowRejectModal(false);
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!uuid || !window.confirm('Are you sure you want to delete this client?')) return;
-
+  const executeDelete = async () => {
+    if (!uuid) return;
     try {
       setActionLoading(true);
       await clientService.deleteClient(uuid);
+      setConfirmModal(null);
       navigate('/clients');
     } catch (err: any) {
-      alert(err.message || 'Failed to delete client');
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to delete client. Please check active units or ledger accounts.'
+      });
+      setConfirmModal(null);
       setActionLoading(false);
     }
+  };
+
+  const handleDelete = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Client',
+      message: `Are you sure you want to delete "${client?.full_name}" (${client?.client_number})? This action cannot be undone.`,
+      variant: 'danger',
+      confirmText: 'Delete Client',
+      onConfirm: executeDelete,
+    });
   };
 
   if (loading) {
@@ -158,7 +214,7 @@ const ClientDetails: React.FC = () => {
               </button>
               <button
                 className="btn-action reject"
-                onClick={handleRejectKyc}
+                onClick={() => setShowRejectModal(true)}
                 disabled={actionLoading}
               >
                 <MdCancel size={20} />
@@ -193,6 +249,34 @@ const ClientDetails: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {actionFeedback && (
+        <div
+          className={`alert ${actionFeedback.type === 'success' ? 'alert-success' : 'alert-error'}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            backgroundColor: actionFeedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: actionFeedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${actionFeedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
+            {actionFeedback.type === 'success' ? <MdCheckCircle size={18} color="#059669" /> : <MdCancel size={18} color="#dc2626" />}
+            {actionFeedback.message}
+          </span>
+          <button
+            onClick={() => setActionFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Client Overview */}
       <div className="client-overview">
@@ -481,6 +565,73 @@ const ClientDetails: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Soft Action Confirm Modal */}
+      {confirmModal && (
+        <ConfirmDialog
+          isOpen={confirmModal.isOpen}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText={confirmModal.confirmText || 'Confirm'}
+          cancelText="Cancel"
+          variant={confirmModal.variant}
+          isLoading={actionLoading}
+          onConfirm={confirmModal.onConfirm}
+          onClose={() => setConfirmModal(null)}
+        />
+      )}
+
+      {/* Soft Reject KYC Modal */}
+      {showRejectModal && (
+        <div className="confirm-modal-backdrop">
+          <div className="confirm-modal-card">
+            <div className="confirm-modal-header">
+              <div className="confirm-modal-icon-badge warning">
+                <MdCancel size={22} color="#dc2626" />
+              </div>
+              <h3 className="confirm-modal-title">Reject Client KYC</h3>
+            </div>
+            <p className="confirm-modal-message">
+              Please enter the specific reason for rejecting the KYC submission for <strong>{client?.full_name}</strong>:
+            </p>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="e.g. Incomplete national ID copy, blurry address verification..."
+              rows={3}
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                fontSize: '0.9rem',
+                fontFamily: 'inherit',
+                marginBottom: '1rem',
+                resize: 'vertical',
+                boxSizing: 'border-box'
+              }}
+            />
+            <div className="confirm-modal-actions">
+              <button
+                type="button"
+                className="confirm-modal-btn cancel"
+                onClick={() => { setShowRejectModal(false); setRejectReason(''); }}
+                disabled={actionLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="confirm-modal-btn danger"
+                onClick={executeRejectKyc}
+                disabled={actionLoading || !rejectReason.trim()}
+              >
+                {actionLoading ? 'Rejecting...' : 'Reject KYC'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

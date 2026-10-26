@@ -14,9 +14,11 @@ import {
   MdDoneAll,
   MdShare,
   MdWarning,
+  MdCheckCircle,
 } from 'react-icons/md'
 import { paymentService } from '../../services/payment.service'
 import { Payment } from '../../types/payment.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './PaymentDetails.css'
 
 const PaymentDetails: React.FC = () => {
@@ -27,6 +29,15 @@ const PaymentDetails: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    variant: 'danger' | 'warning' | 'primary'
+    confirmText?: string
+    onConfirm: () => void
+  } | null>(null)
 
   // Modals
   const [showRejectModal, setShowRejectModal] = useState(false)
@@ -115,8 +126,15 @@ const PaymentDetails: React.FC = () => {
       setActionLoading(true)
       const updated = await paymentService.confirmPayment(uuid)
       setPayment(updated)
+      setActionFeedback({
+        type: 'success',
+        message: 'Payment confirmed successfully.'
+      })
     } catch (err: any) {
-      alert(err.message || 'Failed to confirm payment')
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to confirm payment'
+      })
     } finally {
       setActionLoading(false)
     }
@@ -128,8 +146,15 @@ const PaymentDetails: React.FC = () => {
       setActionLoading(true)
       const updated = await paymentService.verifyPayment(uuid)
       setPayment(updated)
+      setActionFeedback({
+        type: 'success',
+        message: 'Payment verified and posted to general ledger.'
+      })
     } catch (err: any) {
-      alert(err.message || 'Failed to verify payment')
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to verify payment'
+      })
     } finally {
       setActionLoading(false)
     }
@@ -144,8 +169,15 @@ const PaymentDetails: React.FC = () => {
       setPayment(updated)
       setShowRejectModal(false)
       setRejectReason('')
+      setActionFeedback({
+        type: 'success',
+        message: 'Payment marked as rejected.'
+      })
     } catch (err: any) {
-      alert(err.message || 'Failed to reject payment')
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to reject payment'
+      })
     } finally {
       setActionLoading(false)
     }
@@ -160,39 +192,80 @@ const PaymentDetails: React.FC = () => {
       setPayment(updated)
       setShowRefundModal(false)
       setRefundReason('')
+      setActionFeedback({
+        type: 'success',
+        message: 'Payment refund processed successfully.'
+      })
     } catch (err: any) {
-      alert(err.message || 'Failed to refund payment')
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to refund payment'
+      })
     } finally {
       setActionLoading(false)
     }
   }
 
-  const handleCancel = async () => {
+  const executeCancel = async () => {
     if (!uuid) return
-    if (!window.confirm('Are you sure you want to cancel this pending payment?')) return
     try {
       setActionLoading(true)
       const updated = await paymentService.cancelPayment(uuid)
       setPayment(updated)
+      setConfirmModal(null)
+      setActionFeedback({
+        type: 'success',
+        message: 'Payment was successfully cancelled.'
+      })
     } catch (err: any) {
-      alert(err.message || 'Failed to cancel payment')
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to cancel payment'
+      })
+      setConfirmModal(null)
     } finally {
       setActionLoading(false)
     }
   }
 
-  const handleDelete = async () => {
+  const handleCancel = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Cancel Payment',
+      message: `Are you sure you want to cancel payment "${payment?.payment_number || payment?.reference_number}"?`,
+      variant: 'warning',
+      confirmText: 'Cancel Payment',
+      onConfirm: executeCancel
+    })
+  }
+
+  const executeDelete = async () => {
     if (!uuid) return
-    if (!window.confirm('Are you sure you want to delete this payment record?')) return
     try {
       setActionLoading(true)
       await paymentService.deletePayment(uuid)
+      setConfirmModal(null)
       navigate('/payments')
     } catch (err: any) {
-      alert(err.message || 'Failed to delete payment')
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to delete payment'
+      })
+      setConfirmModal(null)
     } finally {
       setActionLoading(false)
     }
+  }
+
+  const handleDelete = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Payment',
+      message: `Are you sure you want to delete payment record "${payment?.payment_number || payment?.reference_number}"? This action cannot be undone.`,
+      variant: 'danger',
+      confirmText: 'Delete Payment',
+      onConfirm: executeDelete
+    })
   }
 
   const formatCurrency = (amount: number, currency: string = 'UGX') => {
@@ -375,6 +448,34 @@ const PaymentDetails: React.FC = () => {
           )}
         </div>
       </div>
+
+      {actionFeedback && (
+        <div
+          className={`alert ${actionFeedback.type === 'success' ? 'alert-success' : 'alert-error'} no-print`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            backgroundColor: actionFeedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: actionFeedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${actionFeedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
+            {actionFeedback.type === 'success' ? <MdCheckCircle size={18} color="#059669" /> : <MdWarning size={18} color="#dc2626" />}
+            {actionFeedback.message}
+          </span>
+          <button
+            onClick={() => setActionFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="alert-box alert-error no-print">
@@ -653,6 +754,21 @@ const PaymentDetails: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Soft Confirmation Modal for Payment Actions */}
+      {confirmModal && (
+        <ConfirmDialog
+          isOpen={confirmModal.isOpen}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText={confirmModal.confirmText || 'Confirm'}
+          cancelText="Cancel"
+          variant={confirmModal.variant}
+          isLoading={actionLoading}
+          onConfirm={confirmModal.onConfirm}
+          onClose={() => setConfirmModal(null)}
+        />
       )}
     </div>
   )

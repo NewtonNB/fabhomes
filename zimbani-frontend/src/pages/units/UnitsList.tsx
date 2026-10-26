@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { MdVisibility, MdEdit, MdDelete } from 'react-icons/md';
+import { MdVisibility, MdEdit, MdDelete, MdCheckCircle, MdWarning } from 'react-icons/md';
 import { unitService } from '../../services/unit.service';
 import { Unit, UnitFilters } from '../../types/unit.types';
 import { PaginationMeta } from '../../types/common.types';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import './UnitsList.css';
 
 const UnitsList: React.FC = () => {
@@ -32,6 +33,11 @@ const UnitsList: React.FC = () => {
     per_page: 15
   });
 
+  // Soft Replies & Confirm Modal States
+  const [unitToDelete, setUnitToDelete] = useState<Unit | null>(null);
+  const [deletingUnit, setDeletingUnit] = useState<boolean>(false);
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
   useEffect(() => {
     fetchUnits();
   }, [filters]);
@@ -56,16 +62,25 @@ const UnitsList: React.FC = () => {
     setFilters({ ...filters, page: 1 });
   };
 
-  const handleDelete = async (uuid: string) => {
-    if (!window.confirm('Are you sure you want to delete this unit?')) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!unitToDelete) return;
 
+    setDeletingUnit(true);
     try {
-      await unitService.deleteUnit(uuid);
+      await unitService.deleteUnit(unitToDelete.uuid || String(unitToDelete.id));
+      setActionFeedback({
+        type: 'success',
+        message: `${isPlots ? 'Plot' : 'Unit'} "${unitToDelete.unit_number}" was deleted successfully.`,
+      });
+      setUnitToDelete(null);
       fetchUnits();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete unit');
+      setActionFeedback({
+        type: 'error',
+        message: err.response?.data?.message || 'Failed to delete unit. It may be attached to active sales or reservations.',
+      });
+    } finally {
+      setDeletingUnit(false);
     }
   };
 
@@ -89,6 +104,7 @@ const UnitsList: React.FC = () => {
   };
 
   const formatStatus = (status: string) => {
+    if (status === 'planned') return 'Draft / Planned';
     return status.split('_').map(word => 
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
@@ -121,12 +137,146 @@ const UnitsList: React.FC = () => {
         </button>
       </div>
 
+      {actionFeedback && (
+        <div
+          className={`alert ${actionFeedback.type === 'success' ? 'alert-success' : 'alert-error'}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            backgroundColor: actionFeedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: actionFeedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${actionFeedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
+            {actionFeedback.type === 'success' ? <MdCheckCircle size={18} color="#059669" /> : <MdWarning size={18} color="#dc2626" />}
+            {actionFeedback.message}
+          </span>
+          <button
+            onClick={() => setActionFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {error && (
         <div className="alert alert-error">
           {error}
           <button onClick={() => setError(null)} className="alert-close">×</button>
         </div>
       )}
+
+      {/* Category / Status & Draft Filter Chips */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+        <button
+          type="button"
+          onClick={() => setFilters({ ...filters, status: undefined, page: 1 })}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${!filters.status ? '#0d9488' : '#cbd5e1'}`,
+            background: !filters.status ? '#0d9488' : '#ffffff',
+            color: !filters.status ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          All {isPlots ? 'Plots' : 'Units'} ({pagination.total || units.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setFilters({ ...filters, status: 'available', page: 1 })}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${filters.status === 'available' ? '#16a34a' : '#cbd5e1'}`,
+            background: filters.status === 'available' ? '#16a34a' : '#ffffff',
+            color: filters.status === 'available' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Available
+        </button>
+        <button
+          type="button"
+          onClick={() => setFilters({ ...filters, status: 'planned', page: 1 })}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${filters.status === 'planned' ? '#d97706' : '#cbd5e1'}`,
+            background: filters.status === 'planned' ? '#d97706' : '#ffffff',
+            color: filters.status === 'planned' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Draft / Planned Section
+        </button>
+        <button
+          type="button"
+          onClick={() => setFilters({ ...filters, status: 'reserved', page: 1 })}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${filters.status === 'reserved' ? '#eab308' : '#cbd5e1'}`,
+            background: filters.status === 'reserved' ? '#eab308' : '#ffffff',
+            color: filters.status === 'reserved' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Reserved
+        </button>
+        <button
+          type="button"
+          onClick={() => setFilters({ ...filters, status: 'sold', page: 1 })}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${filters.status === 'sold' ? '#0284c7' : '#cbd5e1'}`,
+            background: filters.status === 'sold' ? '#0284c7' : '#ffffff',
+            color: filters.status === 'sold' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Sold
+        </button>
+        <button
+          type="button"
+          onClick={() => setFilters({ ...filters, status: 'under_construction', page: 1 })}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${filters.status === 'under_construction' ? '#64748b' : '#cbd5e1'}`,
+            background: filters.status === 'under_construction' ? '#64748b' : '#ffffff',
+            color: filters.status === 'under_construction' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Under Construction
+        </button>
+      </div>
 
       <div className="filters-card">
         <form onSubmit={handleSearch} className="search-form">
@@ -332,7 +482,7 @@ const UnitsList: React.FC = () => {
                           <MdEdit size={18} />
                         </button>
                         <button
-                          onClick={() => handleDelete(unit.uuid || unit.id)}
+                          onClick={() => setUnitToDelete(unit)}
                           className="btn-icon btn-icon-danger"
                           title="Delete"
                         >
@@ -371,6 +521,19 @@ const UnitsList: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Soft Confirmation Modal for Unit Deletion */}
+      <ConfirmDialog
+        isOpen={Boolean(unitToDelete)}
+        title={`Delete ${isPlots ? 'Plot' : 'Unit'}`}
+        message={`Are you sure you want to delete ${isPlots ? 'plot' : 'unit'} "${unitToDelete?.unit_number}"? This will permanently remove the parcel record.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={deletingUnit}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setUnitToDelete(null)}
+      />
     </div>
   );
 };

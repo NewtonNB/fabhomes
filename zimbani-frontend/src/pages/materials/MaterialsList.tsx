@@ -35,6 +35,7 @@ import materialService from '../../services/material.service'
 import { siteService } from '../../services/site.service'
 import { projectService } from '../../services/project.service'
 import taskService from '../../services/task.service'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './MaterialsList.css'
 
 export const MaterialsList: React.FC = () => {
@@ -53,6 +54,14 @@ export const MaterialsList: React.FC = () => {
   const [sites, setSites] = useState<Site[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    variant: 'danger' | 'warning' | 'primary'
+    confirmText?: string
+    onConfirm: () => void
+  } | null>(null)
 
   // Loading & Error
   const [loading, setLoading] = useState<boolean>(true)
@@ -252,7 +261,7 @@ export const MaterialsList: React.FC = () => {
     e.preventDefault()
     if (!adjustModalMaterial || adjustDelta === 0) return
     if (!adjustReason.trim()) {
-      alert('Please enter a reason for stock adjustment')
+      setError('Please enter a reason for stock adjustment')
       return
     }
 
@@ -268,52 +277,82 @@ export const MaterialsList: React.FC = () => {
       fetchMaterials()
       fetchStats()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to adjust stock')
+      setError(err?.response?.data?.message || 'Failed to adjust stock')
     } finally {
       setActionLoading(false)
     }
   }
 
   // Handle Delete Material
-  const handleDeleteMaterial = async (mat: Material) => {
-    if (!window.confirm(`Are you sure you want to delete material "${mat.name}"?`)) return
-    try {
-      await materialService.deleteMaterial(mat.uuid)
-      fetchMaterials()
-      fetchStats()
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to delete material')
-    }
+  const handleDeleteMaterial = (mat: Material) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Material',
+      message: `Are you sure you want to delete material "${mat.name}"?`,
+      variant: 'danger',
+      confirmText: 'Delete Material',
+      onConfirm: async () => {
+        try {
+          await materialService.deleteMaterial(mat.uuid)
+          setConfirmDialog(null)
+          fetchMaterials()
+          fetchStats()
+        } catch (err: any) {
+          setError(err?.response?.data?.message || 'Failed to delete material')
+          setConfirmDialog(null)
+        }
+      }
+    })
   }
 
   // Requisitions Handlers
-  const handleApproveReq = async (req: MaterialRequisition) => {
-    if (!window.confirm(`Approve requisition ${req.requisition_number}?`)) return
-    try {
-      setActionLoading(true)
-      await materialService.approveRequisition(req.uuid)
-      fetchRequisitions()
-      fetchStats()
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to approve requisition')
-    } finally {
-      setActionLoading(false)
-    }
+  const handleApproveReq = (req: MaterialRequisition) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Approve Material Requisition',
+      message: `Approve requisition ${req.requisition_number}? This will authorize procurement.`,
+      variant: 'primary',
+      confirmText: 'Approve Requisition',
+      onConfirm: async () => {
+        try {
+          setActionLoading(true)
+          await materialService.approveRequisition(req.uuid)
+          setConfirmDialog(null)
+          fetchRequisitions()
+          fetchStats()
+        } catch (err: any) {
+          setError(err?.response?.data?.message || 'Failed to approve requisition')
+          setConfirmDialog(null)
+        } finally {
+          setActionLoading(false)
+        }
+      }
+    })
   }
 
-  const handleDeliverReq = async (req: MaterialRequisition) => {
-    if (!window.confirm(`Mark requisition ${req.requisition_number} as delivered? This will automatically restock items in the site inventory.`)) return
-    try {
-      setActionLoading(true)
-      await materialService.deliverRequisition(req.uuid)
-      fetchRequisitions()
-      fetchMaterials()
-      fetchStats()
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to deliver requisition')
-    } finally {
-      setActionLoading(false)
-    }
+  const handleDeliverReq = (req: MaterialRequisition) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Confirm Material Delivery',
+      message: `Mark requisition ${req.requisition_number} as delivered? This will automatically restock items in the site inventory.`,
+      variant: 'primary',
+      confirmText: 'Confirm Delivery',
+      onConfirm: async () => {
+        try {
+          setActionLoading(true)
+          await materialService.deliverRequisition(req.uuid)
+          setConfirmDialog(null)
+          fetchRequisitions()
+          fetchMaterials()
+          fetchStats()
+        } catch (err: any) {
+          setError(err?.response?.data?.message || 'Failed to deliver requisition')
+          setConfirmDialog(null)
+        } finally {
+          setActionLoading(false)
+        }
+      }
+    })
   }
 
   const handleRejectReqSubmit = async (e: React.FormEvent) => {
@@ -327,7 +366,7 @@ export const MaterialsList: React.FC = () => {
       fetchRequisitions()
       fetchStats()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to reject requisition')
+      setError(err?.response?.data?.message || 'Failed to reject requisition')
     } finally {
       setActionLoading(false)
     }
@@ -337,7 +376,7 @@ export const MaterialsList: React.FC = () => {
   const handleUsageSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!usageForm.material_id || !usageForm.site_id || !usageForm.quantity_used || !usageForm.purpose) {
-      alert('Please fill in all required fields.')
+      setError('Please fill in all required fields.')
       return
     }
 
@@ -368,37 +407,47 @@ export const MaterialsList: React.FC = () => {
       if (activeTab === 'inventory') fetchMaterials()
       fetchStats()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to record usage')
+      setError(err?.response?.data?.message || 'Failed to record usage')
     } finally {
       setActionLoading(false)
     }
   }
 
   // Handle Delete Usage
-  const handleDeleteUsage = async (usage: MaterialUsage) => {
-    if (!window.confirm(`Cancel usage record #${usage.usage_number}? This will restore ${usage.quantity_used} ${usage.unit_of_measure} back to inventory stock.`)) return
-    try {
-      setActionLoading(true)
-      await materialService.deleteUsage(usage.uuid)
-      fetchUsages()
-      fetchMaterials()
-      fetchStats()
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to delete usage record')
-    } finally {
-      setActionLoading(false)
-    }
+  const handleDeleteUsage = (usage: MaterialUsage) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Cancel Material Usage Record',
+      message: `Cancel usage record #${usage.usage_number}? This will restore ${usage.quantity_used} ${usage.unit_of_measure} back to inventory stock.`,
+      variant: 'warning',
+      confirmText: 'Cancel & Restore Stock',
+      onConfirm: async () => {
+        try {
+          setActionLoading(true)
+          await materialService.deleteUsage(usage.uuid)
+          setConfirmDialog(null)
+          fetchUsages()
+          fetchMaterials()
+          fetchStats()
+        } catch (err: any) {
+          setError(err?.response?.data?.message || 'Failed to delete usage record')
+          setConfirmDialog(null)
+        } finally {
+          setActionLoading(false)
+        }
+      }
+    })
   }
 
   // Handle Create Requisition Submit
   const handleRequisitionSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!reqForm.site_id) {
-      alert('Please select a site.')
+      setError('Please select a site.')
       return
     }
     if (!reqForm.items.length || !reqForm.items.some((i) => i.material_name.trim() && i.quantity > 0)) {
-      alert('Please add at least one valid material line item.')
+      setError('Please add at least one valid material line item.')
       return
     }
 
@@ -424,7 +473,7 @@ export const MaterialsList: React.FC = () => {
       fetchRequisitions()
       fetchStats()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to submit requisition')
+      setError(err?.response?.data?.message || 'Failed to submit requisition')
     } finally {
       setActionLoading(false)
     }
@@ -1531,6 +1580,21 @@ export const MaterialsList: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Soft Confirm Dialog */}
+      {confirmDialog && (
+        <ConfirmDialog
+          isOpen={confirmDialog.isOpen}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmText={confirmDialog.confirmText || 'Confirm'}
+          cancelText="Cancel"
+          variant={confirmDialog.variant}
+          isLoading={actionLoading}
+          onConfirm={confirmDialog.onConfirm}
+          onClose={() => setConfirmDialog(null)}
+        />
       )}
     </div>
   )

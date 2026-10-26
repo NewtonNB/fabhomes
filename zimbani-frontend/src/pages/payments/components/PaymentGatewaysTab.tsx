@@ -24,6 +24,7 @@ import PaymentRefundsDisputesTab from './PaymentRefundsDisputesTab'
 import GatewayHealthMonitor from './GatewayHealthMonitor'
 import UnifiedCheckoutModal from './UnifiedCheckoutModal'
 import PaymentSimulationReconciliationTab from './PaymentSimulationReconciliationTab'
+import { ConfirmDialog } from '../../../components/common/ConfirmDialog'
 import './PaymentGatewaysTab.css'
 
 export const PaymentGatewaysTab: React.FC = () => {
@@ -33,6 +34,7 @@ export const PaymentGatewaysTab: React.FC = () => {
   const [stats, setStats] = useState<PaymentStatistics | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [actionLoading, setActionLoading] = useState<boolean>(false)
+  const [intentToCancel, setIntentToCancel] = useState<string | number | null>(null)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   // Checkout Modal State
@@ -87,12 +89,17 @@ export const PaymentGatewaysTab: React.FC = () => {
   }
 
   // Handle Cancel Intent
-  const handleCancelIntent = async (identifier: string | number) => {
-    if (!window.confirm('Are you sure you want to cancel this payment intent?')) return
+  const handleCancelIntent = (identifier: string | number) => {
+    setIntentToCancel(identifier)
+  }
+
+  const confirmCancelIntent = async () => {
+    if (!intentToCancel) return
     try {
       setActionLoading(true)
-      await paymentIntegrationService.cancelPaymentIntent(identifier, 'Cancelled from admin dashboard')
-      setFeedback({ type: 'success', text: 'Payment intent cancelled' })
+      await paymentIntegrationService.cancelPaymentIntent(intentToCancel, 'Cancelled from admin dashboard')
+      setFeedback({ type: 'success', text: 'Payment intent cancelled successfully' })
+      setIntentToCancel(null)
       loadData()
     } catch (err: any) {
       setFeedback({ type: 'error', text: err.response?.data?.message || err.message || 'Cancellation failed' })
@@ -498,6 +505,18 @@ export const PaymentGatewaysTab: React.FC = () => {
         text: 'Payment completed successfully through Unified Checkout!',
       })
     }}
+  />
+
+  <ConfirmDialog
+    isOpen={!!intentToCancel}
+    title="Cancel Payment Intent"
+    message="Are you sure you want to cancel this pending payment intent? This action cannot be undone."
+    confirmLabel="Cancel Intent"
+    cancelLabel="Keep Intent"
+    variant="danger"
+    loading={actionLoading}
+    onConfirm={confirmCancelIntent}
+    onCancel={() => setIntentToCancel(null)}
   />
     </div>
   )

@@ -18,6 +18,7 @@ import {
   ProjectFinalSettlement,
   CapstoneSummaryMetrics,
 } from '../../../types/capstone-settlement.types'
+import { ConfirmDialog } from '../../../components/common/ConfirmDialog'
 import './ProjectHandoverSettlementTab.css'
 
 export const ProjectHandoverSettlementTab: React.FC = () => {
@@ -28,6 +29,7 @@ export const ProjectHandoverSettlementTab: React.FC = () => {
   const [summary, setSummary] = useState<CapstoneSummaryMetrics | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [actionLoading, setActionLoading] = useState<boolean>(false)
+  const [showFinalizeConfirm, setShowFinalizeConfirm] = useState<boolean>(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   // Dossier Edit Form State
@@ -160,11 +162,13 @@ export const ProjectHandoverSettlementTab: React.FC = () => {
   }
 
   // Handle Finalize Settlement
-  const handleFinalizeSettlement = async () => {
+  const handleFinalizeSettlement = () => {
     if (!settlement) return
-    if (!window.confirm('Are you sure you want to finalize this project settlement? This will seal accounts and mark the project completed.')) {
-      return
-    }
+    setShowFinalizeConfirm(true)
+  }
+
+  const confirmFinalizeSettlement = async () => {
+    if (!settlement) return
     try {
       setActionLoading(true)
       const finalized = await capstoneSettlementService.finalizeSettlement(settlement.id, {
@@ -172,6 +176,7 @@ export const ProjectHandoverSettlementTab: React.FC = () => {
       })
       setSettlement(finalized)
       setFeedback({ type: 'success', text: 'Financial settlement finalized & project marked completed!' })
+      setShowFinalizeConfirm(false)
       loadData()
     } catch (err: any) {
       setFeedback({ type: 'error', text: err.response?.data?.message || err.message || 'Failed to finalize settlement' })
@@ -974,6 +979,19 @@ export const ProjectHandoverSettlementTab: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Soft Confirmation for Finalize Settlement */}
+      <ConfirmDialog
+        isOpen={showFinalizeConfirm}
+        title="Finalize Project Settlement"
+        message="Are you sure you want to finalize this project settlement? This will seal accounts and permanently mark the project as completed."
+        confirmLabel="Finalize & Seal"
+        cancelLabel="Cancel"
+        variant="warning"
+        loading={actionLoading}
+        onConfirm={confirmFinalizeSettlement}
+        onCancel={() => setShowFinalizeConfirm(false)}
+      />
     </div>
   )
 }

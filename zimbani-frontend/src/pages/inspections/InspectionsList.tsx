@@ -39,6 +39,7 @@ import { siteService } from '../../services/site.service'
 import { projectService } from '../../services/project.service'
 import { adminService } from '../../services/admin.service'
 import OfflineWalkthroughConsole from './components/OfflineWalkthroughConsole'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './InspectionsList.css'
 
 export const InspectionsList: React.FC = () => {
@@ -59,6 +60,14 @@ export const InspectionsList: React.FC = () => {
   const [signOffQueue, setSignOffQueue] = useState<SiteInspection[]>([])
   const [stats, setStats] = useState<InspectionStatistics | null>(null)
   const [defectStats, setDefectStats] = useState<DefectStatistics | null>(null)
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    variant: 'danger' | 'warning' | 'primary'
+    confirmText?: string
+    onConfirm: () => void
+  } | null>(null)
 
   // Lookups
   const [sites, setSites] = useState<Site[]>([])
@@ -506,28 +515,48 @@ export const InspectionsList: React.FC = () => {
   }
 
   // Delete Handlers
-  const handleDeleteInspection = async (uuid: string, num: string) => {
-    if (!window.confirm(`Are you sure you want to delete inspection ${num}?`)) return
-    try {
-      await inspectionService.deleteInspection(uuid)
-      triggerSuccess(`Inspection ${num} deleted.`)
-      fetchInspections()
-      fetchStatistics()
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to delete inspection')
-    }
+  const handleDeleteInspection = (uuid: string, num: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Site Inspection',
+      message: `Are you sure you want to delete inspection ${num}? This action cannot be undone.`,
+      variant: 'danger',
+      confirmText: 'Delete Inspection',
+      onConfirm: async () => {
+        try {
+          await inspectionService.deleteInspection(uuid)
+          triggerSuccess(`Inspection ${num} deleted.`)
+          setConfirmDialog(null)
+          fetchInspections()
+          fetchStatistics()
+        } catch (err: any) {
+          setError(err?.response?.data?.message || 'Failed to delete inspection')
+          setConfirmDialog(null)
+        }
+      }
+    })
   }
 
-  const handleDeleteDefect = async (uuid: string, num: string) => {
-    if (!window.confirm(`Are you sure you want to delete defect item ${num}?`)) return
-    try {
-      await inspectionService.deletePunchItem(uuid)
-      triggerSuccess(`Defect ${num} deleted.`)
-      fetchPunchItems()
-      fetchStatistics()
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to delete defect')
-    }
+  const handleDeleteDefect = (uuid: string, num: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Defect Item',
+      message: `Are you sure you want to delete defect item ${num}?`,
+      variant: 'danger',
+      confirmText: 'Delete Defect',
+      onConfirm: async () => {
+        try {
+          await inspectionService.deletePunchItem(uuid)
+          triggerSuccess(`Defect ${num} deleted.`)
+          setConfirmDialog(null)
+          fetchPunchItems()
+          fetchStatistics()
+        } catch (err: any) {
+          setError(err?.response?.data?.message || 'Failed to delete defect')
+          setConfirmDialog(null)
+        }
+      }
+    })
   }
 
   return (
@@ -1762,6 +1791,21 @@ export const InspectionsList: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Soft Confirmation Modal */}
+      {confirmDialog && (
+        <ConfirmDialog
+          isOpen={confirmDialog.isOpen}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmText={confirmDialog.confirmText || 'Confirm'}
+          cancelText="Cancel"
+          variant={confirmDialog.variant}
+          isLoading={false}
+          onConfirm={confirmDialog.onConfirm}
+          onClose={() => setConfirmDialog(null)}
+        />
       )}
     </div>
   )

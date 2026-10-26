@@ -10,12 +10,14 @@ import {
   MdConstruction,
   MdApartment,
   MdVisibility,
+  MdCheckCircle,
 } from 'react-icons/md'
 import projectService from '../../services/project.service'
 import { Project } from '../../types/project.types'
 import { Site } from '../../types/site.types'
 import { MilestoneTracker } from '../../components/milestones/MilestoneTracker'
 import { ConstructionEstimatesModal } from '../../components/construction/ConstructionEstimatesModal'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './ProjectDetails.css'
 
 const ProjectDetails = () => {
@@ -27,6 +29,9 @@ const ProjectDetails = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showEstimatesModal, setShowEstimatesModal] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   useEffect(() => {
     if (id) {
@@ -62,16 +67,22 @@ const ProjectDetails = () => {
     }
   }
 
-  const handleDelete = async () => {
-    if (!project || !window.confirm(`Are you sure you want to delete "${project.name}"?`)) {
-      return
-    }
+  const handleConfirmDelete = async () => {
+    if (!project) return
 
+    setIsDeleting(true)
     try {
       await projectService.deleteProject(project.uuid)
+      setShowDeleteConfirm(false)
       navigate('/projects')
     } catch (err: any) {
-      alert(err.message || 'Failed to delete project')
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to delete project. Please check associated sites and contracts.'
+      })
+      setShowDeleteConfirm(false)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -180,11 +191,39 @@ const ProjectDetails = () => {
           <Link to={`/projects/${project.uuid}/edit`} className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
             <MdEdit size={16} /> Edit Project
           </Link>
-          <button onClick={handleDelete} className="btn btn-danger" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+          <button onClick={() => setShowDeleteConfirm(true)} className="btn btn-danger" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
             <MdDelete size={16} /> Delete
           </button>
         </div>
       </div>
+
+      {actionFeedback && (
+        <div
+          className={`alert ${actionFeedback.type === 'success' ? 'alert-success' : 'alert-error'}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            backgroundColor: actionFeedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: actionFeedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${actionFeedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
+            {actionFeedback.type === 'success' ? <MdCheckCircle size={18} color="#059669" /> : <MdWarning size={18} color="#dc2626" />}
+            {actionFeedback.message}
+          </span>
+          <button
+            onClick={() => setActionFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="stats-grid">
@@ -478,6 +517,19 @@ const ProjectDetails = () => {
         </div>
       </div>
       <ConstructionEstimatesModal isOpen={showEstimatesModal} onClose={() => setShowEstimatesModal(false)} projectName={project.name} />
+
+      {/* Soft Confirmation Modal for Project Deletion */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete Project"
+        message={`Are you sure you want to delete project "${project.name}" (${project.code})? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setShowDeleteConfirm(false)}
+      />
     </div>
   )
 }

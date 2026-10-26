@@ -16,6 +16,7 @@ import {
 } from '../../../types/client-portal-vault.types'
 import { clientPortalVaultService } from '../../../services/client-portal-vault.service'
 import { echoService } from '../../../services/echo.service'
+import { ConfirmDialog } from '../../../components/common/ConfirmDialog'
 import './ClientVaultTab.css'
 
 interface ClientSupportTicketsTabProps {
@@ -38,6 +39,8 @@ export const ClientSupportTicketsTab: React.FC<ClientSupportTicketsTabProps> = (
   const [threadLoading, setThreadLoading] = useState<boolean>(false)
   const [replyText, setReplyText] = useState<string>('')
   const [submittingReply, setSubmittingReply] = useState<boolean>(false)
+  const [showCloseConfirm, setShowCloseConfirm] = useState<boolean>(false)
+  const [closingTicket, setClosingTicket] = useState<boolean>(false)
 
   // New Ticket Form State
   const [newSubject, setNewSubject] = useState<string>('')
@@ -164,18 +167,25 @@ export const ClientSupportTicketsTab: React.FC<ClientSupportTicketsTabProps> = (
     }
   }
 
-  const handleCloseTicket = async () => {
+  const handleCloseTicket = () => {
     if (!selectedTicket) return
-    if (!window.confirm('Are you sure you want to mark this ticket as resolved?')) return
+    setShowCloseConfirm(true)
+  }
 
+  const confirmCloseTicket = async () => {
+    if (!selectedTicket) return
     try {
+      setClosingTicket(true)
       const closed = await clientPortalVaultService.closeTicket(selectedTicket.id)
       onNotify?.('Ticket marked as resolved', 'success')
       setSelectedTicket(closed)
+      setShowCloseConfirm(false)
       fetchTickets()
     } catch (err: any) {
       console.error('Failed to close ticket', err)
       onNotify?.(err?.response?.data?.message || 'Failed to close ticket', 'error')
+    } finally {
+      setClosingTicket(false)
     }
   }
 
@@ -681,6 +691,19 @@ export const ClientSupportTicketsTab: React.FC<ClientSupportTicketsTabProps> = (
           </div>
         </div>
       )}
+
+      {/* Soft Confirmation for Closing Support Ticket */}
+      <ConfirmDialog
+        isOpen={showCloseConfirm}
+        title="Resolve Support Ticket"
+        message={`Are you sure you want to mark ticket #${selectedTicket?.ticket_number} ("${selectedTicket?.subject}") as resolved? You can open another ticket at any time if you need further assistance.`}
+        confirmLabel="Mark as Resolved"
+        cancelLabel="Keep Open"
+        variant="primary"
+        loading={closingTicket}
+        onConfirm={confirmCloseTicket}
+        onCancel={() => setShowCloseConfirm(false)}
+      />
     </div>
   )
 }

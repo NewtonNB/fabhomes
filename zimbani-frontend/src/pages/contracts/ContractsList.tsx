@@ -20,6 +20,7 @@ import {
   TradeCategory,
   ContractStatus,
 } from '../../types/contract.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './ContractsList.css'
 
 const TRADE_CATEGORIES: { value: TradeCategory; label: string }[] = [
@@ -66,6 +67,7 @@ export const ContractsList: React.FC = () => {
     contract: null,
     reason: '',
   })
+  const [contractToActivate, setContractToActivate] = useState<SubcontractorContract | null>(null)
 
   const notifySuccess = (msg: string) => {
     setSuccessMessage(msg)
@@ -111,18 +113,22 @@ export const ContractsList: React.FC = () => {
   }, [fetchContracts, fetchStats])
 
   // Quick State Transitions
-  const handleActivate = async (contract: SubcontractorContract) => {
-    if (!window.confirm(`Activate contract ${contract.contract_number} for ${contract.subcontractor_name}?`)) {
-      return
-    }
+  const handleActivate = (contract: SubcontractorContract) => {
+    setContractToActivate(contract)
+  }
+
+  const executeActivate = async () => {
+    if (!contractToActivate) return
     try {
       setActionLoading(true)
-      await contractService.activateSubcontractorContract(contract.uuid)
-      notifySuccess(`Contract ${contract.contract_number} successfully activated.`)
+      await contractService.activateSubcontractorContract(contractToActivate.uuid)
+      notifySuccess(`Contract ${contractToActivate.contract_number} successfully activated.`)
+      setContractToActivate(null)
       fetchContracts()
       fetchStats()
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to activate contract')
+      setContractToActivate(null)
     } finally {
       setActionLoading(false)
     }
@@ -146,7 +152,7 @@ export const ContractsList: React.FC = () => {
 
   const handleTerminateSubmit = async () => {
     if (!terminateModal.contract || !terminateModal.reason.trim()) {
-      alert('A valid termination reason is required.')
+      setError('A valid termination reason is required.')
       return
     }
     try {
@@ -234,6 +240,130 @@ export const ContractsList: React.FC = () => {
             <div className="stat-subtext">Remaining Balance: {formatCurrency(stats?.overall_balance_remaining ?? 0)}</div>
           </div>
         </div>
+      </div>
+
+      {/* Category / Status & Draft Filter Chips */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedStatus('')
+            setPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${!selectedStatus ? '#0d9488' : '#cbd5e1'}`,
+            background: !selectedStatus ? '#0d9488' : '#ffffff',
+            color: !selectedStatus ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          All Contracts ({totalCount || contracts.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedStatus('active')
+            setPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${selectedStatus === 'active' ? '#16a34a' : '#cbd5e1'}`,
+            background: selectedStatus === 'active' ? '#16a34a' : '#ffffff',
+            color: selectedStatus === 'active' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Active
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedStatus('draft')
+            setPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${selectedStatus === 'draft' ? '#d97706' : '#cbd5e1'}`,
+            background: selectedStatus === 'draft' ? '#d97706' : '#ffffff',
+            color: selectedStatus === 'draft' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Draft Section
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedStatus('suspended')
+            setPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${selectedStatus === 'suspended' ? '#eab308' : '#cbd5e1'}`,
+            background: selectedStatus === 'suspended' ? '#eab308' : '#ffffff',
+            color: selectedStatus === 'suspended' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Suspended
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedStatus('completed')
+            setPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${selectedStatus === 'completed' ? '#0284c7' : '#cbd5e1'}`,
+            background: selectedStatus === 'completed' ? '#0284c7' : '#ffffff',
+            color: selectedStatus === 'completed' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Completed
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedStatus('terminated')
+            setPage(1)
+          }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${selectedStatus === 'terminated' ? '#dc2626' : '#cbd5e1'}`,
+            background: selectedStatus === 'terminated' ? '#dc2626' : '#ffffff',
+            color: selectedStatus === 'terminated' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Terminated
+        </button>
       </div>
 
       {/* Filter and Search Bar */}
@@ -537,6 +667,19 @@ export const ContractsList: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Soft Confirmation Modal for Contract Activation */}
+      <ConfirmDialog
+        isOpen={Boolean(contractToActivate)}
+        title="Activate Subcontractor Contract"
+        message={`Are you sure you want to activate contract "${contractToActivate?.contract_number}" for ${contractToActivate?.subcontractor_name}? This will lock commercial terms and enable milestone certificates.`}
+        confirmText="Activate Contract"
+        cancelText="Cancel"
+        variant="primary"
+        isLoading={actionLoading}
+        onConfirm={executeActivate}
+        onClose={() => setContractToActivate(null)}
+      />
     </div>
   )
 }

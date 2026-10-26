@@ -15,6 +15,7 @@ import paymentService from '../../services/payment.service'
 import { Client } from '../../types/client.types'
 import { Payment } from '../../types/payment.types'
 import { useAuth } from '../../contexts/AuthContext'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 
 export const ClientRefundsPage: React.FC = () => {
   const { user } = useAuth()
@@ -49,6 +50,9 @@ export const ClientRefundsPage: React.FC = () => {
   const [balanceAfterRefund, setBalanceAfterRefund] = useState<number>(0)
   const [calculating, setCalculating] = useState(false)
   const [approving, setApproving] = useState(false)
+  const [showApproveConfirm, setShowApproveConfirm] = useState(false)
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [rejectReason, setRejectReason] = useState('')
 
   const showNotice = (msg: string, type: 'success' | 'error' = 'success') => {
     setNotification({ msg, type })
@@ -199,12 +203,18 @@ export const ClientRefundsPage: React.FC = () => {
     }
   }
 
-  const handleApprove = async () => {
+  const handleApprove = () => {
+    if (!selectedRefund) return
+    setShowApproveConfirm(true)
+  }
+
+  const executeApprove = async () => {
     if (!selectedRefund) return
     try {
       setApproving(true)
       await refundService.approveRefund(selectedRefund.id, true)
       showNotice(`Refund ${selectedRefund.refund_number} approved and payment voucher posted!`)
+      setShowApproveConfirm(false)
       fetchRefunds()
     } catch (err: any) {
       showNotice(err.message || 'Approval failed', 'error')
@@ -213,15 +223,19 @@ export const ClientRefundsPage: React.FC = () => {
     }
   }
 
-  const handleReject = async () => {
+  const handleReject = () => {
     if (!selectedRefund) return
-    const reason = window.prompt('Enter reason for rejecting this refund request:')
-    if (!reason) return
+    setShowRejectModal(true)
+  }
 
+  const executeReject = async () => {
+    if (!selectedRefund || !rejectReason.trim()) return
     try {
       setApproving(true)
-      await refundService.rejectRefund(selectedRefund.id, reason)
+      await refundService.rejectRefund(selectedRefund.id, rejectReason.trim())
       showNotice(`Refund ${selectedRefund.refund_number} rejected.`)
+      setShowRejectModal(false)
+      setRejectReason('')
       fetchRefunds()
     } catch (err: any) {
       showNotice(err.message || 'Rejection failed', 'error')
@@ -841,6 +855,71 @@ export const ClientRefundsPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Soft Confirmation for Approval */}
+      <ConfirmDialog
+        isOpen={showApproveConfirm}
+        title="Approve Refund Voucher"
+        message={`Are you sure you want to approve refund ${selectedRefund?.refund_number} for client ${selectedRefund?.client?.name}? This will generate a payment voucher and debit escrow ledger.`}
+        confirmLabel="Approve Voucher"
+        cancelLabel="Cancel"
+        variant="primary"
+        loading={approving}
+        onConfirm={executeApprove}
+        onCancel={() => setShowApproveConfirm(false)}
+      />
+
+      {/* Soft Reject Modal */}
+      {showRejectModal && (
+        <div className="confirm-modal-backdrop">
+          <div className="confirm-modal-card">
+            <div className="confirm-modal-header">
+              <div className="confirm-modal-icon-badge warning">
+                <MdCancel size={22} color="#dc2626" />
+              </div>
+              <h3 className="confirm-modal-title">Reject Refund Request</h3>
+            </div>
+            <p className="confirm-modal-message">
+              Please enter the specific reason for rejecting refund request <strong>{selectedRefund?.refund_number}</strong>:
+            </p>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="e.g. Terms of cooling-off period lapsed, outstanding infrastructure liabilities..."
+              rows={3}
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                fontSize: '14px',
+                marginBottom: '1rem',
+                fontFamily: 'inherit',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+            <div className="confirm-modal-actions">
+              <button
+                type="button"
+                className="confirm-modal-btn cancel"
+                onClick={() => { setShowRejectModal(false); setRejectReason(''); }}
+                disabled={approving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="confirm-modal-btn danger"
+                onClick={executeReject}
+                disabled={approving || !rejectReason.trim()}
+              >
+                {approving ? 'Rejecting...' : 'Reject Request'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

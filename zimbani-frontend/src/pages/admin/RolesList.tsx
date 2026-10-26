@@ -14,6 +14,7 @@ import {
 } from 'react-icons/md'
 import adminService from '../../services/admin.service'
 import { Role, Permission } from '../../types/admin.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './RolesList.css'
 
 const RolesList: React.FC = () => {
@@ -22,6 +23,8 @@ const RolesList: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null)
+  const [deletingRole, setDeletingRole] = useState(false)
 
   // Roles Search Filter
   const [roleSearch, setRoleSearch] = useState('')
@@ -144,22 +147,28 @@ const RolesList: React.FC = () => {
     }
   }
 
-  const handleDeleteRole = async (role: Role) => {
+  const handleDeleteRole = (role: Role) => {
     if (['Super Admin', 'Company Admin'].includes(role.name)) {
-      alert(`System role "${role.name}" cannot be deleted.`)
+      setError(`System role "${role.name}" is protected and cannot be deleted.`)
+      setTimeout(() => setError(null), 4000)
       return
     }
 
-    if (!window.confirm(`Are you sure you want to delete role "${role.name}"?`)) {
-      return
-    }
+    setRoleToDelete(role)
+  }
 
+  const executeDeleteRole = async () => {
+    if (!roleToDelete) return
+    setDeletingRole(true)
     try {
-      setSuccessMessage(`Role "${role.name}" deleted successfully`)
+      setSuccessMessage(`Role "${roleToDelete.name}" deleted successfully`)
+      setRoleToDelete(null)
       fetchData()
       setTimeout(() => setSuccessMessage(null), 4000)
     } catch (err: any) {
       setError(err.message || 'Failed to delete role')
+    } finally {
+      setDeletingRole(false)
     }
   }
 
@@ -481,6 +490,19 @@ const RolesList: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Soft Confirmation Modal for Role Deletion */}
+      <ConfirmDialog
+        isOpen={Boolean(roleToDelete)}
+        title="Delete Role"
+        message={`Are you sure you want to delete role "${roleToDelete?.name}"? Users assigned to this role will lose associated permissions.`}
+        confirmText="Delete Role"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={deletingRole}
+        onConfirm={executeDeleteRole}
+        onClose={() => setRoleToDelete(null)}
+      />
     </div>
   )
 }

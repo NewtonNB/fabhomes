@@ -15,6 +15,7 @@ import {
 } from 'react-icons/md'
 import { clientService } from '../../services/client.service'
 import { Client } from '../../types/client.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './ClientsList.css'
 
 const ClientsList: React.FC = () => {
@@ -22,6 +23,11 @@ const ClientsList: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [toggleLoading, setToggleLoading] = useState<string | null>(null)
+
+  // Soft Replies & Confirm Modal States
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
+  const [deletingClient, setDeletingClient] = useState(false)
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   // Dynamic Filters
   const [searchTerm, setSearchTerm] = useState('')
@@ -62,23 +68,41 @@ const ClientsList: React.FC = () => {
 
     try {
       await clientService.updateClient(client.uuid, { status: newStatus })
+      setActionFeedback({
+        type: 'success',
+        message: `Client "${client.first_name} ${client.last_name}" status updated to ${newStatus}.`
+      })
     } catch (err: any) {
       // Revert on failure
       setClients(prev => prev.map(c => c.uuid === client.uuid ? { ...c, status: client.status } : c))
-      alert(err.message || 'Failed to update client status')
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to update client status'
+      })
     } finally {
       setToggleLoading(null)
     }
   }
 
-  const handleDelete = async (uuid: string) => {
-    if (!window.confirm('Are you sure you want to delete this client?')) return
+  const handleConfirmDelete = async () => {
+    if (!clientToDelete) return
 
+    setDeletingClient(true)
     try {
-      await clientService.deleteClient(uuid)
-      setClients(prev => prev.filter(c => c.uuid !== uuid))
+      await clientService.deleteClient(clientToDelete.uuid)
+      setClients(prev => prev.filter(c => c.uuid !== clientToDelete.uuid))
+      setActionFeedback({
+        type: 'success',
+        message: `Client "${clientToDelete.first_name} ${clientToDelete.last_name}" was successfully deleted.`
+      })
+      setClientToDelete(null)
     } catch (err: any) {
-      alert(err.message || 'Failed to delete client')
+      setActionFeedback({
+        type: 'error',
+        message: err.message || 'Failed to delete client. Check if client has active plots or savings accounts.'
+      })
+    } finally {
+      setDeletingClient(false)
     }
   }
 
@@ -144,6 +168,34 @@ const ClientsList: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {actionFeedback && (
+        <div
+          className={`alert ${actionFeedback.type === 'success' ? 'alert-success' : 'alert-error'}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            backgroundColor: actionFeedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: actionFeedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${actionFeedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
+            {actionFeedback.type === 'success' ? <MdCheckCircle size={18} color="#059669" /> : <MdWarning size={18} color="#dc2626" />}
+            {actionFeedback.message}
+          </span>
+          <button
+            onClick={() => setActionFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="alert alert-error">
@@ -279,7 +331,7 @@ const ClientsList: React.FC = () => {
                         </Link>
                         <button
                           className="action-icon-btn delete"
-                          onClick={() => handleDelete(client.uuid)}
+                          onClick={() => setClientToDelete(client)}
                           title="Delete Client"
                         >
                           <MdDelete />
@@ -337,6 +389,19 @@ const ClientsList: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Soft Confirmation Modal for Client Deletion */}
+      <ConfirmDialog
+        isOpen={Boolean(clientToDelete)}
+        title="Delete Client"
+        message={`Are you sure you want to delete "${clientToDelete?.first_name} ${clientToDelete?.last_name}"? This action will remove the client profile.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={deletingClient}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setClientToDelete(null)}
+      />
     </div>
   )
 }

@@ -15,6 +15,7 @@ import {
   ClientReservationItem,
   LandTitleDeedItem,
 } from '../../../types/client-portal-plots.types'
+import { ConfirmDialog } from '../../../components/common/ConfirmDialog'
 import './ClientPlotsTab.css'
 
 interface ClientLandTitleDeedsTabProps {
@@ -30,6 +31,7 @@ export const ClientLandTitleDeedsTab: React.FC<ClientLandTitleDeedsTabProps> = (
   const [reservations, setReservations] = useState<ClientReservationItem[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [isCancelling, setIsCancelling] = useState<string | null>(null)
+  const [cancelTarget, setCancelTarget] = useState<{ resUuid: string; plotNumber: string } | null>(null)
 
   const loadData = async () => {
     setLoading(true)
@@ -51,15 +53,18 @@ export const ClientLandTitleDeedsTab: React.FC<ClientLandTitleDeedsTabProps> = (
     loadData()
   }, [])
 
-  const handleCancelReservation = async (resUuid: string, plotNumber: string) => {
-    if (!confirm(`Are you sure you want to cancel your reservation for Plot ${plotNumber}? The plot will be released.`)) {
-      return
-    }
+  const handleCancelReservation = (resUuid: string, plotNumber: string) => {
+    setCancelTarget({ resUuid, plotNumber })
+  }
 
+  const confirmCancelReservation = async () => {
+    if (!cancelTarget) return
+    const { resUuid } = cancelTarget
     setIsCancelling(resUuid)
     try {
       const res = await clientPortalPlotService.cancelReservation(resUuid, 'Client requested cancellation')
       if (onNotify) onNotify(res.message, 'success')
+      setCancelTarget(null)
       await loadData()
     } catch (err: any) {
       if (onNotify) onNotify(err.response?.data?.message || err.message || 'Cancellation failed', 'error')
@@ -344,6 +349,19 @@ export const ClientLandTitleDeedsTab: React.FC<ClientLandTitleDeedsTabProps> = (
           </button>
         </div>
       )}
+
+      {/* Soft Confirmation for Reservation Cancellation */}
+      <ConfirmDialog
+        isOpen={!!cancelTarget}
+        title="Cancel Plot Reservation"
+        message={`Are you sure you want to cancel your reservation for Plot ${cancelTarget?.plotNumber}? The plot will be immediately released back to available inventory.`}
+        confirmLabel="Cancel Reservation"
+        cancelLabel="Keep Reservation"
+        variant="danger"
+        loading={!!isCancelling}
+        onConfirm={confirmCancelReservation}
+        onCancel={() => setCancelTarget(null)}
+      />
     </div>
   )
 }

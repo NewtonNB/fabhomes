@@ -43,6 +43,7 @@ import {
 } from '../../types/budget.types'
 import { Project } from '../../types/project.types'
 import { Site } from '../../types/site.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './FinancialReports.css'
 
 type TabType =
@@ -88,8 +89,12 @@ export const FinancialReportsDashboard: React.FC = () => {
   // UI States
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState<boolean>(false)
   const [isSeeding, setIsSeeding] = useState<boolean>(false)
+  const [showSeedConfirm, setShowSeedConfirm] = useState<boolean>(false)
+  const [budgetToDelete, setBudgetToDelete] = useState<{ uuid: string; code: string } | null>(null)
+  const [modalError, setModalError] = useState<string | null>(null)
 
   // Modal State for adding a budget
   const [showAddModal, setShowAddModal] = useState<boolean>(false)
@@ -197,34 +202,33 @@ export const FinancialReportsDashboard: React.FC = () => {
 
       await financialReportService.downloadCsv(reportType, selectedProjectId || undefined)
     } catch (err: any) {
-      alert('CSV Export failed: ' + (err?.message || 'Unknown error'))
+      setError('CSV Export failed: ' + (err?.message || 'Unknown error'))
     } finally {
       setIsExporting(false)
     }
   }
 
   // Handle Quick-Seed standard trade cost codes
-  const handleSeedStandard = async () => {
+  const handleSeedStandard = () => {
     if (!selectedProjectId) {
-      alert('Please select a specific project from the dropdown first to seed standard construction cost codes.')
+      setError('Please select a specific project from the dropdown first to seed standard construction cost codes.')
       return
     }
+    setShowSeedConfirm(true)
+  }
 
-    const currentProject = projects.find(
-      (p) => p.uuid === selectedProjectId || p.id?.toString() === selectedProjectId
-    )
-    const confirmed = window.confirm(
-      `Initialize 12 standard construction trade cost codes for "${currentProject?.name || 'this project'}" based on its allocated budget?`
-    )
-    if (!confirmed) return
-
+  const confirmSeedStandard = async () => {
+    if (!selectedProjectId) return
     try {
       setIsSeeding(true)
+      setError(null)
       await budgetService.seedStandardCodes(selectedProjectId)
       await fetchAllReports()
-      alert('Successfully seeded 12 standard construction cost code budgets!')
+      setSuccessMsg('Successfully seeded 12 standard construction cost code budgets!')
+      setShowSeedConfirm(false)
+      setTimeout(() => setSuccessMsg(null), 4000)
     } catch (err: any) {
-      alert('Failed to seed cost codes: ' + (err?.response?.data?.message || err.message))
+      setError('Failed to seed cost codes: ' + (err?.response?.data?.message || err.message))
     } finally {
       setIsSeeding(false)
     }
@@ -233,12 +237,13 @@ export const FinancialReportsDashboard: React.FC = () => {
   // Handle Create Budget Code
   const handleCreateBudget = async (e: React.FormEvent) => {
     e.preventDefault()
+    setModalError(null)
     if (!selectedProjectId) {
-      alert('Please select a project first')
+      setModalError('Please select a project first')
       return
     }
     if (!newBudget.budget_code || !newBudget.name || newBudget.allocated_amount <= 0) {
-      alert('Please provide a valid code, name, and allocated amount greater than zero.')
+      setModalError('Please provide a valid code, name, and allocated amount greater than zero.')
       return
     }
 
@@ -262,22 +267,30 @@ export const FinancialReportsDashboard: React.FC = () => {
         allocated_amount: 0,
         notes: '',
       })
+      setSuccessMsg(`Budget cost code "${payload.budget_code}" created successfully.`)
+      setTimeout(() => setSuccessMsg(null), 4000)
       await fetchAllReports()
     } catch (err: any) {
-      alert('Failed to create budget: ' + (err?.response?.data?.message || err.message))
+      setModalError('Failed to create budget: ' + (err?.response?.data?.message || err.message))
     }
   }
 
   // Handle Delete Budget Code
-  const handleDeleteBudget = async (uuid: string, code: string) => {
-    if (!window.confirm(`Are you sure you want to remove cost code budget allocation "${code}"?`)) {
-      return
-    }
+  const handleDeleteBudget = (uuid: string, code: string) => {
+    setBudgetToDelete({ uuid, code })
+  }
+
+  const confirmDeleteBudget = async () => {
+    if (!budgetToDelete) return
     try {
-      await budgetService.deleteBudget(uuid)
+      setError(null)
+      await budgetService.deleteBudget(budgetToDelete.uuid)
+      setSuccessMsg(`Cost code budget allocation "${budgetToDelete.code}" removed.`)
+      setBudgetToDelete(null)
+      setTimeout(() => setSuccessMsg(null), 4000)
       await fetchAllReports()
     } catch (err: any) {
-      alert('Failed to delete budget: ' + (err?.response?.data?.message || err.message))
+      setError('Failed to delete budget: ' + (err?.response?.data?.message || err.message))
     }
   }
 
@@ -321,6 +334,26 @@ export const FinancialReportsDashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Soft Feedback Banners */}
+      {error && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderRadius: '8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', marginBottom: '1rem', fontSize: '13.5px' }}>
+          <MdError size={18} />
+          <span style={{ flex: 1 }}>{error}</span>
+          <button type="button" onClick={() => setError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c' }}>
+            <MdClose size={16} />
+          </button>
+        </div>
+      )}
+      {successMsg && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderRadius: '8px', background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', marginBottom: '1rem', fontSize: '13.5px' }}>
+          <MdCheckCircle size={18} />
+          <span style={{ flex: 1 }}>{successMsg}</span>
+          <button type="button" onClick={() => setSuccessMsg(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#047857' }}>
+            <MdClose size={16} />
+          </button>
+        </div>
+      )}
 
       {/* Filter Bar */}
       <div className="financial-filters-bar">
@@ -1044,6 +1077,12 @@ export const FinancialReportsDashboard: React.FC = () => {
 
             <form onSubmit={handleCreateBudget}>
               <div className="modal-body">
+                {modalError && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', marginBottom: '1rem', fontSize: '13px' }}>
+                    <MdError size={16} />
+                    <span>{modalError}</span>
+                  </div>
+                )}
                 <div className="filter-group">
                   <label>Cost Code (e.g., CC-SUBSTRUCTURE)</label>
                   <input
@@ -1114,6 +1153,31 @@ export const FinancialReportsDashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Soft Confirmation for Seeding Trade Codes */}
+      <ConfirmDialog
+        isOpen={showSeedConfirm}
+        title="Initialize Trade Cost Codes"
+        message={`Initialize 12 standard construction trade cost codes for "${projects.find((p) => p.uuid === selectedProjectId || p.id?.toString() === selectedProjectId)?.name || 'this project'}" based on its allocated budget?`}
+        confirmLabel="Seed Standard Codes"
+        cancelLabel="Cancel"
+        variant="primary"
+        loading={isSeeding}
+        onConfirm={confirmSeedStandard}
+        onCancel={() => setShowSeedConfirm(false)}
+      />
+
+      {/* Soft Confirmation for Delete Budget Code */}
+      <ConfirmDialog
+        isOpen={!!budgetToDelete}
+        title="Remove Budget Allocation"
+        message={`Are you sure you want to remove cost code budget allocation "${budgetToDelete?.code}"? Any future variances associated with this cost code will be unassigned.`}
+        confirmLabel="Remove Allocation"
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={confirmDeleteBudget}
+        onCancel={() => setBudgetToDelete(null)}
+      />
     </div>
   )
 }

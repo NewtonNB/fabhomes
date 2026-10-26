@@ -69,7 +69,7 @@ export const TransactionDetails: React.FC = () => {
     e.preventDefault()
     if (!transaction) return
     if (!reversalReason.trim() || reversalReason.length < 5) {
-      alert('A clear justification (min 5 characters) is required to reverse an immutable transaction.')
+      setError('A clear justification (min 5 characters) is required to reverse an immutable transaction.')
       return
     }
 
@@ -82,7 +82,7 @@ export const TransactionDetails: React.FC = () => {
       setReversalReason('')
       loadTransaction()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Reversal failed')
+      setError(err?.response?.data?.message || 'Reversal failed')
     } finally {
       setReversalSubmitting(false)
     }

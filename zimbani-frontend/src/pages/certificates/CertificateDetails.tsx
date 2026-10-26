@@ -13,6 +13,7 @@ import {
 } from 'react-icons/md'
 import certificateService from '../../services/certificate.service'
 import { PaymentCertificate, CertificateStatus } from '../../types/certificate.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import '../contracts/ContractsList.css'
 import '../contracts/ContractDetails.css'
 import './CertificateDetails.css'
@@ -26,6 +27,7 @@ export const CertificateDetails: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState<boolean>(false)
 
   // Modals
   const [verifyModalOpen, setVerifyModalOpen] = useState<boolean>(false)
@@ -71,16 +73,21 @@ export const CertificateDetails: React.FC = () => {
   }
 
   // Workflow Handlers
-  const handleSubmitCertificate = async () => {
+  const handleSubmitCertificate = () => {
+    setShowSubmitConfirm(true)
+  }
+
+  const executeSubmitCertificate = async () => {
     if (!cert) return
-    if (!window.confirm('Submit this payment certificate for Site Manager measurement verification?')) return
     try {
       setActionLoading(true)
       const updated = await certificateService.submitPaymentCertificate(cert.uuid)
       setCert(updated)
+      setShowSubmitConfirm(false)
       notifySuccess('Certificate submitted successfully for Site Manager verification.')
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to submit certificate.')
+      setShowSubmitConfirm(false)
     } finally {
       setActionLoading(false)
     }
@@ -136,7 +143,7 @@ export const CertificateDetails: React.FC = () => {
 
   const handlePay = async () => {
     if (!cert || !payReference.trim()) {
-      alert('Bank / EFT Transaction Payment Reference is required.')
+      setError('Bank / EFT Transaction Payment Reference is required.')
       return
     }
     try {
@@ -155,7 +162,7 @@ export const CertificateDetails: React.FC = () => {
 
   const handleReject = async () => {
     if (!cert || !rejectReason.trim()) {
-      alert('Please state a valid reason for rejecting this valuation.')
+      setError('Please state a valid reason for rejecting this valuation.')
       return
     }
     try {
@@ -711,6 +718,19 @@ export const CertificateDetails: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Soft Confirmation Modal for Certificate Submission */}
+      <ConfirmDialog
+        isOpen={showSubmitConfirm}
+        title="Submit Payment Certificate"
+        message={`Are you sure you want to submit certificate "${cert?.certificate_number}" for Site Manager measurement verification?`}
+        confirmText="Submit Certificate"
+        cancelText="Cancel"
+        variant="primary"
+        isLoading={actionLoading}
+        onConfirm={executeSubmitCertificate}
+        onClose={() => setShowSubmitConfirm(false)}
+      />
     </div>
   )
 }

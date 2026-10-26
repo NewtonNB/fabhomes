@@ -16,6 +16,7 @@ import {
 import adminService from '../../services/admin.service'
 import employeeService, { Employee } from '../../services/employee.service'
 import { AdminUser, UserFormData, Role } from '../../types/admin.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './UsersList.css'
 
 const UsersList: React.FC = () => {
@@ -25,6 +26,8 @@ const UsersList: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [userToDeactivate, setUserToDeactivate] = useState<AdminUser | null>(null)
+  const [deactivatingUser, setDeactivatingUser] = useState(false)
 
   // Dynamic Filters
   const [searchTerm, setSearchTerm] = useState('')
@@ -188,18 +191,23 @@ const UsersList: React.FC = () => {
     }
   }
 
-  const handleDeleteUser = async (user: AdminUser) => {
-    if (!window.confirm(`Are you sure you want to deactivate user "${user.name}"?`)) {
-      return
-    }
+  const handleDeleteUser = (user: AdminUser) => {
+    setUserToDeactivate(user)
+  }
 
+  const executeDeactivateUser = async () => {
+    if (!userToDeactivate) return
+    setDeactivatingUser(true)
     try {
-      await adminService.deleteUser(user.uuid)
-      setSuccessMessage(`User "${user.name}" deactivated successfully`)
+      await adminService.deleteUser(userToDeactivate.uuid)
+      setSuccessMessage(`User "${userToDeactivate.name}" deactivated successfully`)
+      setUserToDeactivate(null)
       fetchUsers()
       setTimeout(() => setSuccessMessage(null), 4000)
     } catch (err: any) {
-      setError(err.message || 'Failed to delete user')
+      setError(err.message || 'Failed to deactivate user')
+    } finally {
+      setDeactivatingUser(false)
     }
   }
 
@@ -643,6 +651,19 @@ const UsersList: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Soft Confirmation Modal for User Deactivation */}
+      <ConfirmDialog
+        isOpen={Boolean(userToDeactivate)}
+        title="Deactivate User"
+        message={`Are you sure you want to deactivate user "${userToDeactivate?.name}" (${userToDeactivate?.email})? They will immediately lose access to the portal.`}
+        confirmText="Deactivate User"
+        cancelText="Cancel"
+        variant="warning"
+        isLoading={deactivatingUser}
+        onConfirm={executeDeactivateUser}
+        onClose={() => setUserToDeactivate(null)}
+      />
     </div>
   )
 }

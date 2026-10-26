@@ -16,6 +16,7 @@ import {
   MdRefresh,
   MdCheck,
   MdBlock,
+  MdCheckCircle,
 } from 'react-icons/md'
 import {
   Task,
@@ -26,6 +27,7 @@ import {
 import taskService from '../../services/task.service'
 import { projectService } from '../../services/project.service'
 import { Project } from '../../types/project.types'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import './TasksList.css'
 
 export const TasksList: React.FC = () => {
@@ -35,6 +37,9 @@ export const TasksList: React.FC = () => {
   const [statistics, setStatistics] = useState<TaskStatistics | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [taskToDelete, setTaskToDelete] = useState<{ uuid: string; title: string } | null>(null)
+  const [deletingTask, setDeletingTask] = useState<boolean>(false)
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   // Filters & View State
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban')
@@ -114,22 +119,41 @@ export const TasksList: React.FC = () => {
       setTasks((prev) => prev.map((t) => (t.uuid === updated.uuid ? updated : t)))
       // refresh statistics in background
       taskService.getTaskStatistics(selectedProject || undefined).then(setStatistics).catch(() => {})
+      setActionFeedback({
+        type: 'success',
+        message: `Task status updated to ${newStatus.replace('_', ' ')}.`
+      })
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to update task status')
+      setActionFeedback({
+        type: 'error',
+        message: err?.response?.data?.message || 'Failed to update task status'
+      })
     }
   }
 
-  const handleDeleteTask = async (taskUuid: string, title: string) => {
-    if (!window.confirm(`Are you sure you want to delete task "${title}"?`)) {
-      return
-    }
+  const handleDeleteTask = (taskUuid: string, title: string) => {
+    setTaskToDelete({ uuid: taskUuid, title })
+  }
 
+  const executeDeleteTask = async () => {
+    if (!taskToDelete) return
+    setDeletingTask(true)
     try {
-      await taskService.deleteTask(taskUuid)
-      setTasks((prev) => prev.filter((t) => t.uuid !== taskUuid))
+      await taskService.deleteTask(taskToDelete.uuid)
+      setTasks((prev) => prev.filter((t) => t.uuid !== taskToDelete.uuid))
       taskService.getTaskStatistics(selectedProject || undefined).then(setStatistics).catch(() => {})
+      setActionFeedback({
+        type: 'success',
+        message: `Task "${taskToDelete.title}" deleted successfully.`
+      })
+      setTaskToDelete(null)
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to delete task')
+      setActionFeedback({
+        type: 'error',
+        message: err?.response?.data?.message || 'Failed to delete task'
+      })
+    } finally {
+      setDeletingTask(false)
     }
   }
 
@@ -217,6 +241,34 @@ export const TasksList: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {actionFeedback && (
+        <div
+          className={`alert ${actionFeedback.type === 'success' ? 'alert-success' : 'alert-error'}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            backgroundColor: actionFeedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: actionFeedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${actionFeedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
+            {actionFeedback.type === 'success' ? <MdCheckCircle size={18} color="#059669" /> : <MdWarning size={18} color="#dc2626" />}
+            {actionFeedback.message}
+          </span>
+          <button
+            onClick={() => setActionFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Controls Bar */}
       <div className="tasks-controls-card">
@@ -513,6 +565,19 @@ export const TasksList: React.FC = () => {
           </table>
         </div>
       )}
+
+      {/* Soft Confirmation Modal for Task Deletion */}
+      <ConfirmDialog
+        isOpen={Boolean(taskToDelete)}
+        title="Delete Task"
+        message={`Are you sure you want to delete task "${taskToDelete?.title}"? This cannot be undone.`}
+        confirmText="Delete Task"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={deletingTask}
+        onConfirm={executeDeleteTask}
+        onClose={() => setTaskToDelete(null)}
+      />
     </div>
   )
 }

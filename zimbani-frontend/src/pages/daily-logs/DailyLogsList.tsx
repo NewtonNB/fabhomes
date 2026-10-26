@@ -615,6 +615,90 @@ export const DailyLogsList: React.FC = () => {
       {/* ========================================================================= */}
       {activeTab === 'logs' && (
         <>
+          {/* Status & Draft Filter Chips */}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '1rem' }}>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedStatus('')
+                setLogPage(1)
+              }}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '20px',
+                border: `1px solid ${!selectedStatus ? '#0d9488' : '#cbd5e1'}`,
+                background: !selectedStatus ? '#0d9488' : '#ffffff',
+                color: !selectedStatus ? '#ffffff' : '#475569',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              All Logs ({logTotal || dailyLogs.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedStatus('draft')
+                setLogPage(1)
+              }}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '20px',
+                border: `1px solid ${selectedStatus === 'draft' ? '#d97706' : '#cbd5e1'}`,
+                background: selectedStatus === 'draft' ? '#d97706' : '#ffffff',
+                color: selectedStatus === 'draft' ? '#ffffff' : '#475569',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              Draft Section
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedStatus('submitted')
+                setLogPage(1)
+              }}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '20px',
+                border: `1px solid ${selectedStatus === 'submitted' ? '#0284c7' : '#cbd5e1'}`,
+                background: selectedStatus === 'submitted' ? '#0284c7' : '#ffffff',
+                color: selectedStatus === 'submitted' ? '#ffffff' : '#475569',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              Submitted for Review
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedStatus('approved')
+                setLogPage(1)
+              }}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '20px',
+                border: `1px solid ${selectedStatus === 'approved' ? '#16a34a' : '#cbd5e1'}`,
+                background: selectedStatus === 'approved' ? '#16a34a' : '#ffffff',
+                color: selectedStatus === 'approved' ? '#ffffff' : '#475569',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              Approved Logs
+            </button>
+          </div>
+
           <div className="daily-logs-filters">
             <div className="filter-search-box">
               <MdSearch className="search-icon" />

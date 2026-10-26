@@ -281,7 +281,9 @@ export const ClientDocumentVaultTab: React.FC<ClientDocumentVaultTabProps> = ({ 
                       onClick={(e) => {
                         if (!doc.download_url) {
                           e.preventDefault()
-                          alert('Document stored securely on internal server. Direct download initialized.')
+                          if (onNotify) {
+                            onNotify('Document stored securely on internal server. Direct download initialized.', 'success')
+                          }
                         }
                       }}
                     >

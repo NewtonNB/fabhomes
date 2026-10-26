@@ -195,7 +195,7 @@ export const ExpenseClaimForm: React.FC = () => {
 
   const handleRemoveItem = (index: number) => {
     if (items.length <= 1) {
-      alert('An expense claim must have at least one line item.')
+      setError('An expense claim must have at least one line item.')
       return
     }
     setItems(items.filter((_, i) => i !== index))

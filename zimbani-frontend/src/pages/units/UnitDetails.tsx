@@ -20,6 +20,7 @@ import SellUnitModal from './modals/SellUnitModal';
 import UpdateProgressModal from './modals/UpdateProgressModal';
 import UpdatePaymentModal from './modals/UpdatePaymentModal';
 import UpdateInspectionModal from './modals/UpdateInspectionModal';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import './UnitDetails.css';
 
 // Simple type for unit details (matching backend response)
@@ -94,6 +95,9 @@ const UnitDetails: React.FC = () => {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showInspectionModal, setShowInspectionModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
     if (uuid) {
@@ -115,16 +119,22 @@ const UnitDetails: React.FC = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!unit || !window.confirm('Are you sure you want to delete this unit?')) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!unit) return;
 
+    setIsDeleting(true);
     try {
-      await unitService.deleteUnit(unit.uuid);
-      navigate('/units');
+      await unitService.deleteUnit(unit.uuid || String(unit.id));
+      setShowDeleteConfirm(false);
+      navigate('/plots');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete unit');
+      setActionFeedback({
+        type: 'error',
+        message: err.response?.data?.message || 'Failed to delete unit. It may be attached to active sales or reservations.'
+      });
+      setShowDeleteConfirm(false);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -220,7 +230,7 @@ const UnitDetails: React.FC = () => {
             <MdEdit size={16} /> Edit Unit
           </button>
           <button 
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             className="btn btn-danger"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
           >
@@ -228,6 +238,34 @@ const UnitDetails: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {actionFeedback && (
+        <div
+          className={`alert ${actionFeedback.type === 'success' ? 'alert-success' : 'alert-error'}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            backgroundColor: actionFeedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: actionFeedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${actionFeedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
+            {actionFeedback.type === 'success' ? <MdCheckCircle size={18} color="#059669" /> : <MdDelete size={18} color="#dc2626" />}
+            {actionFeedback.message}
+          </span>
+          <button
+            onClick={() => setActionFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="stats-grid">
@@ -696,6 +734,19 @@ const UnitDetails: React.FC = () => {
         onClose={() => setShowInspectionModal(false)}
         unitUuid={unit.uuid}
         onSuccess={() => fetchUnitDetails(unit.uuid)}
+      />
+
+      {/* Soft Delete Confirmation Modal */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete Plot / Unit"
+        message={`Are you sure you want to delete unit "${unit.unit_name}" (${unit.unit_number})? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setShowDeleteConfirm(false)}
       />
     </div>
   );

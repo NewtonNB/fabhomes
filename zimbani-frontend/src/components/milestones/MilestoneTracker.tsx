@@ -12,6 +12,7 @@ import {
   MdEvent,
   MdListAlt,
   MdClose,
+  MdWarning,
 } from 'react-icons/md'
 import {
   Milestone,
@@ -20,6 +21,7 @@ import {
   UpdateMilestoneInput,
 } from '../../types/task.types'
 import taskService from '../../services/task.service'
+import { ConfirmDialog } from '../common/ConfirmDialog'
 import './MilestoneTracker.css'
 
 interface MilestoneTrackerProps {
@@ -36,6 +38,9 @@ export const MilestoneTracker: React.FC<MilestoneTrackerProps> = ({
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [milestoneToDelete, setMilestoneToDelete] = useState<{ uuid: string; name: string } | null>(null)
+  const [deletingMilestone, setDeletingMilestone] = useState<boolean>(false)
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   // Update modal state
   const [activeMilestone, setActiveMilestone] = useState<Milestone | null>(null)
@@ -114,7 +119,10 @@ export const MilestoneTracker: React.FC<MilestoneTrackerProps> = ({
         onProgressUpdated(Math.round(avg * 100) / 100)
       }
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to update milestone')
+      setFeedback({
+        type: 'error',
+        message: err?.response?.data?.message || 'Failed to update milestone'
+      })
     } finally {
       setSubmitting(false)
     }
@@ -145,24 +153,43 @@ export const MilestoneTracker: React.FC<MilestoneTrackerProps> = ({
       setNewPlannedStart('')
       setNewPlannedEnd('')
       setNewEstCost('')
+      setFeedback({
+        type: 'success',
+        message: 'Milestone created successfully.'
+      })
       await fetchMilestones()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to create milestone')
+      setFeedback({
+        type: 'error',
+        message: err?.response?.data?.message || 'Failed to create milestone'
+      })
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleDeleteMilestone = async (uuid: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete milestone "${name}"?`)) {
-      return
-    }
+  const handleDeleteMilestone = (uuid: string, name: string) => {
+    setMilestoneToDelete({ uuid, name })
+  }
 
+  const executeDeleteMilestone = async () => {
+    if (!milestoneToDelete) return
+    setDeletingMilestone(true)
     try {
-      await taskService.deleteMilestone(uuid)
+      await taskService.deleteMilestone(milestoneToDelete.uuid)
+      setFeedback({
+        type: 'success',
+        message: `Milestone "${milestoneToDelete.name}" was deleted.`
+      })
+      setMilestoneToDelete(null)
       await fetchMilestones()
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to delete milestone')
+      setFeedback({
+        type: 'error',
+        message: err?.response?.data?.message || 'Failed to delete milestone'
+      })
+    } finally {
+      setDeletingMilestone(false)
     }
   }
 
@@ -220,6 +247,35 @@ export const MilestoneTracker: React.FC<MilestoneTrackerProps> = ({
           <MdAdd /> Add Milestone
         </button>
       </div>
+
+      {feedback && (
+        <div
+          className={`alert ${feedback.type === 'success' ? 'alert-success' : 'alert-error'}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            padding: '10px 14px',
+            borderRadius: '6px',
+            backgroundColor: feedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: feedback.type === 'success' ? '#065f46' : '#991b1b',
+            border: `1px solid ${feedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+            fontSize: '0.85rem'
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+            {feedback.type === 'success' ? <MdCheckCircle size={16} color="#059669" /> : <MdWarning size={16} color="#dc2626" />}
+            {feedback.message}
+          </span>
+          <button
+            onClick={() => setFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 'bold' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Overall Progress Bar */}
       <div className="milestone-overall-progress">
@@ -548,6 +604,19 @@ export const MilestoneTracker: React.FC<MilestoneTrackerProps> = ({
           </div>
         </div>
       )}
+
+      {/* Soft Confirmation Modal for Milestone Deletion */}
+      <ConfirmDialog
+        isOpen={Boolean(milestoneToDelete)}
+        title="Delete Milestone"
+        message={`Are you sure you want to delete milestone "${milestoneToDelete?.name}"? Associated progress weighting will be recalculated.`}
+        confirmText="Delete Milestone"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={deletingMilestone}
+        onConfirm={executeDeleteMilestone}
+        onClose={() => setMilestoneToDelete(null)}
+      />
     </div>
   )
 }
