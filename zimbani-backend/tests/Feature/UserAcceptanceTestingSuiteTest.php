@@ -41,7 +41,12 @@ class UserAcceptanceTestingSuiteTest extends TestCase
         $this->adminRole->givePermissionTo($userCreatePerm);
 
         $this->financeRole = Role::firstOrCreate(['name' => 'Finance Manager', 'guard_name' => 'web']);
+        $cashbookPerm = Permission::firstOrCreate(['name' => 'cashbook.view', 'guard_name' => 'web']);
+        $this->financeRole->givePermissionTo($cashbookPerm);
+
         $this->surveyorRole = Role::firstOrCreate(['name' => 'Surveyor Manager', 'guard_name' => 'web']);
+        $titlesPerm = Permission::firstOrCreate(['name' => 'mother-titles.view', 'guard_name' => 'web']);
+        $this->surveyorRole->givePermissionTo($titlesPerm);
         Role::firstOrCreate(['name' => 'Customer Support Officer', 'guard_name' => 'web']);
 
         // Create test actors

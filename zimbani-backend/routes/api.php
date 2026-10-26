@@ -335,7 +335,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', app()->environment('production'
     // Automated Refunds & Dispute Resolution Ledger (Phase 10 Day 3)
     Route::get('/payment-refunds-disputes/statistics', [PaymentRefundDisputeController::class, 'statistics']);
 
-    Route::prefix('payment-refunds')->group(function () {
+    Route::prefix('payment-refunds')->middleware('permission:refunds.view|payments.view')->group(function () {
         Route::get('/', [PaymentRefundDisputeController::class, 'refunds']);
         Route::post('/', [PaymentRefundDisputeController::class, 'requestRefund']);
         Route::post('/calculate-deduction', [PaymentRefundDisputeController::class, 'calculateDeduction']);
@@ -346,28 +346,32 @@ Route::prefix('v1')->middleware(['auth:sanctum', app()->environment('production'
     });
 
     // CashBook Management (Manual Section 9: Overall CashBook & Saving CashBook)
-    Route::prefix('cashbook')->group(function () {
+    Route::prefix('cashbook')->middleware('permission:cashbook.view|transactions.view')->group(function () {
         Route::get('/overall', [CashBookController::class, 'overallCashBook']);
         Route::get('/savings', [CashBookController::class, 'savingCashBook']);
         Route::post('/add-or-draw', [CashBookController::class, 'addOrDrawCash']);
     });
 
     // Mother Titles & Cadastral Subdivision (Manual Section 6)
-    Route::get('/mother-titles/subdivisions', [MotherTitleController::class, 'subdivisions']);
-    Route::apiResource('mother-titles', MotherTitleController::class);
-    Route::post('/mother-titles/{id}/transfer', [MotherTitleController::class, 'recordTransfer']);
-    Route::post('/mother-title-transfers/{id}/return', [MotherTitleController::class, 'returnTransfer']);
+    Route::middleware('permission:mother-titles.view|sites.view')->group(function () {
+        Route::get('/mother-titles/subdivisions', [MotherTitleController::class, 'subdivisions']);
+        Route::apiResource('mother-titles', MotherTitleController::class);
+        Route::post('/mother-titles/{id}/transfer', [MotherTitleController::class, 'recordTransfer']);
+        Route::post('/mother-title-transfers/{id}/return', [MotherTitleController::class, 'returnTransfer']);
+    });
 
     // Employees & Department HR Management (Manual Section 10)
-    Route::prefix('employees')->group(function () {
-        Route::get('/statistics', [EmployeeController::class, 'statistics']);
-        Route::get('/departments', [EmployeeController::class, 'departments']);
-        Route::post('/departments', [EmployeeController::class, 'storeDepartment']);
-        Route::get('/leave-requests', [EmployeeController::class, 'leaveRequests']);
-        Route::post('/leave-requests', [EmployeeController::class, 'storeLeaveRequest']);
-        Route::post('/leave-requests/{id}/status', [EmployeeController::class, 'updateLeaveStatus']);
+    Route::middleware('permission:employees.view|users.view')->group(function () {
+        Route::prefix('employees')->group(function () {
+            Route::get('/statistics', [EmployeeController::class, 'statistics']);
+            Route::get('/departments', [EmployeeController::class, 'departments']);
+            Route::post('/departments', [EmployeeController::class, 'storeDepartment']);
+            Route::get('/leave-requests', [EmployeeController::class, 'leaveRequests']);
+            Route::post('/leave-requests', [EmployeeController::class, 'storeLeaveRequest']);
+            Route::post('/leave-requests/{id}/status', [EmployeeController::class, 'updateLeaveStatus']);
+        });
+        Route::apiResource('employees', EmployeeController::class);
     });
-    Route::apiResource('employees', EmployeeController::class);
 
     Route::prefix('payment-disputes')->group(function () {
         Route::get('/', [PaymentRefundDisputeController::class, 'disputes']);
@@ -625,8 +629,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', app()->environment('production'
         Route::post('/{uuid}/sign-client', [DefectLiabilityCertificateController::class, 'signClient']);
     });
 
-    // Admin: User Management routes (stricter rate limit)
-    Route::prefix('admin')->middleware(app()->environment('production') ? 'throttle:60,1' : 'throttle:500,1')->group(function () {
+    // Admin: User Management routes (stricter rate limit & role guarded)
+    Route::prefix('admin')->middleware(['role:Super Admin|Company Admin', app()->environment('production') ? 'throttle:60,1' : 'throttle:500,1'])->group(function () {
         // User management
         Route::get('/users', [UserManagementController::class, 'index']);
         Route::post('/users', [UserManagementController::class, 'store']);

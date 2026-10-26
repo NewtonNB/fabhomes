@@ -67,84 +67,80 @@ const PermissionRoute: React.FC<PermissionRouteProps> = ({
   if (requiredPermissions.length > 0) {
     const userPerms = user.permissions || []
 
-    const matchesPerm = (req: string): boolean => {
-      if (userPerms.includes(req)) return true
+    const matchesSingle = (req: string): boolean => {
+      const trimmed = req.trim()
+      if (userPerms.includes(trimmed)) return true
 
-      // Handle "action module" (e.g. "view projects") -> "module.action" ("projects.view")
-      const words = req.trim().split(/\s+/)
-      if (words.length === 2) {
-        const [action, module] = words
-        if (userPerms.includes(`${module}.${action}`)) return true
-        if (action === 'view' && userPerms.includes(`${module}.view-any`)) return true
-        if (action === 'edit' && userPerms.includes(`${module}.update`)) return true
+      // Handle pipe-delimited sub-check e.g. "cashbook.view|transactions.view"
+      if (trimmed.includes('|')) {
+        return trimmed.split('|').some((sub) => matchesSingle(sub))
       }
 
-      // Handle "module.action" (e.g. "projects.view") -> "view projects"
-      if (req.includes('.')) {
-        const [module, action] = req.split('.')
+      // Handle "action module" (e.g. "view projects", "view petty cash") -> "module.action"
+      const words = trimmed.split(/\s+/)
+      if (words.length >= 2) {
+        const action = words[0]
+        const moduleHyphen = words.slice(1).join('-')
+        const moduleUnderscore = words.slice(1).join('_')
+        const moduleDirect = words.slice(1).join('')
+        const candidates = [
+          `${moduleHyphen}.${action}`,
+          `${moduleUnderscore}.${action}`,
+          `${moduleDirect}.${action}`,
+        ]
+        if (candidates.some((c) => userPerms.includes(c))) return true
+        if (action === 'view') {
+          if (candidates.some((c) => userPerms.includes(c.replace('.view', '.view-any')))) return true
+        }
+        if (action === 'edit') {
+          if (candidates.some((c) => userPerms.includes(c.replace('.edit', '.update')))) return true
+        }
+      }
+
+      // Handle "module.action" (e.g. "projects.view", "petty-cash.view") -> "view projects"
+      if (trimmed.includes('.')) {
+        const [module, action] = trimmed.split('.')
+        const spaceModule = module.replace(/[-_]/g, ' ')
         if (userPerms.includes(`${action} ${module}`)) return true
-        if (action === 'view' && userPerms.includes(`view-any ${module}`)) return true
-        if (action === 'update' && userPerms.includes(`edit ${module}`)) return true
+        if (userPerms.includes(`${action} ${spaceModule}`)) return true
+        if (action === 'view') {
+          if (userPerms.includes(`view-any ${module}`)) return true
+          if (userPerms.includes(`view-any ${spaceModule}`)) return true
+        }
+        if (action === 'update') {
+          if (userPerms.includes(`edit ${module}`)) return true
+          if (userPerms.includes(`edit ${spaceModule}`)) return true
+        }
       }
 
       return false
     }
 
     if (requireAll) {
-      hasPermissionAccess = requiredPermissions.every(matchesPerm)
+      hasPermissionAccess = requiredPermissions.every(matchesSingle)
     } else {
-      hasPermissionAccess = requiredPermissions.some(matchesPerm)
+      hasPermissionAccess = requiredPermissions.some(matchesSingle)
     }
   }
 
   // If user lacks either role or permission
-  const isAuthorized = hasRoleAccess && hasPermissionAccess
-
-  if (!isAuthorized) {
+  if (!hasRoleAccess || !hasPermissionAccess) {
     if (fallbackPath) {
       return <Navigate to={fallbackPath} replace />
     }
 
     if (showForbiddenMessage) {
       return (
-        <div
-          style={{
-            maxWidth: '600px',
-            margin: '4rem auto',
-            padding: '2.5rem',
-            textAlign: 'center',
-            backgroundColor: '#ffffff',
-            borderRadius: '12px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e2e8f0',
-          }}
-        >
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1e293b', marginBottom: '0.75rem' }}>
-            Access Restricted
-          </h2>
-          <p style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
-            You do not have the required permissions to view this resource. Please contact your system administrator if you believe this is an error.
-          </p>
-          <Link
-            to="/dashboard"
-            style={{
-              display: 'inline-block',
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#059669',
-              color: '#ffffff',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: '500',
-            }}
-          >
-            ← Return to Dashboard
+        <div className="forbidden-container" style={{ padding: '2rem', textAlign: 'center' }}>
+          <h2>Access Denied</h2>
+          <p>You do not have permission to access this page.</p>
+          <Link to="/dashboard" className="btn btn-primary" style={{ marginTop: '1rem', display: 'inline-block' }}>
+            Back to Dashboard
           </Link>
         </div>
       )
     }
 
-    // Default to redirecting to dashboard
     return <Navigate to="/dashboard" replace />
   }
 

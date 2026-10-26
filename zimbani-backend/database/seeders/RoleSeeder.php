@@ -16,7 +16,7 @@ class RoleSeeder extends Seeder
         // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Define the 7 core system roles with their descriptions
+        // Define the official Fab Homes roles + operational sub-roles
         $roles = [
             [
                 'name' => 'Super Admin',
@@ -24,9 +24,34 @@ class RoleSeeder extends Seeder
                 'description' => 'Full system access with all permissions. Can manage system configuration, users, and all modules.',
             ],
             [
+                'name' => 'Finance Manager',
+                'guard_name' => 'web',
+                'description' => 'Oversees financial accounts, savings schemes, payments, cashbook, petty cash, claims, and refunds.',
+            ],
+            [
+                'name' => 'Reconciliation Manager',
+                'guard_name' => 'web',
+                'description' => 'Specialized role for bank and mobile money transaction matching, escrow, and audit reconciliation.',
+            ],
+            [
+                'name' => 'Surveyor Manager',
+                'guard_name' => 'web',
+                'description' => 'Oversees estates, mother titles, plot surveys, deed plans, and boundary allocations.',
+            ],
+            [
+                'name' => 'Construction / Project Manager',
+                'guard_name' => 'web',
+                'description' => 'Directs civil construction sites, bill of quantities, daily progress, inspections, and materials.',
+            ],
+            [
+                'name' => 'Customer Support Officer',
+                'guard_name' => 'web',
+                'description' => 'Manages client onboarding (KYC), inquiries, support tickets, and communication.',
+            ],
+            [
                 'name' => 'Company Admin',
                 'guard_name' => 'web',
-                'description' => 'Company-level administrator. Can manage company settings, projects, users, and financial operations within their company.',
+                'description' => 'Company-level administrator. Can manage company settings, projects, users, and operations.',
             ],
             [
                 'name' => 'Site Manager',
@@ -36,7 +61,7 @@ class RoleSeeder extends Seeder
             [
                 'name' => 'Supervisor',
                 'guard_name' => 'web',
-                'description' => 'Site supervisor. Can manage workers, track daily activities, and report progress to site managers.',
+                'description' => 'Site supervisor. Can manage workers, track daily activities, and report progress.',
             ],
             [
                 'name' => 'Worker',
@@ -51,20 +76,19 @@ class RoleSeeder extends Seeder
             [
                 'name' => 'Client',
                 'guard_name' => 'web',
-                'description' => 'Property client/owner. Can view project progress, financials, and communicate with project team.',
+                'description' => 'Property client/saver. Can view personal savings, plots, statements, and construction progress.',
             ],
         ];
 
-        // Create each role
+        // Create or update each role
         foreach ($roles as $roleData) {
-            Role::create([
-                'name' => $roleData['name'],
-                'guard_name' => $roleData['guard_name'],
-            ]);
+            Role::firstOrCreate(
+                ['name' => $roleData['name'], 'guard_name' => $roleData['guard_name']]
+            );
 
-            $this->command->info("Created role: {$roleData['name']}");
+            $this->command->info("Configured role: {$roleData['name']}");
         }
 
-        $this->command->info('All roles created successfully!');
+        $this->command->info('All core and operational roles configured successfully!');
     }
 }

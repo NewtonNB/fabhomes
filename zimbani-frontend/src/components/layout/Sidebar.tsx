@@ -18,7 +18,6 @@ import {
   MdHealthAndSafety,
   MdAccountBalance,
   MdReceiptLong,
-
   MdRequestQuote,
   MdAccountBalanceWallet,
   MdPayments,
@@ -57,39 +56,69 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   const location = useLocation()
   const { user } = useAuth()
 
-  // Debug: Log user data
-  console.log('Sidebar - User:', user)
-  console.log('Sidebar - Roles:', user?.roles)
-  console.log('Sidebar - Permissions:', user?.permissions)
+  // Check if user is Super Admin
+  const isSuperAdmin = user?.roles?.some((r) => r.toLowerCase() === 'super admin') || false
 
   // Check if user has permission
   const hasPermission = (permission?: string): boolean => {
     if (!permission) return true
-    if (!user?.permissions) return false
-    if (user.permissions.includes(permission)) return true
+    if (isSuperAdmin) return true
+    if (!user?.permissions || user.permissions.length === 0) return false
 
-    // Handle "action module" (e.g. "view projects") -> "module.action" ("projects.view")
-    const words = permission.trim().split(/\s+/)
-    if (words.length === 2) {
-      const [action, module] = words
-      if (user.permissions.includes(`${module}.${action}`)) return true
-      if (action === 'view' && user.permissions.includes(`${module}.view-any`)) return true
-    }
+    // Support multiple permissions separated by pipe '|'
+    const reqList = permission.split('|').map((p) => p.trim())
 
-    // Handle "module.action" (e.g. "projects.view") -> "view projects"
-    if (permission.includes('.')) {
-      const [module, action] = permission.split('.')
-      if (user.permissions.includes(`${action} ${module}`)) return true
-      if (action === 'view' && user.permissions.includes(`view-any ${module}`)) return true
-    }
+    return reqList.some((req) => {
+      if (user.permissions!.includes(req)) return true
 
-    return false
+      // Handle "action module" (e.g. "view projects", "view petty cash") -> "module.action"
+      const words = req.split(/\s+/)
+      if (words.length >= 2) {
+        const action = words[0]
+        const moduleHyphen = words.slice(1).join('-')
+        const moduleUnderscore = words.slice(1).join('_')
+        const moduleDirect = words.slice(1).join('')
+        const candidates = [
+          `${moduleHyphen}.${action}`,
+          `${moduleUnderscore}.${action}`,
+          `${moduleDirect}.${action}`,
+        ]
+        if (candidates.some((c) => user.permissions!.includes(c))) return true
+        if (action === 'view') {
+          if (candidates.some((c) => user.permissions!.includes(c.replace('.view', '.view-any')))) return true
+        }
+        if (action === 'edit') {
+          if (candidates.some((c) => user.permissions!.includes(c.replace('.edit', '.update')))) return true
+        }
+      }
+
+      // Handle "module.action" (e.g. "projects.view", "petty-cash.view") -> "view projects"
+      if (req.includes('.')) {
+        const [module, action] = req.split('.')
+        const spaceModule = module.replace(/[-_]/g, ' ')
+        if (user.permissions!.includes(`${action} ${module}`)) return true
+        if (user.permissions!.includes(`${action} ${spaceModule}`)) return true
+        if (action === 'view') {
+          if (user.permissions!.includes(`view-any ${module}`)) return true
+          if (user.permissions!.includes(`view-any ${spaceModule}`)) return true
+        }
+        if (action === 'update') {
+          if (user.permissions!.includes(`edit ${module}`)) return true
+          if (user.permissions!.includes(`edit ${spaceModule}`)) return true
+        }
+      }
+
+      return false
+    })
   }
 
-  // Check if user has any role
+  // Check if user has any of the specified roles
   const hasRole = (roles: string[]): boolean => {
+    if (isSuperAdmin) return true
     if (!user?.roles) return false
-    return user.roles.some((userRole) => roles.includes(userRole))
+    return user.roles.some((userRole) =>
+      roles.some((r) => r.toLowerCase() === userRole.toLowerCase())
+    )
   }
 
   // Menu structure grouped into distinct functional sections
@@ -111,25 +140,25 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           path: '/estates',
           label: 'Estates & Parcels',
           icon: <MdLocationCity />,
-          permission: 'view sites',
+          permission: 'sites.view|sites.view-any',
         },
         {
           path: '/plots',
           label: 'Plots & Allocations',
           icon: <MdLandscape />,
-          permission: 'view units',
+          permission: 'plots.view|units.view',
         },
         {
           path: '/land-titles',
           label: 'Land Titles & Deeds',
           icon: <MdVerified />,
-          permission: 'view sites',
+          permission: 'mother-titles.view|sites.view',
         },
         {
           path: '/estate-map',
           label: 'Interactive Estate Map',
           icon: <MdMap />,
-          permission: 'view sites',
+          permission: 'sites.view|plots.view',
         },
       ],
     },
@@ -140,61 +169,61 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           path: '/savings-accounts?type=land_saving',
           label: 'Land Saving Scheme',
           icon: <MdLandscape />,
-          permission: 'view accounts',
+          permission: 'accounts.view',
         },
         {
           path: '/savings-accounts?type=construction_saving',
           label: 'Construction Saving Scheme',
           icon: <MdConstruction />,
-          permission: 'view accounts',
+          permission: 'accounts.view',
         },
         {
           path: '/savings-accounts',
           label: 'All Savings Accounts',
           icon: <MdAccountBalance />,
-          permission: 'view accounts',
+          permission: 'accounts.view',
         },
         {
           path: '/payments',
           label: 'Payments & Collections',
           icon: <MdReceipt />,
-          permission: 'view payments',
+          permission: 'payments.view',
         },
         {
           path: '/transactions',
           label: 'Financial Ledger',
           icon: <MdReceiptLong />,
-          permission: 'view transactions',
+          permission: 'transactions.view',
         },
         {
           path: '/cashbook',
           label: 'The CashBook',
           icon: <MdAccountBalanceWallet />,
-          permission: 'view transactions',
+          permission: 'cashbook.view|transactions.view',
         },
         {
           path: '/client-refunds',
           label: 'Client Refunds',
           icon: <MdMoneyOff />,
-          permission: 'view payments',
+          permission: 'refunds.view|payments.view',
         },
         {
           path: '/petty-cash',
           label: 'Petty Cash & Floats',
           icon: <MdAccountBalanceWallet />,
-          permission: 'view petty cash',
+          permission: 'petty-cash.view',
         },
         {
           path: '/expenses',
           label: 'Expense Claims',
           icon: <MdPayments />,
-          permission: 'view expenses',
+          permission: 'expenses.view',
         },
         {
           path: '/payment-certificates',
           label: 'Payment Certificates',
           icon: <MdRequestQuote />,
-          permission: 'view certificates',
+          permission: 'certificates.view',
         },
       ],
     },
@@ -205,13 +234,13 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           path: '/reconciliation',
           label: 'Bank & MoMo Reconciliation',
           icon: <MdCompareArrows />,
-          permission: 'view payments',
+          permission: 'reconciliation.view|payments.view',
         },
         {
           path: '/reconciliation/escrow',
           label: 'Escrow Milestone Matching',
           icon: <MdFactCheck />,
-          permission: 'view payments',
+          permission: 'reconciliation.view|payments.view',
         },
       ],
     },
@@ -222,43 +251,43 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           path: '/projects',
           label: 'Construction Projects',
           icon: <MdFolder />,
-          permission: 'view projects',
+          permission: 'projects.view',
         },
         {
           path: '/tasks',
           label: 'Milestones & Tasks',
           icon: <MdAssignment />,
-          permission: 'view tasks',
+          permission: 'tasks.view',
         },
         {
           path: '/milestone-releases',
           label: 'Milestone Releases',
           icon: <MdFactCheck />,
-          permission: 'view payments',
+          permission: 'payments.view|certificates.view',
         },
         {
           path: '/inspections',
           label: 'Quality & Inspections',
           icon: <MdFactCheck />,
-          permission: 'view inspections',
+          permission: 'inspections.view',
         },
         {
           path: '/materials',
           label: 'Materials & Inventory',
           icon: <MdInventory2 />,
-          permission: 'view materials',
+          permission: 'materials.view',
         },
         {
           path: '/equipment',
           label: 'Equipment & Machinery',
           icon: <MdPrecisionManufacturing />,
-          permission: 'view equipment',
+          permission: 'equipment.view',
         },
         {
           path: '/daily-logs',
           label: 'Daily Logs & Safety',
           icon: <MdHealthAndSafety />,
-          permission: 'view daily-logs',
+          permission: 'daily-logs.view|safety.view',
         },
       ],
     },
@@ -269,19 +298,19 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           path: '/clients',
           label: 'Client Directory (KYC)',
           icon: <MdPersonOutline />,
-          permission: 'view clients',
+          permission: 'clients.view',
         },
         {
           path: '/documents',
           label: 'Digital Document Vault',
           icon: <MdDescription />,
-          permission: 'view documents',
+          permission: 'documents.view',
         },
         {
           path: '/support-tickets',
           label: 'Customer Support Desk',
           icon: <MdSupportAgent />,
-          permission: 'view clients',
+          permission: 'clients.view|notifications.view',
         },
         {
           path: '/client-portal',
@@ -292,7 +321,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           path: '/client-portal/milestones',
           label: 'Client Milestone Portal',
           icon: <MdVerified />,
-          permission: 'view sites',
+          permission: 'sites.view|projects.view',
         },
       ],
     },
@@ -303,14 +332,14 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           path: '/financial-reports',
           label: 'Financial & Scheme Analytics',
           icon: <MdAssessment />,
-          permission: 'view transactions',
+          permission: 'reports.view-financial|transactions.view',
         },
       ],
     },
   ]
 
-  // Only show admin menu to Super Admin and Company Admin
-  const adminSection: MenuSection | null = hasRole(['Super Admin', 'Company Admin'])
+  // Administration menu for Super Admin, Company Admin, or authorized roles
+  const adminSection: MenuSection | null = hasRole(['Super Admin', 'Company Admin']) || hasPermission('employees.view|users.view|roles.view|audit-logs.view')
     ? {
         title: 'Administration',
         items: [
@@ -318,25 +347,25 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
             path: '/employees',
             label: 'Employees & HR',
             icon: <MdBadge />,
-            permission: 'view users',
+            permission: 'employees.view|users.view',
           },
           {
             path: '/admin/users',
             label: 'Staff & Client Users',
             icon: <MdPeople />,
-            permission: 'view users',
+            permission: 'users.view',
           },
           {
             path: '/admin/roles',
             label: 'Roles & Granular RBAC',
             icon: <MdSecurity />,
-            permission: 'view roles',
+            permission: 'roles.view',
           },
           {
             path: '/admin/activities',
             label: 'Security & Audit Logs',
             icon: <MdHistory />,
-            permission: 'view activities',
+            permission: 'audit-logs.view',
           },
         ],
       }
@@ -358,15 +387,10 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   }
 
   const renderMenuItem = (item: MenuItem) => {
-    // Super Admin bypasses all permission checks
-    const isSuperAdmin = user?.roles?.includes('Super Admin')
-    
-    // Check permission (Super Admin sees everything)
     if (!isSuperAdmin && !hasPermission(item.permission)) {
       return null
     }
 
-    // If has children, render as expandable group
     if (item.children) {
       return (
         <div key={item.path} className="menu-group">
@@ -387,7 +411,6 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       }
     }
 
-    // Regular menu item
     return (
       <Link
         key={item.path}
@@ -426,7 +449,6 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       </div>
       <nav className="sidebar-menu">
         {allSections.map((section, idx) => {
-          const isSuperAdmin = user?.roles?.includes('Super Admin')
           const visibleItems = section.items.filter((item) => {
             if (isSuperAdmin) return true
             return hasPermission(item.permission)

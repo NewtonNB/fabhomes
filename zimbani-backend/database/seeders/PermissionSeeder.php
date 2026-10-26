@@ -86,7 +86,7 @@ class PermissionSeeder extends Seeder
                 'plots.view-history',
             ],
 
-            // Construction Site Module
+            // Estates / Sites Module
             'sites' => [
                 'sites.view',
                 'sites.view-any',
@@ -96,6 +96,74 @@ class PermissionSeeder extends Seeder
                 'sites.manage-workers',
                 'sites.view-progress',
                 'sites.update-progress',
+            ],
+
+            // Units Module
+            'units' => [
+                'units.view',
+                'units.view-any',
+                'units.create',
+                'units.update',
+                'units.delete',
+            ],
+
+            // Client Management Module (KYC)
+            'clients' => [
+                'clients.view',
+                'clients.view-any',
+                'clients.create',
+                'clients.update',
+                'clients.delete',
+                'clients.export',
+            ],
+
+            // Mother Titles & Legal Deeds Module
+            'mother-titles' => [
+                'mother-titles.view',
+                'mother-titles.view-any',
+                'mother-titles.create',
+                'mother-titles.update',
+                'mother-titles.delete',
+                'mother-titles.export',
+            ],
+
+            // CashBook Module
+            'cashbook' => [
+                'cashbook.view',
+                'cashbook.view-any',
+                'cashbook.create',
+                'cashbook.manage',
+                'cashbook.export',
+            ],
+
+            // Client Refunds Module
+            'refunds' => [
+                'refunds.view',
+                'refunds.view-any',
+                'refunds.create',
+                'refunds.update',
+                'refunds.approve',
+                'refunds.process',
+                'refunds.export',
+            ],
+
+            // Employees & HR Module
+            'employees' => [
+                'employees.view',
+                'employees.view-any',
+                'employees.create',
+                'employees.update',
+                'employees.delete',
+                'employees.export',
+            ],
+
+            // Bank & Mobile Money Reconciliation Module
+            'reconciliation' => [
+                'reconciliation.view',
+                'reconciliation.view-any',
+                'reconciliation.match',
+                'reconciliation.approve',
+                'reconciliation.export',
             ],
 
             // Task Management Module
@@ -226,6 +294,7 @@ class PermissionSeeder extends Seeder
                 'payments.process',
                 'payments.refund',
                 'payments.export',
+                'payments.verify',
             ],
 
             // Financial Module - Transactions & Immutable Ledger
@@ -365,8 +434,6 @@ class PermissionSeeder extends Seeder
         // Create all permissions
         $totalPermissions = 0;
         foreach ($permissionsByModule as $module => $permissions) {
-            $this->command->info("Creating permissions for module: {$module}");
-            
             foreach ($permissions as $permission) {
                 Permission::firstOrCreate([
                     'name' => $permission,
@@ -376,92 +443,181 @@ class PermissionSeeder extends Seeder
             }
         }
 
-        $this->command->info("Created {$totalPermissions} permissions across " . count($permissionsByModule) . " modules.");
+        $this->command->info("Created/verified {$totalPermissions} permissions across " . count($permissionsByModule) . " modules.");
 
         // Assign all permissions to Super Admin role
         $superAdmin = Role::findByName('Super Admin', 'web');
         $superAdmin->givePermissionTo(Permission::all());
         $this->command->info('Assigned all permissions to Super Admin role.');
 
-        // Assign specific permissions to other roles
+        // Assign specific permissions to all roles
         $this->assignRolePermissions();
 
         $this->command->info('All permissions created and assigned successfully!');
     }
 
     /**
-     * Assign permissions to specific roles based on their responsibilities.
+     * Assign permissions to specific roles based on official system responsibilities.
      */
     private function assignRolePermissions(): void
     {
-        // Company Admin - Full company and project management
-        $companyAdmin = Role::findByName('Company Admin', 'web');
-        $companyAdmin->givePermissionTo([
-            // Users (except system-level operations)
-            'users.view', 'users.view-any', 'users.create', 'users.update', 'users.assign-roles',
-            
-            // Companies
-            'companies.view', 'companies.update', 'companies.manage-settings', 'companies.view-financials',
-            
-            // Projects - Full access
-            'projects.view', 'projects.view-any', 'projects.create', 'projects.update', 'projects.delete',
-            'projects.archive', 'projects.restore', 'projects.manage-budget', 'projects.view-financials', 'projects.assign-team',
-            
-            // Plots - Full access
-            'plots.view', 'plots.view-any', 'plots.create', 'plots.update', 'plots.assign-owner',
-            'plots.transfer-ownership', 'plots.view-history',
-            
-            // Sites - Full access
-            'sites.view', 'sites.view-any', 'sites.create', 'sites.update', 'sites.manage-workers',
-            'sites.view-progress', 'sites.update-progress',
-            
-            // Financial - Full access
-            'payments.view', 'payments.view-any', 'payments.create', 'payments.approve', 'payments.process',
+        // 1. Finance Manager
+        $financeManager = Role::findByName('Finance Manager', 'web');
+        $financeManager->syncPermissions([
+            // Accounts
+            'accounts.view', 'accounts.view-any', 'accounts.create', 'accounts.update', 'accounts.delete',
+            'accounts.activate', 'accounts.suspend', 'accounts.close', 'accounts.adjust-balance', 'accounts.statement',
+            // Transactions & CashBook
+            'transactions.view', 'transactions.view-any', 'transactions.create', 'transactions.reverse',
+            'transactions.reconcile', 'transactions.export',
+            'cashbook.view', 'cashbook.view-any', 'cashbook.create', 'cashbook.manage', 'cashbook.export',
+            // Payments & Refunds
+            'payments.view', 'payments.view-any', 'payments.create', 'payments.update', 'payments.approve',
+            'payments.process', 'payments.refund', 'payments.export', 'payments.verify',
+            'refunds.view', 'refunds.view-any', 'refunds.create', 'refunds.update', 'refunds.approve', 'refunds.process', 'refunds.export',
+            // Reconciliation
+            'reconciliation.view', 'reconciliation.view-any', 'reconciliation.match', 'reconciliation.approve', 'reconciliation.export',
+            // Invoices, Expenses, Petty Cash & Budgets
+            'invoices.view', 'invoices.view-any', 'invoices.create', 'invoices.update', 'invoices.send',
+            'invoices.approve', 'invoices.mark-paid', 'invoices.export',
             'expenses.view', 'expenses.view-any', 'expenses.create', 'expenses.update', 'expenses.delete',
             'expenses.verify-site', 'expenses.approve-finance', 'expenses.authorize-admin', 'expenses.reimburse', 'expenses.pay', 'expenses.export',
             'petty-cash.view', 'petty-cash.view-any', 'petty-cash.create', 'petty-cash.update', 'petty-cash.delete', 'petty-cash.top-up', 'petty-cash.reconcile', 'petty-cash.export',
             'budgets.view', 'budgets.view-any', 'budgets.create', 'budgets.update', 'budgets.approve', 'budgets.allocate',
-            
-            // Reports - Full access
-            'reports.view-financial', 'reports.view-progress', 'reports.view-attendance', 'reports.view-inventory',
-            'reports.view-analytics', 'reports.export',
-            
-            // Documents
-            'documents.view', 'documents.view-any', 'documents.create', 'documents.update', 'documents.approve',
-            
-            // Contracts & Subcontractors - Full access
-            'contracts.view', 'contracts.view-any', 'contracts.create', 'contracts.update', 'contracts.delete',
-            'contracts.sign', 'contracts.approve', 'contracts.terminate',
-
-            // Payment Certificates & Valuations - Full access
-            'certificates.view', 'certificates.view-any', 'certificates.create', 'certificates.update',
-            'certificates.delete', 'certificates.verify-site', 'certificates.approve-finance',
-            'certificates.authorize-admin', 'certificates.pay', 'certificates.export',
-
-            // Equipment - Full access
-            'equipment.view', 'equipment.view-any', 'equipment.create', 'equipment.update', 'equipment.delete',
-            'equipment.dispatch', 'equipment.maintain', 'equipment.log-utilization', 'equipment.assign-operator',
-
-            // Quality Control & Inspections - Full access
-            'inspections.view', 'inspections.view-any', 'inspections.create', 'inspections.update', 'inspections.delete', 'inspections.sign-off',
-            'defects.view', 'defects.view-any', 'defects.create', 'defects.update', 'defects.delete', 'defects.verify',
-
-            // Daily Logs & Safety - Full access
-            'daily-logs.view', 'daily-logs.view-any', 'daily-logs.create', 'daily-logs.update', 'daily-logs.delete', 'daily-logs.approve',
-            'safety.view', 'safety.view-any', 'safety.create', 'safety.update', 'safety.delete', 'safety.investigate', 'safety.close',
-
-            // Savings Accounts - Full access
-            'accounts.view', 'accounts.view-any', 'accounts.create', 'accounts.update', 'accounts.delete',
-            'accounts.activate', 'accounts.suspend', 'accounts.close', 'accounts.adjust-balance', 'accounts.statement',
-
-            // Transactions & Ledger - Full access
-            'transactions.view', 'transactions.view-any', 'transactions.create', 'transactions.reverse',
-            'transactions.reconcile', 'transactions.export',
+            // Contracts & Certificates
+            'contracts.view', 'contracts.view-any', 'contracts.create', 'contracts.update', 'contracts.approve',
+            'certificates.view', 'certificates.view-any', 'certificates.create', 'certificates.update', 'certificates.approve-finance', 'certificates.pay', 'certificates.export',
+            // Clients & Overview
+            'clients.view', 'clients.view-any', 'clients.export',
+            'projects.view', 'projects.view-any', 'projects.view-financials',
+            'sites.view', 'sites.view-any',
+            'reports.view-financial', 'reports.export',
+            'documents.view', 'documents.view-any', 'documents.download', 'documents.create',
+            'notifications.view', 'notifications.create',
+            'audit-logs.view',
         ]);
 
-        // Site Manager - Site operations and worker management
+        // 2. Reconciliation Manager
+        $reconManager = Role::findByName('Reconciliation Manager', 'web');
+        $reconManager->syncPermissions([
+            'reconciliation.view', 'reconciliation.view-any', 'reconciliation.match', 'reconciliation.approve', 'reconciliation.export',
+            'payments.view', 'payments.view-any', 'payments.verify', 'payments.export',
+            'transactions.view', 'transactions.view-any', 'transactions.reconcile', 'transactions.export',
+            'accounts.view', 'accounts.view-any', 'accounts.statement',
+            'cashbook.view', 'cashbook.view-any', 'cashbook.export',
+            'reports.view-financial', 'reports.export',
+            'documents.view', 'documents.download',
+            'notifications.view',
+        ]);
+
+        // 3. Surveyor Manager
+        $surveyorManager = Role::findByName('Surveyor Manager', 'web');
+        $surveyorManager->syncPermissions([
+            'mother-titles.view', 'mother-titles.view-any', 'mother-titles.create', 'mother-titles.update', 'mother-titles.delete', 'mother-titles.export',
+            'plots.view', 'plots.view-any', 'plots.create', 'plots.update', 'plots.delete', 'plots.assign-owner', 'plots.transfer-ownership', 'plots.view-history',
+            'sites.view', 'sites.view-any', 'sites.create', 'sites.update', 'sites.view-progress', 'sites.update-progress',
+            'units.view', 'units.view-any', 'units.create', 'units.update',
+            'projects.view', 'projects.view-any',
+            'inspections.view', 'inspections.view-any', 'inspections.create', 'inspections.update', 'inspections.sign-off',
+            'documents.view', 'documents.view-any', 'documents.create', 'documents.update', 'documents.download', 'documents.share',
+            'reports.view-progress', 'reports.export',
+            'notifications.view', 'notifications.create',
+        ]);
+
+        // 4. Construction / Project Manager
+        $constructionManager = Role::findByName('Construction / Project Manager', 'web');
+        $constructionManager->syncPermissions([
+            'projects.view', 'projects.view-any', 'projects.create', 'projects.update', 'projects.archive', 'projects.restore', 'projects.manage-budget', 'projects.assign-team',
+            'sites.view', 'sites.view-any', 'sites.create', 'sites.update', 'sites.manage-workers', 'sites.view-progress', 'sites.update-progress',
+            'units.view', 'units.view-any', 'units.create', 'units.update',
+            'tasks.view', 'tasks.view-any', 'tasks.create', 'tasks.update', 'tasks.delete', 'tasks.assign', 'tasks.complete',
+            'workers.view', 'workers.view-any', 'workers.create', 'workers.update', 'workers.assign-to-site', 'workers.view-attendance',
+            'attendance.view', 'attendance.view-any', 'attendance.create', 'attendance.update', 'attendance.approve',
+            'materials.view', 'materials.view-any', 'materials.create', 'materials.update', 'materials.request', 'materials.approve-request', 'materials.track-usage', 'materials.view-inventory',
+            'equipment.view', 'equipment.view-any', 'equipment.create', 'equipment.update', 'equipment.dispatch', 'equipment.maintain', 'equipment.log-utilization', 'equipment.assign-operator',
+            'inspections.view', 'inspections.view-any', 'inspections.create', 'inspections.update', 'inspections.delete', 'inspections.sign-off',
+            'defects.view', 'defects.view-any', 'defects.create', 'defects.update', 'defects.delete', 'defects.verify',
+            'daily-logs.view', 'daily-logs.view-any', 'daily-logs.create', 'daily-logs.update', 'daily-logs.delete', 'daily-logs.approve',
+            'safety.view', 'safety.view-any', 'safety.create', 'safety.update', 'safety.delete', 'safety.investigate', 'safety.close',
+            'contracts.view', 'contracts.view-any', 'contracts.create', 'contracts.update', 'contracts.sign',
+            'certificates.view', 'certificates.view-any', 'certificates.create', 'certificates.update', 'certificates.verify-site',
+            'expenses.view', 'expenses.view-any', 'expenses.create', 'expenses.update', 'expenses.verify-site',
+            'petty-cash.view', 'petty-cash.view-any', 'petty-cash.reconcile',
+            'documents.view', 'documents.view-any', 'documents.create', 'documents.update', 'documents.download', 'documents.share',
+            'reports.view-progress', 'reports.view-attendance', 'reports.view-inventory', 'reports.export',
+            'notifications.view', 'notifications.create',
+        ]);
+
+        // 5. Customer Support Officer
+        $supportOfficer = Role::findByName('Customer Support Officer', 'web');
+        $supportOfficer->syncPermissions([
+            'clients.view', 'clients.view-any', 'clients.create', 'clients.update', 'clients.export',
+            'accounts.view', 'accounts.view-any', 'accounts.statement',
+            'plots.view', 'plots.view-any', 'plots.view-history',
+            'sites.view', 'sites.view-any', 'sites.view-progress',
+            'units.view', 'units.view-any',
+            'projects.view', 'projects.view-any',
+            'documents.view', 'documents.view-any', 'documents.download',
+            'notifications.view', 'notifications.create', 'notifications.send',
+            'reports.view-progress',
+        ]);
+
+        // 6. Company Admin
+        $companyAdmin = Role::findByName('Company Admin', 'web');
+        $companyAdmin->syncPermissions([
+            'users.view', 'users.view-any', 'users.create', 'users.update', 'users.assign-roles',
+            'companies.view', 'companies.update', 'companies.manage-settings', 'companies.view-financials',
+            'projects.view', 'projects.view-any', 'projects.create', 'projects.update', 'projects.delete', 'projects.archive', 'projects.restore', 'projects.manage-budget', 'projects.view-financials', 'projects.assign-team',
+            'plots.view', 'plots.view-any', 'plots.create', 'plots.update', 'plots.assign-owner', 'plots.transfer-ownership', 'plots.view-history',
+            'sites.view', 'sites.view-any', 'sites.create', 'sites.update', 'sites.manage-workers', 'sites.view-progress', 'sites.update-progress',
+            'clients.view', 'clients.view-any', 'clients.create', 'clients.update', 'clients.export',
+            'mother-titles.view', 'mother-titles.view-any', 'mother-titles.create', 'mother-titles.update', 'mother-titles.export',
+            'employees.view', 'employees.view-any', 'employees.create', 'employees.update', 'employees.export',
+            'cashbook.view', 'cashbook.view-any', 'cashbook.manage', 'cashbook.create', 'cashbook.export',
+            'refunds.view', 'refunds.view-any', 'refunds.create', 'refunds.update', 'refunds.approve', 'refunds.process', 'refunds.export',
+            'reconciliation.view', 'reconciliation.view-any', 'reconciliation.match', 'reconciliation.approve', 'reconciliation.export',
+            'payments.view', 'payments.view-any', 'payments.create', 'payments.approve', 'payments.process',
+            'expenses.view', 'expenses.view-any', 'expenses.create', 'expenses.update', 'expenses.delete', 'expenses.verify-site', 'expenses.approve-finance', 'expenses.authorize-admin', 'expenses.reimburse', 'expenses.pay', 'expenses.export',
+            'petty-cash.view', 'petty-cash.view-any', 'petty-cash.create', 'petty-cash.update', 'petty-cash.delete', 'petty-cash.top-up', 'petty-cash.reconcile', 'petty-cash.export',
+            'budgets.view', 'budgets.view-any', 'budgets.create', 'budgets.update', 'budgets.approve', 'budgets.allocate',
+            'reports.view-financial', 'reports.view-progress', 'reports.view-attendance', 'reports.view-inventory', 'reports.view-analytics', 'reports.export',
+            'documents.view', 'documents.view-any', 'documents.create', 'documents.update', 'documents.approve',
+            'contracts.view', 'contracts.view-any', 'contracts.create', 'contracts.update', 'contracts.delete', 'contracts.sign', 'contracts.approve', 'contracts.terminate',
+            'certificates.view', 'certificates.view-any', 'certificates.create', 'certificates.update', 'certificates.delete', 'certificates.verify-site', 'certificates.approve-finance', 'certificates.authorize-admin', 'certificates.pay', 'certificates.export',
+            'equipment.view', 'equipment.view-any', 'equipment.create', 'equipment.update', 'equipment.delete', 'equipment.dispatch', 'equipment.maintain', 'equipment.log-utilization', 'equipment.assign-operator',
+            'inspections.view', 'inspections.view-any', 'inspections.create', 'inspections.update', 'inspections.delete', 'inspections.sign-off',
+            'defects.view', 'defects.view-any', 'defects.create', 'defects.update', 'defects.delete', 'defects.verify',
+            'daily-logs.view', 'daily-logs.view-any', 'daily-logs.create', 'daily-logs.update', 'daily-logs.delete', 'daily-logs.approve',
+            'safety.view', 'safety.view-any', 'safety.create', 'safety.update', 'safety.delete', 'safety.investigate', 'safety.close',
+            'accounts.view', 'accounts.view-any', 'accounts.create', 'accounts.update', 'accounts.delete', 'accounts.activate', 'accounts.suspend', 'accounts.close', 'accounts.adjust-balance', 'accounts.statement',
+            'transactions.view', 'transactions.view-any', 'transactions.create', 'transactions.reverse', 'transactions.reconcile', 'transactions.export',
+        ]);
+
+        // 7. Finance Officer (operational role)
+        $financeOfficer = Role::findByName('Finance Officer', 'web');
+        $financeOfficer->syncPermissions([
+            'accounts.view', 'accounts.view-any', 'accounts.create', 'accounts.update', 'accounts.delete',
+            'accounts.activate', 'accounts.suspend', 'accounts.close', 'accounts.adjust-balance', 'accounts.statement',
+            'transactions.view', 'transactions.view-any', 'transactions.create', 'transactions.reverse', 'transactions.reconcile', 'transactions.export',
+            'cashbook.view', 'cashbook.view-any', 'cashbook.create', 'cashbook.manage', 'cashbook.export',
+            'payments.view', 'payments.view-any', 'payments.create', 'payments.update', 'payments.approve', 'payments.process', 'payments.refund', 'payments.export',
+            'refunds.view', 'refunds.view-any', 'refunds.create', 'refunds.export',
+            'invoices.view', 'invoices.view-any', 'invoices.create', 'invoices.update', 'invoices.send', 'invoices.approve', 'invoices.mark-paid', 'invoices.export',
+            'expenses.view', 'expenses.view-any', 'expenses.create', 'expenses.update', 'expenses.delete', 'expenses.verify-site', 'expenses.approve-finance', 'expenses.authorize-admin', 'expenses.reimburse', 'expenses.pay', 'expenses.export',
+            'petty-cash.view', 'petty-cash.view-any', 'petty-cash.create', 'petty-cash.update', 'petty-cash.delete', 'petty-cash.top-up', 'petty-cash.reconcile', 'petty-cash.export',
+            'budgets.view', 'budgets.view-any', 'budgets.create', 'budgets.update', 'budgets.allocate',
+            'contracts.view', 'contracts.view-any', 'contracts.create', 'contracts.update', 'contracts.approve',
+            'certificates.view', 'certificates.view-any', 'certificates.create', 'certificates.update', 'certificates.approve-finance', 'certificates.pay', 'certificates.export',
+            'projects.view', 'projects.view-any', 'projects.view-financials',
+            'companies.view-financials',
+            'reports.view-financial', 'reports.export',
+            'documents.view', 'documents.view-any', 'documents.create',
+            'audit-logs.view', 'audit-logs.view-any',
+        ]);
+
+        // 8. Site Manager (operational role)
         $siteManager = Role::findByName('Site Manager', 'web');
-        $siteManager->givePermissionTo([
+        $siteManager->syncPermissions([
             'sites.view', 'sites.view-any', 'sites.update', 'sites.manage-workers', 'sites.view-progress', 'sites.update-progress',
             'tasks.view', 'tasks.view-any', 'tasks.create', 'tasks.update', 'tasks.assign', 'tasks.complete',
             'workers.view', 'workers.view-any', 'workers.create', 'workers.update', 'workers.assign-to-site', 'workers.view-attendance',
@@ -483,9 +639,9 @@ class PermissionSeeder extends Seeder
             'notifications.view', 'notifications.create',
         ]);
 
-        // Supervisor - Worker supervision and task management
+        // 9. Supervisor
         $supervisor = Role::findByName('Supervisor', 'web');
-        $supervisor->givePermissionTo([
+        $supervisor->syncPermissions([
             'sites.view', 'sites.view-progress', 'sites.update-progress',
             'tasks.view', 'tasks.view-any', 'tasks.create', 'tasks.update', 'tasks.assign', 'tasks.complete',
             'workers.view', 'workers.view-any', 'workers.clock-in', 'workers.clock-out', 'workers.view-attendance',
@@ -503,9 +659,9 @@ class PermissionSeeder extends Seeder
             'notifications.view',
         ]);
 
-        // Worker - Basic task execution and attendance
+        // 10. Worker
         $worker = Role::findByName('Worker', 'web');
-        $worker->givePermissionTo([
+        $worker->syncPermissions([
             'tasks.view', 'tasks.view-assigned', 'tasks.update', 'tasks.complete',
             'workers.clock-in', 'workers.clock-out',
             'attendance.view',
@@ -518,34 +674,9 @@ class PermissionSeeder extends Seeder
             'notifications.view',
         ]);
 
-        // Finance Officer - Financial operations
-        $financeOfficer = Role::findByName('Finance Officer', 'web');
-        $financeOfficer->givePermissionTo([
-            'accounts.view', 'accounts.view-any', 'accounts.create', 'accounts.update', 'accounts.delete',
-            'accounts.activate', 'accounts.suspend', 'accounts.close', 'accounts.adjust-balance', 'accounts.statement',
-            'transactions.view', 'transactions.view-any', 'transactions.create', 'transactions.reverse',
-            'transactions.reconcile', 'transactions.export',
-            'payments.view', 'payments.view-any', 'payments.create', 'payments.update', 'payments.approve',
-            'payments.process', 'payments.refund', 'payments.export',
-            'invoices.view', 'invoices.view-any', 'invoices.create', 'invoices.update', 'invoices.send',
-            'invoices.approve', 'invoices.mark-paid', 'invoices.export',
-            'expenses.view', 'expenses.view-any', 'expenses.create', 'expenses.update', 'expenses.delete',
-            'expenses.verify-site', 'expenses.approve-finance', 'expenses.authorize-admin', 'expenses.reimburse', 'expenses.pay', 'expenses.export',
-            'petty-cash.view', 'petty-cash.view-any', 'petty-cash.create', 'petty-cash.update', 'petty-cash.delete', 'petty-cash.top-up', 'petty-cash.reconcile', 'petty-cash.export',
-            'budgets.view', 'budgets.view-any', 'budgets.create', 'budgets.update', 'budgets.allocate',
-            'contracts.view', 'contracts.view-any', 'contracts.create', 'contracts.update', 'contracts.approve',
-            'certificates.view', 'certificates.view-any', 'certificates.create', 'certificates.update',
-            'certificates.approve-finance', 'certificates.pay', 'certificates.export',
-            'projects.view', 'projects.view-any', 'projects.view-financials',
-            'companies.view-financials',
-            'reports.view-financial', 'reports.export',
-            'documents.view', 'documents.view-any', 'documents.create',
-            'audit-logs.view', 'audit-logs.view-any',
-        ]);
-
-        // Client - Read-only access to their projects & savings accounts
+        // 11. Client
         $client = Role::findByName('Client', 'web');
-        $client->givePermissionTo([
+        $client->syncPermissions([
             'accounts.view',
             'accounts.statement',
             'transactions.view',
@@ -561,6 +692,6 @@ class PermissionSeeder extends Seeder
             'notifications.view',
         ]);
 
-        $this->command->info('Role-specific permissions assigned successfully!');
+        $this->command->info('Role-specific permissions synchronized across all 11 roles successfully!');
     }
 }

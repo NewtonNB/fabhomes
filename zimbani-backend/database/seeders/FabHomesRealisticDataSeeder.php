@@ -83,7 +83,7 @@ class FabHomesRealisticDataSeeder extends Seeder
                     'status' => 'active',
                 ]
             );
-            $financeManager->syncRoles(['Finance Officer']);
+            $financeManager->syncRoles(['Finance Manager', 'Finance Officer']);
 
             $surveyor = User::firstOrCreate(
                 ['email' => 'surveyor@zimbani.com'],
@@ -95,7 +95,43 @@ class FabHomesRealisticDataSeeder extends Seeder
                     'status' => 'active',
                 ]
             );
-            $surveyor->syncRoles(['Site Manager']);
+            $surveyor->syncRoles(['Surveyor Manager']);
+
+            $reconManager = User::firstOrCreate(
+                ['email' => 'reconciliation@zimbani.com'],
+                [
+                    'uuid' => (string) Str::uuid(),
+                    'name' => 'Robert Mukasa (Reconciliation Manager)',
+                    'phone' => '+256772999888',
+                    'password' => bcrypt('password'),
+                    'status' => 'active',
+                ]
+            );
+            $reconManager->syncRoles(['Reconciliation Manager']);
+
+            $constructionManager = User::firstOrCreate(
+                ['email' => 'construction@zimbani.com'],
+                [
+                    'uuid' => (string) Str::uuid(),
+                    'name' => 'Arch. Dennis Ochan (Construction / Project Manager)',
+                    'phone' => '+256782444555',
+                    'password' => bcrypt('password'),
+                    'status' => 'active',
+                ]
+            );
+            $constructionManager->syncRoles(['Construction / Project Manager']);
+
+            $supportOfficer = User::firstOrCreate(
+                ['email' => 'support@zimbani.com'],
+                [
+                    'uuid' => (string) Str::uuid(),
+                    'name' => 'Brenda Atuhaire (Customer Support Officer)',
+                    'phone' => '+256752666777',
+                    'password' => bcrypt('password'),
+                    'status' => 'active',
+                ]
+            );
+            $supportOfficer->syncRoles(['Customer Support Officer']);
 
             // 3. Clean up the repetitive "WhatsApp Subscriber" test accounts
             $waClients = Client::where('first_name', 'like', '%WhatsApp%')->get();

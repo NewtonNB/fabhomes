@@ -16,17 +16,35 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        if (!$request->user()) {
+        $user = $request->user();
+
+        if (!$user) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthenticated'
             ], 401);
         }
 
-        // Support multiple roles separated by |
-        $roles = explode('|', $role);
+        // Universal bypass for Super Admin
+        if ($user->hasRole('Super Admin')) {
+            return $next($request);
+        }
 
-        if (!$request->user()->hasAnyRole($roles)) {
+        // Support multiple roles separated by |
+        $roles = array_filter(array_map('trim', explode('|', $role)));
+
+        // Check exact match or case-insensitive match
+        $userRoles = $user->getRoleNames()->map(fn ($r) => strtolower($r))->toArray();
+        $hasRole = false;
+
+        foreach ($roles as $requiredRole) {
+            if (in_array(strtolower($requiredRole), $userRoles)) {
+                $hasRole = true;
+                break;
+            }
+        }
+
+        if (!$hasRole) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have the required role to perform this action',
