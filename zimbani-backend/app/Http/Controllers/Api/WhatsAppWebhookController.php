@@ -86,6 +86,29 @@ class WhatsAppWebhookController extends Controller
     }
 
     /**
+     * Send Direct WhatsApp Soft Reply (Authenticated)
+     */
+    public function sendReply(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'to' => 'required|string',
+            'message' => 'required|string|min:1|max:2000',
+        ]);
+
+        $message = $this->webhookService->sendDirectReply(
+            $validated['to'],
+            $validated['message'],
+            $request->user()
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'WhatsApp soft reply sent successfully',
+            'data' => $message,
+        ], 201);
+    }
+
+    /**
      * Get WhatsApp Messages History (Authenticated)
      */
     public function getMessages(Request $request): JsonResponse

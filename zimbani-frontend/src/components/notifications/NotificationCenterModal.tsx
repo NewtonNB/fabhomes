@@ -92,6 +92,19 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
   const [testChannels] = useState<string[]>(['in_app', 'sms', 'email', 'whatsapp'])
   const [dispatchingTest, setDispatchingTest] = useState<boolean>(false)
 
+  // WhatsApp Soft Reply State
+  const [replyingWaId, setReplyingWaId] = useState<string | null>(null)
+  const [waReplyText, setWaReplyText] = useState<string>('')
+  const [sendingWaReply, setSendingWaReply] = useState<boolean>(false)
+
+  const WA_SOFT_REPLIES = [
+    { label: 'Receipt Verified', text: 'Hello! Your payment has been confirmed and official digital receipt is ready in your Client Vault.' },
+    { label: 'Manager Calling', text: 'Thank you for reaching out. An estate relationship manager will call you today to assist.' },
+    { label: 'Inspection Set', text: 'Your plot milestone inspection has been scheduled with our site engineer. We look forward to seeing you.' },
+    { label: 'Deed Ready', text: 'Your land title deed and transfer documents are ready for viewing and collection.' },
+    { label: 'General Help', text: 'Hello! Thank you for contacting Fab Homes. Please let us know how we can best assist your property journey today.' },
+  ]
+
   const fetchNotifications = useCallback(
     async (page = 1) => {
       setLoading(true)
@@ -295,6 +308,23 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
       onNotify?.(err?.response?.data?.message || 'Failed to dispatch broadcast', 'error')
     } finally {
       setBroadcastingCampaign(false)
+    }
+  }
+
+  const handleSendWhatsAppSoftReply = async (phone: string, text: string) => {
+    if (!text.trim()) return
+    setSendingWaReply(true)
+    try {
+      const res = await notificationService.sendWhatsAppReply(phone, text)
+      setWhatsAppMessages((prev) => [...prev, res])
+      setReplyingWaId(null)
+      setWaReplyText('')
+      onNotify?.('WhatsApp soft reply sent successfully!', 'success')
+    } catch (err: any) {
+      console.error('Failed to send WhatsApp soft reply', err)
+      onNotify?.(err?.response?.data?.message || 'Failed to send soft reply', 'error')
+    } finally {
+      setSendingWaReply(false)
     }
   }
 
@@ -713,10 +743,120 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                         {msg.body}
                       </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginTop: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#64748b', marginTop: '6px' }}>
                         <span>ID: {msg.wa_message_id?.substring(0, 24)}...</span>
-                        <span>{new Date(msg.created_at).toLocaleString()}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span>{new Date(msg.created_at).toLocaleString()}</span>
+                          {!isOutbound && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setReplyingWaId(replyingWaId === (msg.wa_message_id || msg.id?.toString()) ? null : (msg.wa_message_id || msg.id?.toString()))
+                                setWaReplyText('')
+                              }}
+                              style={{
+                                background: 'rgba(56, 189, 248, 0.1)',
+                                border: '1px solid rgba(56, 189, 248, 0.3)',
+                                borderRadius: '4px',
+                                color: '#38bdf8',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                padding: '2px 8px',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <MdSend size={11} /> Soft Reply
+                            </button>
+                          )}
+                        </div>
                       </div>
+
+                      {/* Interactive Soft Reply Drawer for this inbound message */}
+                      {!isOutbound && replyingWaId === (msg.wa_message_id || msg.id?.toString()) && (
+                        <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <MdChat size={12} style={{ color: '#38bdf8' }} /> Pick a Soft Reply:
+                          </div>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                            {WA_SOFT_REPLIES.map((sr) => (
+                              <button
+                                key={sr.label}
+                                type="button"
+                                onClick={() => setWaReplyText(sr.text)}
+                                style={{
+                                  background: 'rgba(34, 197, 94, 0.1)',
+                                  border: '1px solid rgba(34, 197, 94, 0.3)',
+                                  color: '#4ade80',
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  padding: '2px 8px',
+                                  borderRadius: '12px',
+                                  cursor: 'pointer',
+                                }}
+                                title={sr.text}
+                              >
+                                + {sr.label}
+                              </button>
+                            ))}
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <input
+                              type="text"
+                              value={waReplyText}
+                              onChange={(e) => setWaReplyText(e.target.value)}
+                              placeholder="Type soft reply or choose preset above..."
+                              style={{
+                                flex: 1,
+                                background: 'rgba(15, 23, 42, 0.8)',
+                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                borderRadius: '6px',
+                                padding: '6px 10px',
+                                color: '#fff',
+                                fontSize: '12px',
+                              }}
+                            />
+                            <button
+                              type="button"
+                              disabled={sendingWaReply || !waReplyText.trim()}
+                              onClick={() => handleSendWhatsAppSoftReply(msg.phone_number, waReplyText)}
+                              style={{
+                                background: '#16a34a',
+                                border: 'none',
+                                borderRadius: '6px',
+                                color: '#fff',
+                                padding: '6px 12px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                opacity: sendingWaReply || !waReplyText.trim() ? 0.6 : 1,
+                              }}
+                            >
+                              <MdSend size={12} /> {sendingWaReply ? 'Sending...' : 'Send'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setReplyingWaId(null)}
+                              style={{
+                                background: 'transparent',
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                borderRadius: '6px',
+                                color: '#94a3b8',
+                                padding: '6px 8px',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )
                 })}

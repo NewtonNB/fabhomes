@@ -46,6 +46,16 @@ export const ClientSupportTicketsTab: React.FC<ClientSupportTicketsTabProps> = (
   const [newMessage, setNewMessage] = useState<string>('')
   const [creatingTicket, setCreatingTicket] = useState<boolean>(false)
 
+  // Soft Replies (Quick Canned Responses)
+  const SOFT_REPLIES = [
+    { label: 'Status Update', text: 'Could you please provide a quick status update on this inquiry?' },
+    { label: 'Docs Uploaded', text: 'I have uploaded the requested documents into my Client Vault.' },
+    { label: 'Confirm Deposit', text: 'Kindly verify and confirm if my latest deposit receipt has been recorded on the ledger.' },
+    { label: 'Site Inspection', text: 'When is the next inspection scheduled for my plot? I would like to attend.' },
+    { label: 'Deed Transfer', text: 'Please advise on the estimated timeline for my land title deed transfer completion.' },
+    { label: 'Resolved', text: 'Thank you very much for the clarification! Everything is well understood and resolved.' },
+  ]
+
   const fetchTickets = useCallback(async () => {
     setLoading(true)
     try {
@@ -462,36 +472,68 @@ export const ClientSupportTicketsTab: React.FC<ClientSupportTicketsTabProps> = (
 
               {/* Reply Input Box */}
               {selectedTicket.status !== 'resolved' ? (
-                <div style={{ display: 'flex', gap: '8px', paddingBottom: '16px' }}>
-                  <textarea
-                    rows={2}
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    placeholder="Type your message or clarification here..."
-                    style={{
-                      flex: 1,
-                      background: 'rgba(15, 23, 42, 0.6)',
-                      border: '1px solid var(--portal-border)',
-                      borderRadius: '8px',
-                      padding: '10px 12px',
-                      color: '#fff',
-                      fontSize: '13px',
-                      resize: 'none',
-                    }}
-                  />
-                  <button
-                    className="portal-btn-primary"
-                    disabled={submittingReply || !replyText.trim()}
-                    onClick={handleSendReply}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '0 16px',
-                    }}
-                  >
-                    <MdSend /> {submittingReply ? 'Sending...' : 'Send'}
-                  </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '16px' }}>
+                  {/* Soft Replies Bar */}
+                  <div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: '#94a3b8', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <MdChatBubbleOutline size={13} style={{ color: '#38bdf8' }} /> Soft Replies:
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {SOFT_REPLIES.map((sr) => (
+                        <button
+                          key={sr.label}
+                          type="button"
+                          onClick={() => setReplyText(sr.text)}
+                          style={{
+                            background: 'rgba(56, 189, 248, 0.08)',
+                            border: '1px solid rgba(56, 189, 248, 0.25)',
+                            color: '#38bdf8',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            padding: '3px 8px',
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                          title={sr.text}
+                        >
+                          + {sr.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <textarea
+                      rows={2}
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      placeholder="Type your message or pick a soft reply above..."
+                      style={{
+                        flex: 1,
+                        background: 'rgba(15, 23, 42, 0.6)',
+                        border: '1px solid var(--portal-border)',
+                        borderRadius: '8px',
+                        padding: '10px 12px',
+                        color: '#fff',
+                        fontSize: '13px',
+                        resize: 'none',
+                      }}
+                    />
+                    <button
+                      className="portal-btn-primary"
+                      disabled={submittingReply || !replyText.trim()}
+                      onClick={handleSendReply}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '0 16px',
+                      }}
+                    >
+                      <MdSend /> {submittingReply ? 'Sending...' : 'Send'}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div style={{ padding: '12px', background: 'rgba(52, 211, 153, 0.1)', borderRadius: '8px', color: '#34d399', fontSize: '12px', textAlign: 'center', marginBottom: '16px' }}>

@@ -112,6 +112,14 @@ class NotificationService {
   }
 
   /**
+   * Send Direct Soft Reply via WhatsApp Cloud API
+   */
+  async sendWhatsAppReply(to: string, message: string): Promise<WhatsAppMessageItem> {
+    const res = await api.post(`${this.waUrl}/reply`, { to, message })
+    return res.data.data
+  }
+
+  /**
    * Get Ingested WhatsApp Webhook Logs
    */
   async getWhatsAppWebhookLogs(): Promise<{

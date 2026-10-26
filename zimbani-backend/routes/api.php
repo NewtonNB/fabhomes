@@ -557,6 +557,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', app()->environment('production'
     // WhatsApp Cloud API Management & Conversation Logs (Phase 13 Day 2)
     Route::prefix('whatsapp')->group(function () {
         Route::post('/send-template', [WhatsAppWebhookController::class, 'sendTemplate']);
+        Route::post('/reply', [WhatsAppWebhookController::class, 'sendReply']);
         Route::get('/messages', [WhatsAppWebhookController::class, 'getMessages']);
         Route::get('/webhooks-log', [WhatsAppWebhookController::class, 'getWebhookLogs']);
     });
