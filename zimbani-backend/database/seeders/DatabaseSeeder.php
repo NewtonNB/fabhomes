@@ -35,5 +35,9 @@ class DatabaseSeeder extends Seeder
         $superAdmin->assignRole('Super Admin');
         
         $this->command->info('Super Admin user created: admin@zimbani.com / password');
+
+        // Seed realistic Fab Homes operational data
+        $this->call(FabHomesRealisticDataSeeder::class);
+        $this->call(LegacyManualDataSeeder::class);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Client;
 use App\Models\Payment;
 use App\Models\PettyCashAccount;
 use App\Models\SavingsAccount;
@@ -170,10 +171,27 @@ class CashBookController extends Controller
         $user = $request->user();
         $isDrawdown = $validated['action_type'] === 'drawdown';
 
+        $clientId = $validated['client_id'] ?? null;
+        if (!$clientId) {
+            $defaultClient = Client::firstOrCreate(
+                ['client_number' => 'CL-SYSTEM-INTERNAL'],
+                [
+                    'uuid' => (string) Str::uuid(),
+                    'first_name' => 'Fab Homes',
+                    'last_name' => 'Internal Treasury',
+                    'full_name' => 'Fab Homes Internal Treasury',
+                    'country' => 'Uganda',
+                    'phone_primary' => '+256700000000',
+                    'status' => 'active',
+                ]
+            );
+            $clientId = $defaultClient->id;
+        }
+
         $tx = Transaction::create([
             'transaction_number' => 'TXN-' . strtoupper(Str::random(10)),
             'reference_number' => $validated['cheque_voucher_no'] ?? $validated['reference_number'] ?? ('REF-' . time()),
-            'client_id' => $validated['client_id'] ?? null,
+            'client_id' => $clientId,
             'account_id' => $validated['account_id'] ?? null,
             'transaction_type' => $isDrawdown ? 'outflow' : 'inflow',
             'amount' => $validated['amount'],
