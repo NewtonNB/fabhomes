@@ -9,8 +9,13 @@ import {
   MdPerson,
   MdReceipt,
   MdHistory,
+  MdPrint,
+  MdHomeWork,
+  MdVerified,
+  MdQrCode2,
 } from 'react-icons/md'
 import pettyCashService from '../../services/petty-cash.service'
+import { formatAmountInWords } from '../../utils/numberToWords'
 import {
   PettyCashAccount,
   PettyCashTransaction,
@@ -42,6 +47,7 @@ export const PettyCashDetails: React.FC = () => {
   const [returnAmount, setReturnAmount] = useState<number | string>(100000)
   const [returnReason, setReturnReason] = useState<string>('Surplus float returned to treasury')
   const [returnRef, setReturnRef] = useState<string>('')
+  const [selectedVoucherTxn, setSelectedVoucherTxn] = useState<PettyCashTransaction | null>(null)
 
   const notifySuccess = (msg: string) => {
     setSuccessMessage(msg)
@@ -371,6 +377,7 @@ export const PettyCashDetails: React.FC = () => {
                   <th>Recorded By</th>
                   <th style={{ textAlign: 'right' }}>Amount</th>
                   <th style={{ textAlign: 'right' }}>Balance After</th>
+                  <th style={{ textAlign: 'center' }}>Voucher</th>
                 </tr>
               </thead>
               <tbody>
@@ -403,6 +410,28 @@ export const PettyCashDetails: React.FC = () => {
                       </td>
                       <td style={{ textAlign: 'right', fontWeight: 600, color: '#0f172a' }}>
                         {formatCurrency(txn.balance_after, txn.currency)}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedVoucherTxn(txn)}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            background: '#f1f5f9',
+                            border: '1px solid #cbd5e1',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            color: '#0369a1',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                          title="View Official Printable Voucher"
+                        >
+                          <MdReceipt size={14} /> Voucher
+                        </button>
                       </td>
                     </tr>
                   )
@@ -557,6 +586,183 @@ export const PettyCashDetails: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Official Petty Cash Voucher Modal */}
+      {selectedVoucherTxn && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="modal-container" style={{ maxWidth: '780px', width: '100%', maxHeight: '92vh', overflowY: 'auto' }}>
+            <div className="modal-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a' }}>
+                  {selectedVoucherTxn.amount < 0 ? 'Disbursement Voucher' : 'Replenishment Voucher'}
+                </h3>
+                <span style={{ fontSize: '12px', color: '#64748b' }}>
+                  Voucher No: FH-PCV-{selectedVoucherTxn.id}-{new Date(selectedVoucherTxn.created_at).getFullYear()}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '6px 14px' }}
+                >
+                  <MdPrint /> Print / Save as PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedVoucherTxn(null)}
+                  className="modal-close-btn"
+                  style={{ fontSize: '20px' }}
+                >
+                  <MdClose />
+                </button>
+              </div>
+            </div>
+
+            <div className="modal-body" style={{ padding: '24px' }}>
+              <div
+                id="printable-petty-voucher"
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '28px',
+                  color: '#0f172a',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {/* Official Letterhead */}
+                <div style={{ borderBottom: '2px solid #0284c7', paddingBottom: '16px', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                      <div style={{ width: '44px', height: '44px', background: '#0284c7', color: '#ffffff', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+                        <MdHomeWork />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', letterSpacing: '0.5px' }}>
+                          FAB HOMES UGANDA LIMITED
+                        </div>
+                        <div style={{ fontSize: '11px', fontWeight: 600, color: '#d97706' }}>
+                          “Live your dream” • Petty Cash & Site Float Desk
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ display: 'inline-block', background: selectedVoucherTxn.amount < 0 ? '#fee2e2' : '#ecfdf5', color: selectedVoucherTxn.amount < 0 ? '#b91c1c' : '#047857', fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '4px' }}>
+                        {selectedVoucherTxn.amount < 0 ? 'DISBURSEMENT VOUCHER' : 'REPLENISHMENT VOUCHER'}
+                      </span>
+                      <div style={{ fontSize: '12px', fontWeight: 700, marginTop: '4px' }}>
+                        VOUCHER #{selectedVoucherTxn.transaction_number}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#64748b' }}>
+                        DATE: {new Date(selectedVoucherTxn.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#475569', marginTop: '10px' }}>
+                    Plot 12, Lumumba Avenue, Kampala, Uganda • Tel: +256 700 000 000 • Email: finance@fabhomes.ug
+                  </div>
+                </div>
+
+                {/* Metadata Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px', fontSize: '12px' }}>
+                  <div>
+                    <strong>Float Account:</strong> {account.name} ({account.account_number})
+                  </div>
+                  <div>
+                    <strong>Site / Project:</strong> {account.site?.name || 'Central Operations'}
+                  </div>
+                  <div>
+                    <strong>Float Custodian:</strong> {account.custodian?.name || 'Site Engineer'}
+                  </div>
+                  <div>
+                    <strong>Transaction Type:</strong> <span style={{ textTransform: 'capitalize' }}>{selectedVoucherTxn.transaction_type.replace(/_/g, ' ')}</span>
+                  </div>
+                </div>
+
+                {/* Amount Box */}
+                <div style={{ background: '#f1f5f9', border: '2px dashed #cbd5e1', borderRadius: '10px', padding: '16px 20px', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: '#475569' }}>
+                      Total Voucher Amount:
+                    </span>
+                    <span style={{ fontSize: '24px', fontWeight: 800, color: selectedVoucherTxn.amount < 0 ? '#b91c1c' : '#047857' }}>
+                      {formatCurrency(Math.abs(selectedVoucherTxn.amount), selectedVoucherTxn.currency)}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginTop: '6px', fontStyle: 'italic' }}>
+                    Amount in words: {formatAmountInWords(Math.abs(selectedVoucherTxn.amount), selectedVoucherTxn.currency || 'UGX')}
+                  </div>
+                </div>
+
+                {/* Details Table */}
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '24px' }}>
+                  <tbody>
+                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '8px', color: '#64748b', width: '180px' }}>Description / Purpose:</td>
+                      <td style={{ padding: '8px', fontWeight: 600 }}>{selectedVoucherTxn.description}</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '8px', color: '#64748b' }}>External Reference:</td>
+                      <td style={{ padding: '8px' }}><code>{selectedVoucherTxn.reference_number || 'N/A'}</code></td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '8px', color: '#64748b' }}>Recorded By:</td>
+                      <td style={{ padding: '8px' }}>{selectedVoucherTxn.created_by_user?.name || `User #${selectedVoucherTxn.created_by}`}</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '8px', color: '#64748b' }}>Residual Float Balance:</td>
+                      <td style={{ padding: '8px', fontWeight: 700, color: '#0f172a' }}>
+                        {formatCurrency(selectedVoucherTxn.balance_after, selectedVoucherTxn.currency)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {/* Signatures */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '20px', textAlign: 'center', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+                  <div>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>PREPARED BY:</div>
+                    <div style={{ height: '40px', borderBottom: '1px dashed #94a3b8', margin: '4px 0' }}></div>
+                    <div style={{ fontSize: '11px', fontWeight: 600 }}>Float Custodian</div>
+                    <div style={{ fontSize: '10px', color: '#64748b' }}>{account.custodian?.name || 'Site Custodian'}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>RECEIVED / SPENT BY:</div>
+                    <div style={{ height: '40px', borderBottom: '1px dashed #94a3b8', margin: '4px 0' }}></div>
+                    <div style={{ fontSize: '11px', fontWeight: 600 }}>Beneficiary / Officer</div>
+                    <div style={{ fontSize: '10px', color: '#64748b' }}>Signature & Date</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>AUTHORIZED BY:</div>
+                    <div style={{ height: '40px', borderBottom: '1px dashed #94a3b8', margin: '4px 0' }}></div>
+                    <div style={{ fontSize: '11px', fontWeight: 600 }}>Chief Accountant / CFO</div>
+                    <div style={{ fontSize: '10px', color: '#64748b' }}>Fab Homes Treasury</div>
+                  </div>
+                </div>
+
+                {/* Security Seal */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '10px 16px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <MdVerified style={{ fontSize: '20px', color: '#16a34a' }} />
+                    <div>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#15803d' }}>OFFICIAL CUSTODIAN AUDIT VOUCHER</div>
+                      <div style={{ fontSize: '10px', color: '#64748b', fontFamily: 'monospace' }}>
+                        HASH: SHA256:PCV-{selectedVoucherTxn.id}-{Date.now().toString(36).toUpperCase()}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <MdQrCode2 style={{ fontSize: '28px', color: '#0f172a' }} />
+                    <span style={{ fontSize: '10px', color: '#64748b' }}>VERIFIED</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

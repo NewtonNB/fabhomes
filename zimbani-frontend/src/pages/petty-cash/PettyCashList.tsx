@@ -182,6 +182,78 @@ export const PettyCashList: React.FC = () => {
         )}
       </div>
 
+      {/* Quick Status Filter Pills */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <button
+          type="button"
+          onClick={() => { setStatusFilter(''); setPage(1); }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === '' ? '#0284c7' : '#cbd5e1'}`,
+            background: statusFilter === '' ? '#0284c7' : '#ffffff',
+            color: statusFilter === '' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          All Accounts ({totalCount || accounts.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => { setStatusFilter('active'); setPage(1); }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === 'active' ? '#16a34a' : '#cbd5e1'}`,
+            background: statusFilter === 'active' ? '#16a34a' : '#ffffff',
+            color: statusFilter === 'active' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Active Floats ({stats?.active_accounts ?? '...'})
+        </button>
+        <button
+          type="button"
+          onClick={() => { setStatusFilter('suspended'); setPage(1); }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === 'suspended' ? '#d97706' : '#cbd5e1'}`,
+            background: statusFilter === 'suspended' ? '#d97706' : '#ffffff',
+            color: statusFilter === 'suspended' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Suspended Floats
+        </button>
+        <button
+          type="button"
+          onClick={() => { setStatusFilter('closed'); setPage(1); }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === 'closed' ? '#64748b' : '#cbd5e1'}`,
+            background: statusFilter === 'closed' ? '#64748b' : '#ffffff',
+            color: statusFilter === 'closed' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Closed Accounts
+        </button>
+      </div>
+
       {/* Filter Toolbar */}
       <div className="contracts-card" style={{ marginBottom: '1.5rem', padding: '1rem' }}>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>

@@ -376,3 +376,26 @@
 .beacon-table th {
   color: var(--portal-text-muted);
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-deed-plan,
+  #printable-deed-plan * {
+    visibility: visible;
+  }
+  #printable-deed-plan {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
