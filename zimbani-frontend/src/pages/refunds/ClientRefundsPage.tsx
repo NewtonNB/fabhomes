@@ -8,6 +8,12 @@ import {
   MdSearch,
   MdRefresh,
   MdAdd,
+  MdShare,
+  MdClose,
+  MdVerified,
+  MdHourglassTop,
+  MdAttachMoney,
+  MdReceiptLong,
 } from 'react-icons/md'
 import refundService, { PaymentRefund } from '../../services/refund.service'
 import clientService from '../../services/client.service'
@@ -16,6 +22,8 @@ import { Client } from '../../types/client.types'
 import { Payment } from '../../types/payment.types'
 import { useAuth } from '../../contexts/AuthContext'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
+import { formatAmountInWords } from '../../utils/numberToWords'
+import './ClientRefundsPage.css'
 
 export const ClientRefundsPage: React.FC = () => {
   const { user } = useAuth()
@@ -53,6 +61,7 @@ export const ClientRefundsPage: React.FC = () => {
   const [showApproveConfirm, setShowApproveConfirm] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
+  const [showVoucherModal, setShowVoucherModal] = useState(false)
 
   const showNotice = (msg: string, type: 'success' | 'error' = 'success') => {
     setNotification({ msg, type })
@@ -245,7 +254,27 @@ export const ClientRefundsPage: React.FC = () => {
   }
 
   const handlePrintVoucher = () => {
-    window.print()
+    if (!selectedRefund) {
+      showNotice('Please select a refund record first.', 'error')
+      return
+    }
+    setShowVoucherModal(true)
+  }
+
+  const handleWhatsAppShare = () => {
+    if (!selectedRefund) return
+    const clientName = (selectedRefund.client as any)?.name || (selectedRefund.client as any)?.full_name || selectedClient?.full_name || 'Client'
+    const text =
+      `*FAB HOMES UGANDA - REFUND DISBURSEMENT VOUCHER*\n\n` +
+      `*Voucher No:* ${selectedRefund.refund_number}\n` +
+      `*Client:* ${clientName}\n` +
+      `*Gross Amount Requested:* UGX ${Number(selectedRefund.amount).toLocaleString()}\n` +
+      `*Administrative Deduction (${selectedRefund.deduction_percentage || 10}%):* UGX ${Number(selectedRefund.deduction_amount || 0).toLocaleString()}\n` +
+      `*Net Payable Disbursement:* UGX ${(Number(selectedRefund.amount) - Number(selectedRefund.deduction_amount || 0)).toLocaleString()}\n` +
+      `*Status:* ${(selectedRefund.status || '').toUpperCase()}\n` +
+      `*Date:* ${selectedRefund.notice_date || new Date().toISOString().split('T')[0]}\n\n` +
+      `Official verification completed by Fab Homes Uganda Finance Department.`
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
   }
 
   const formatUGX = (val: number) => {
@@ -257,6 +286,15 @@ export const ClientRefundsPage: React.FC = () => {
   }
 
   const selectedClient = clients.find(c => c.id === Number(selectedClientId))
+
+  const pendingRefunds = refunds.filter(r => r.status === 'requested')
+  const approvedRefunds = refunds.filter(r => r.status === 'approved')
+  const completedRefunds = refunds.filter(r => r.status === 'completed')
+  const rejectedRefunds = refunds.filter(r => r.status === 'rejected')
+
+  const totalRequestedAmount = refunds.reduce((sum, r) => sum + Number(r.amount || 0), 0)
+  const pendingAmount = pendingRefunds.reduce((sum, r) => sum + Number(r.amount || 0), 0)
+  const approvedNetDisbursement = approvedRefunds.reduce((sum, r) => sum + (Number(r.amount || 0) - Number(r.deduction_amount || 0)), 0)
 
   return (
     <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -327,6 +365,219 @@ export const ClientRefundsPage: React.FC = () => {
           {notification.msg}
         </div>
       )}
+
+      {/* KPI Summary Cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gap: '16px',
+        marginBottom: '24px',
+      }}>
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '10px',
+          padding: '16px 20px',
+          border: '1px solid #e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+        }}>
+          <div style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '10px',
+            backgroundColor: '#f0fdfa',
+            color: '#0d9488',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '22px',
+          }}>
+            <MdReceiptLong />
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Total Refund Log</div>
+            <div style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{refunds.length} Requests</div>
+            <div style={{ fontSize: '12px', color: '#0d9488', fontWeight: '600' }}>UGX {totalRequestedAmount.toLocaleString()}</div>
+          </div>
+        </div>
+
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '10px',
+          padding: '16px 20px',
+          border: '1px solid #fed7aa',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+        }}>
+          <div style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '10px',
+            backgroundColor: '#fff7ed',
+            color: '#ea580c',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '22px',
+          }}>
+            <MdHourglassTop />
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', color: '#9a3412', fontWeight: '600', textTransform: 'uppercase' }}>Draft / Pending Review</div>
+            <div style={{ fontSize: '20px', fontWeight: '800', color: '#ea580c', marginTop: '2px' }}>{pendingRefunds.length} Pending</div>
+            <div style={{ fontSize: '12px', color: '#9a3412', fontWeight: '600' }}>UGX {pendingAmount.toLocaleString()}</div>
+          </div>
+        </div>
+
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '10px',
+          padding: '16px 20px',
+          border: '1px solid #bbf7d0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+        }}>
+          <div style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '10px',
+            backgroundColor: '#f0fdf4',
+            color: '#16a34a',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '22px',
+          }}>
+            <MdCheckCircle />
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', color: '#166534', fontWeight: '600', textTransform: 'uppercase' }}>Approved for Payout</div>
+            <div style={{ fontSize: '20px', fontWeight: '800', color: '#16a34a', marginTop: '2px' }}>{approvedRefunds.length} Approved</div>
+            <div style={{ fontSize: '12px', color: '#166534', fontWeight: '600' }}>UGX {approvedNetDisbursement.toLocaleString()} Net</div>
+          </div>
+        </div>
+
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '10px',
+          padding: '16px 20px',
+          border: '1px solid #e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+        }}>
+          <div style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '10px',
+            backgroundColor: '#f8fafc',
+            color: '#475569',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '22px',
+          }}>
+            <MdAttachMoney />
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Completed Payouts</div>
+            <div style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{completedRefunds.length} Completed</div>
+            <div style={{ fontSize: '12px', color: '#64748b' }}>Settled via CashBook</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Draft Section & Status Navigation Filter Chips */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('')}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === '' ? '#0d9488' : '#cbd5e1'}`,
+            background: statusFilter === '' ? '#0d9488' : '#ffffff',
+            color: statusFilter === '' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          All Requests ({refunds.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('requested')}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === 'requested' ? '#ea580c' : '#cbd5e1'}`,
+            background: statusFilter === 'requested' ? '#ea580c' : '#ffffff',
+            color: statusFilter === 'requested' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Draft / Pending Review ({pendingRefunds.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('approved')}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === 'approved' ? '#16a34a' : '#cbd5e1'}`,
+            background: statusFilter === 'approved' ? '#16a34a' : '#ffffff',
+            color: statusFilter === 'approved' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Approved for Payout ({approvedRefunds.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('completed')}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === 'completed' ? '#0f766e' : '#cbd5e1'}`,
+            background: statusFilter === 'completed' ? '#0f766e' : '#ffffff',
+            color: statusFilter === 'completed' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Completed ({completedRefunds.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('rejected')}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${statusFilter === 'rejected' ? '#dc2626' : '#cbd5e1'}`,
+            background: statusFilter === 'rejected' ? '#dc2626' : '#ffffff',
+            color: statusFilter === 'rejected' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Rejected ({rejectedRefunds.length})
+        </button>
+      </div>
 
       {/* Main Two-Column Panel (Page 10 Reference Layout) */}
       <div style={{
@@ -916,6 +1167,428 @@ export const ClientRefundsPage: React.FC = () => {
               >
                 {approving ? 'Rejecting...' : 'Reject Request'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Official Printable Refund Disbursement Voucher Modal */}
+      {showVoucherModal && selectedRefund && (
+        <div
+          className="modal-overlay no-print-backdrop"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1050,
+            padding: '1.5rem',
+            overflowY: 'auto',
+          }}
+        >
+          <div
+            className="voucher-modal-card"
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              maxWidth: '850px',
+              width: '100%',
+              maxHeight: '92vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              border: '1px solid #cbd5e1',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Modal Control Header */}
+            <div
+              className="modal-header no-print"
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1rem 1.5rem',
+                borderBottom: '1px solid #e2e8f0',
+                backgroundColor: '#f8fafc',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: '#0f172a' }}>
+                <MdReceiptLong size={22} color="#0d9488" />
+                <span>Official Refund Voucher Preview</span>
+              </div>
+              <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={handleWhatsAppShare}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    padding: '0.45rem 0.85rem',
+                    backgroundColor: '#16a34a',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                  title="Share breakdown on WhatsApp"
+                >
+                  <MdShare /> Share WhatsApp
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    padding: '0.45rem 0.85rem',
+                    backgroundColor: '#0d9488',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <MdPrint /> Print Voucher
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowVoucherModal(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.25rem',
+                    cursor: 'pointer',
+                    color: '#64748b',
+                    padding: '0.25rem',
+                    display: 'flex',
+                  }}
+                >
+                  <MdClose />
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Voucher Body */}
+            <div
+              className="voucher-printable-body"
+              style={{
+                padding: '2.5rem',
+                overflowY: 'auto',
+                backgroundColor: '#ffffff',
+                color: '#0f172a',
+                fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+              }}
+            >
+              {/* Corporate Letterhead Header */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  borderBottom: '3px solid #0d9488',
+                  paddingBottom: '1.25rem',
+                  marginBottom: '1.5rem',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.25rem' }}>
+                    <div
+                      style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '8px',
+                        backgroundColor: '#0d9488',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 900,
+                        fontSize: '1.25rem',
+                        letterSpacing: '-1px',
+                      }}
+                    >
+                      FH
+                    </div>
+                    <div>
+                      <h1 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
+                        FAB HOMES UGANDA LIMITED
+                      </h1>
+                      <div style={{ fontSize: '0.78rem', color: '#0d9488', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                        Land Development • Housing Schemes • Tuzimbe Collective
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: 1.4, marginTop: '0.5rem' }}>
+                    Plot 48 Kampala Road • P.O. Box 7123 Kampala, Uganda<br />
+                    Tel: +256 700 000 000 / +256 770 000 000 • Email: finance@fabhomes.ug
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <div
+                    style={{
+                      display: 'inline-block',
+                      backgroundColor: '#f0fdfa',
+                      color: '#0f766e',
+                      border: '1px solid #99f6e4',
+                      padding: '0.35rem 0.75rem',
+                      borderRadius: '6px',
+                      fontWeight: 800,
+                      fontSize: '0.85rem',
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase',
+                      marginBottom: '0.4rem',
+                    }}
+                  >
+                    Disbursement Voucher
+                  </div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
+                    {selectedRefund.refund_number}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                    Date: {selectedRefund.notice_date || new Date().toISOString().split('T')[0]}
+                  </div>
+                  <div style={{ marginTop: '0.35rem' }}>
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        backgroundColor:
+                          selectedRefund.status === 'approved' || selectedRefund.status === 'completed'
+                            ? '#dcfce7'
+                            : selectedRefund.status === 'rejected'
+                            ? '#fee2e2'
+                            : '#fef9c3',
+                        color:
+                          selectedRefund.status === 'approved' || selectedRefund.status === 'completed'
+                            ? '#15803d'
+                            : selectedRefund.status === 'rejected'
+                            ? '#b91c1c'
+                            : '#a16207',
+                      }}
+                    >
+                      Status: {selectedRefund.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Client KYC & Scheme Identity Grid */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '1rem',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  padding: '1rem',
+                  marginBottom: '1.5rem',
+                  fontSize: '0.85rem',
+                }}
+              >
+                <div>
+                  <span style={{ color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Client Name</span>
+                  <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem' }}>
+                    {(selectedRefund.client as any)?.name || (selectedRefund.client as any)?.full_name || selectedClient?.full_name || 'Client'}
+                  </div>
+                </div>
+                <div>
+                  <span style={{ color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Client Number</span>
+                  <div style={{ fontWeight: 600, color: '#0f172a' }}>
+                    {selectedRefund.client?.client_number || selectedClient?.client_number || 'N/A'}
+                  </div>
+                </div>
+                <div>
+                  <span style={{ color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Scheme & Phase</span>
+                  <div style={{ fontWeight: 600, color: '#0f172a' }}>
+                    {selectedRefund.scheme_name || 'Mukono Greenfield'} ({selectedRefund.phase_name || 'Phase 1'})
+                  </div>
+                </div>
+                <div>
+                  <span style={{ color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Contact Phone</span>
+                  <div style={{ fontWeight: 600, color: '#0f172a' }}>
+                    {selectedRefund.client?.phone || selectedClient?.phone_primary || (selectedClient as any)?.phone || '-'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Itemized Financial Computation Ledger */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Audited Financial Breakdown
+                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid #cbd5e1', textAlign: 'left' }}>
+                      <th style={{ padding: '8px 12px', color: '#475569', fontWeight: 700 }}>Description</th>
+                      <th style={{ padding: '8px 12px', color: '#475569', fontWeight: 700, textAlign: 'right' }}>Percentage / Basis</th>
+                      <th style={{ padding: '8px 12px', color: '#475569', fontWeight: 700, textAlign: 'right' }}>Amount (UGX)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '10px 12px', fontWeight: 600 }}>Gross Accumulated Savings / Deposit</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>Account Ledger</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600 }}>
+                        {formatUGX(amountPaid)}
+                      </td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '10px 12px', fontWeight: 600 }}>Gross Refund Amount Requested</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>Claimed Principle</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600 }}>
+                        {formatUGX(Number(selectedRefund.amount))}
+                      </td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#dc2626' }}>
+                      <td style={{ padding: '10px 12px' }}>
+                        Less: Administrative Processing & Termination Penalty
+                        <div style={{ fontSize: '0.75rem', color: '#991b1b' }}>Deducted in accordance with Fab Homes Uganda Land Regulations</div>
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                        {selectedRefund.deduction_percentage || 10}%
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600 }}>
+                        ({formatUGX(Number(selectedRefund.deduction_amount))})
+                      </td>
+                    </tr>
+                    <tr style={{ backgroundColor: '#f0fdf4', borderTop: '2px solid #86efac', borderBottom: '2px solid #86efac' }}>
+                      <td style={{ padding: '12px 12px', fontWeight: 800, color: '#14532d', fontSize: '1rem' }}>
+                        NET PAYABLE DISBURSEMENT
+                      </td>
+                      <td style={{ padding: '12px 12px', textAlign: 'right', color: '#166534', fontWeight: 600 }}>
+                        Payable to Client
+                      </td>
+                      <td style={{ padding: '12px 12px', textAlign: 'right', fontWeight: 800, color: '#15803d', fontSize: '1.15rem' }}>
+                        {formatUGX(Number(selectedRefund.amount) - Number(selectedRefund.deduction_amount))}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '10px 12px', color: '#64748b', fontStyle: 'italic' }}>
+                        Residual Balance Retained in Account
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>Post-Disbursement</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b', fontWeight: 600 }}>
+                        {formatUGX(Number(selectedRefund.balance_after_refund || 0))}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Amount In Words Strip */}
+              <div
+                style={{
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                  padding: '0.75rem 1rem',
+                  marginBottom: '1.5rem',
+                  fontSize: '0.85rem',
+                }}
+              >
+                <span style={{ fontWeight: 700, color: '#0f172a', marginRight: '0.5rem' }}>Amount in Words:</span>
+                <span style={{ fontWeight: 600, color: '#0d9488', fontStyle: 'italic' }}>
+                  {formatAmountInWords(Number(selectedRefund.amount) - Number(selectedRefund.deduction_amount), 'UGX')}
+                </span>
+              </div>
+
+              {/* Disbursement Particulars */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '1rem',
+                  marginBottom: '1.75rem',
+                  fontSize: '0.85rem',
+                }}
+              >
+                <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.75rem 1rem' }}>
+                  <span style={{ color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Disbursement Method</span>
+                  <div style={{ fontWeight: 700, color: '#0f172a', marginTop: '0.2rem', textTransform: 'capitalize' }}>
+                    {selectedRefund.payment_method?.replace('_', ' ') || 'Bank Transfer'}
+                  </div>
+                </div>
+                <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.75rem 1rem' }}>
+                  <span style={{ color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Reason / Purpose of Refund</span>
+                  <div style={{ fontWeight: 600, color: '#334155', marginTop: '0.2rem' }}>
+                    {selectedRefund.withdrawal_reason || selectedRefund.reason_description || 'Voluntary client withdrawal from savings scheme'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Triple Certification & Sign-off Signatures Strip */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '1.25rem',
+                  borderTop: '1px dashed #cbd5e1',
+                  paddingTop: '1.5rem',
+                  marginBottom: '1.5rem',
+                  fontSize: '0.8rem',
+                }}
+              >
+                <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.75rem', backgroundColor: '#fcfcfc' }}>
+                  <div style={{ color: '#64748b', fontWeight: 600, marginBottom: '2.5rem' }}>Prepared By (Accounts Officer):</div>
+                  <div style={{ borderTop: '1px solid #94a3b8', paddingTop: '0.25rem', fontWeight: 700, color: '#0f172a' }}>
+                    {user?.name || 'Treasury Staff'}
+                  </div>
+                  <div style={{ color: '#64748b', fontSize: '0.72rem' }}>Date: {new Date().toLocaleDateString()}</div>
+                </div>
+
+                <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.75rem', backgroundColor: '#fcfcfc' }}>
+                  <div style={{ color: '#64748b', fontWeight: 600, marginBottom: '2.5rem' }}>Authorized By (CFO / Audit):</div>
+                  <div style={{ borderTop: '1px solid #94a3b8', paddingTop: '0.25rem', fontWeight: 700, color: '#0f172a' }}>
+                    {selectedRefund.approved_by_user?.name || 'Chief Financial Officer'}
+                  </div>
+                  <div style={{ color: '#64748b', fontSize: '0.72rem' }}>
+                    Signed: {selectedRefund.approved_at ? new Date(selectedRefund.approved_at).toLocaleDateString() : 'Digitally Certified'}
+                  </div>
+                </div>
+
+                <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.75rem', backgroundColor: '#fcfcfc' }}>
+                  <div style={{ color: '#64748b', fontWeight: 600, marginBottom: '2.5rem' }}>Client Recipient Acknowledgment:</div>
+                  <div style={{ borderTop: '1px solid #94a3b8', paddingTop: '0.25rem', fontWeight: 700, color: '#0f172a' }}>
+                    {(selectedRefund.client as any)?.name || selectedClient?.full_name || 'Client'}
+                  </div>
+                  <div style={{ color: '#64748b', fontSize: '0.72rem' }}>NIN / Identification Verified</div>
+                </div>
+              </div>
+
+              {/* Digital Footer Security Strip */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  borderTop: '2px solid #0d9488',
+                  paddingTop: '0.75rem',
+                  fontSize: '0.75rem',
+                  color: '#64748b',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#0d9488', fontWeight: 600 }}>
+                  <MdVerified size={16} />
+                  <span>Officially Verified & Recorded in Fab Homes General CashBook</span>
+                </div>
+                <div>
+                  Security Audit Stamp: REF-{selectedRefund.id}-{Math.abs(Number(selectedRefund.amount)).toString().slice(0, 4)}
+                </div>
+              </div>
             </div>
           </div>
         </div>

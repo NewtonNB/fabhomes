@@ -1,0 +1,39 @@
+/* Client Refunds & Disbursement Voucher Styles */
+
+@media print {
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .no-print,
+  .no-print-backdrop,
+  .sidebar,
+  .main-header,
+  .header,
+  button {
+    display: none !important;
+  }
+
+  .modal-overlay {
+    position: static !important;
+    background: none !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  .voucher-modal-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .voucher-printable-body {
+    padding: 0 !important;
+    font-size: 11pt !important;
+  }
+}
