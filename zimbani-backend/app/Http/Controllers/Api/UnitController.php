@@ -368,21 +368,44 @@ class UnitController extends Controller
         }
 
         $validated = $request->validate([
-            'client_id' => 'required|exists:users,id',
+            'client_id' => 'required',
             'reservation_notes' => 'nullable|string|max:1000',
         ]);
 
-        // Convert client_id UUID to integer if needed
-        if (!is_numeric($validated['client_id'])) {
-            $client = \App\Models\User::where('uuid', $validated['client_id'])->first();
-            if ($client) {
-                $validated['client_id'] = $client->id;
+        $clientIdInput = $validated['client_id'];
+        $resolvedUserId = null;
+
+        if (is_numeric($clientIdInput)) {
+            if (\App\Models\User::where('id', $clientIdInput)->exists()) {
+                $resolvedUserId = (int) $clientIdInput;
+            } else {
+                $clientRecord = \App\Models\Client::find($clientIdInput);
+                if ($clientRecord) {
+                    $resolvedUserId = $clientRecord->user_id ?? $clientRecord->id;
+                }
             }
+        } else {
+            $userRecord = \App\Models\User::where('uuid', $clientIdInput)->first();
+            if ($userRecord) {
+                $resolvedUserId = $userRecord->id;
+            } else {
+                $clientRecord = \App\Models\Client::where('uuid', $clientIdInput)->first();
+                if ($clientRecord) {
+                    $resolvedUserId = $clientRecord->user_id ?? $clientRecord->id;
+                }
+            }
+        }
+
+        if (!$resolvedUserId) {
+            return response()->json([
+                'message' => 'The selected client could not be found.',
+                'errors' => ['client_id' => ['The selected client does not exist.']],
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $unit->update([
             'status' => 'reserved',
-            'client_id' => $validated['client_id'],
+            'client_id' => $resolvedUserId,
             'reserved_date' => now(),
         ]);
 
@@ -390,7 +413,7 @@ class UnitController extends Controller
             'reserved',
             "Reserved Unit: {$unit->unit_number} for client",
             $unit,
-            ['client_id' => $validated['client_id'], 'notes' => $validated['reservation_notes'] ?? null]
+            ['client_id' => $resolvedUserId, 'notes' => $validated['reservation_notes'] ?? null]
         );
 
         return new UnitResource($unit->load('site', 'project', 'client'));
@@ -408,25 +431,48 @@ class UnitController extends Controller
         $this->authorize('sell', $unit);
 
         $validated = $request->validate([
-            'client_id' => 'required|exists:users,id',
+            'client_id' => 'required',
             'sale_price' => 'required|numeric|min:0',
             'amount_paid' => 'nullable|numeric|min:0',
             'sale_notes' => 'nullable|string|max:1000',
         ]);
 
-        // Convert client_id UUID to integer if needed
-        if (!is_numeric($validated['client_id'])) {
-            $client = \App\Models\User::where('uuid', $validated['client_id'])->first();
-            if ($client) {
-                $validated['client_id'] = $client->id;
+        $clientIdInput = $validated['client_id'];
+        $resolvedUserId = null;
+
+        if (is_numeric($clientIdInput)) {
+            if (\App\Models\User::where('id', $clientIdInput)->exists()) {
+                $resolvedUserId = (int) $clientIdInput;
+            } else {
+                $clientRecord = \App\Models\Client::find($clientIdInput);
+                if ($clientRecord) {
+                    $resolvedUserId = $clientRecord->user_id ?? $clientRecord->id;
+                }
             }
+        } else {
+            $userRecord = \App\Models\User::where('uuid', $clientIdInput)->first();
+            if ($userRecord) {
+                $resolvedUserId = $userRecord->id;
+            } else {
+                $clientRecord = \App\Models\Client::where('uuid', $clientIdInput)->first();
+                if ($clientRecord) {
+                    $resolvedUserId = $clientRecord->user_id ?? $clientRecord->id;
+                }
+            }
+        }
+
+        if (!$resolvedUserId) {
+            return response()->json([
+                'message' => 'The selected client could not be found.',
+                'errors' => ['client_id' => ['The selected client does not exist.']],
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $amountPaid = $validated['amount_paid'] ?? 0;
 
         $unit->update([
             'status' => 'sold',
-            'client_id' => $validated['client_id'],
+            'client_id' => $resolvedUserId,
             'current_price' => $validated['sale_price'],
             'amount_paid' => $amountPaid,
             'balance' => $validated['sale_price'] - $amountPaid,
@@ -438,7 +484,7 @@ class UnitController extends Controller
             "Sold Unit: {$unit->unit_number}",
             $unit,
             [
-                'client_id' => $validated['client_id'],
+                'client_id' => $resolvedUserId,
                 'sale_price' => $validated['sale_price'],
                 'amount_paid' => $amountPaid,
                 'notes' => $validated['sale_notes'] ?? null

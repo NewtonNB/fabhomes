@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from '../../../components/common/Modal';
 import { unitService } from '../../../services/unit.service';
+import clientService from '../../../services/client.service';
+import { Client } from '../../../types/client.types';
 import './UnitModals.css';
 
 interface SellUnitModalProps {
@@ -20,6 +22,8 @@ const SellUnitModal: React.FC<SellUnitModalProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loadingClients, setLoadingClients] = useState(false);
   
   const [formData, setFormData] = useState({
     client_id: '',
@@ -31,6 +35,19 @@ const SellUnitModal: React.FC<SellUnitModalProps> = ({
     agreement_number: '',
     notes: ''
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      setLoadingClients(true);
+      clientService.getClients({ per_page: 100 } as any)
+        .then((res: any) => {
+          const raw = res?.data || [];
+          setClients(Array.isArray(raw) ? raw : []);
+        })
+        .catch(err => console.warn('Failed to load clients in SellUnitModal', err))
+        .finally(() => setLoadingClients(false));
+    }
+  }, [isOpen]);
 
   const [validationErrors, setValidationErrors] = useState<{ [key: string]: string[] }>({});
 
@@ -97,22 +114,27 @@ const SellUnitModal: React.FC<SellUnitModalProps> = ({
       <form onSubmit={handleSubmit} className="modal-form">
         <div className="form-group">
           <label htmlFor="client_id">
-            Client ID <span className="required">*</span>
+            Client Name & Account <span className="required">*</span>
           </label>
-          <input
-            type="number"
+          <select
             id="client_id"
             name="client_id"
             value={formData.client_id}
             onChange={handleChange}
             className={validationErrors.client_id ? 'error' : ''}
-            placeholder="Enter client ID"
             required
-          />
+            disabled={loadingClients}
+          >
+            <option value="">{loadingClients ? 'Loading registered clients...' : '-- Select Registered Client --'}</option>
+            {clients.map(c => (
+              <option key={c.id} value={c.uuid || c.id}>
+                {c.first_name} {c.last_name} ({c.client_number || c.phone_primary || 'Client'})
+              </option>
+            ))}
+          </select>
           {validationErrors.client_id && (
             <span className="error-message">{validationErrors.client_id[0]}</span>
           )}
-          <small className="field-hint">Temporary: Enter client ID. Client lookup to be added later.</small>
         </div>
 
         <div className="form-row">
