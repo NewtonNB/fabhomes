@@ -16,7 +16,9 @@ MdPersonAdd,
   MdEmail,
   MdBorderColor,
   MdVerified,
-  MdLandscape
+  MdLandscape,
+  MdCalculate,
+  MdCompareArrows
 } from 'react-icons/md'
 import { useAuth } from '../contexts/AuthContext'
 import projectService from '../services/project.service'
@@ -30,6 +32,7 @@ import { Unit } from '../types/unit.types'
 import { Activity } from '../types/admin.types'
 import { BulkEmailModal } from '../components/common/BulkEmailModal'
 import { DigitalSignatureModal } from '../components/common/DigitalSignatureModal'
+import { CalculatorModal } from '../components/common/CalculatorModal'
 import './Dashboard.css'
 
 const Dashboard: React.FC = () => {
@@ -65,6 +68,7 @@ const Dashboard: React.FC = () => {
   // Modals
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false)
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   const pollingRef = useRef<any>(null)
@@ -357,6 +361,17 @@ const Dashboard: React.FC = () => {
           >
             <MdBorderColor className="btn-icon" /> Digital Signatures
           </button>
+          <button 
+            type="button" 
+            onClick={() => setIsCalculatorOpen(true)}
+            className="launchpad-btn"
+            style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <MdCalculate className="btn-icon" /> Financial & Land Calculator
+          </button>
+          <Link to="/scheme-transfers" className="launchpad-btn">
+            <MdCompareArrows className="btn-icon" /> Scheme Transfers
+          </Link>
           <Link to="/savings-accounts" className="launchpad-btn">
             <MdReceipt className="btn-icon" /> Savings Management
           </Link>
@@ -557,6 +572,12 @@ const Dashboard: React.FC = () => {
         isOpen={isSignatureModalOpen}
         onClose={() => setIsSignatureModalOpen(false)}
         onSuccess={() => showToast('Digital signature updated and stored in user profile.')}
+      />
+
+      {/* Financial & Land Calculator Modal */}
+      <CalculatorModal
+        isOpen={isCalculatorOpen}
+        onClose={() => setIsCalculatorOpen(false)}
       />
     </div>
   )

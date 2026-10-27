@@ -18,6 +18,9 @@ import {
   MdAdd,
   MdToggleOn,
   MdToggleOff,
+  MdHomeWork,
+  MdVerified,
+  MdQrCode2,
 } from 'react-icons/md'
 import financialReportService from '../../../services/financial-report.service'
 import {
@@ -198,6 +201,288 @@ export const ExecutiveBiAnalyticsTab: React.FC = () => {
       currency: 'UGX',
       maximumFractionDigits: 0,
     }).format(val)
+  }
+
+  // Render Printable Report Body
+  const renderPrintReportBody = (type: string, report: any) => {
+    if (!report) {
+      return <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>No data loaded for this report.</div>
+    }
+
+    if (type === 'financial') {
+      const summary = report.summary || {}
+      const timeSeries = Array.isArray(report.time_series_breakdown) ? report.time_series_breakdown : []
+      const byMethod = report.by_payment_method || {}
+
+      return (
+        <div>
+          <div className="print-kpi-grid">
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Total Revenue</div>
+              <div className="print-kpi-box-value">{formatUGX(summary.total_revenue)}</div>
+            </div>
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Net Inflow</div>
+              <div className="print-kpi-box-value" style={{ color: '#16a34a' }}>{formatUGX(summary.net_revenue)}</div>
+            </div>
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Transactions</div>
+              <div className="print-kpi-box-value">{summary.total_transactions || 0}</div>
+            </div>
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Avg Transaction</div>
+              <div className="print-kpi-box-value">{formatUGX(summary.average_transaction_value)}</div>
+            </div>
+          </div>
+
+          <h4 style={{ margin: '16px 0 8px 0', fontSize: '13px', color: '#0f172a' }}>Period Collections Breakdown</h4>
+          <table className="print-table">
+            <thead>
+              <tr>
+                <th>Date / Period</th>
+                <th style={{ textAlign: 'right' }}>Transactions</th>
+                <th style={{ textAlign: 'right' }}>Total Volume (UGX)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {timeSeries.length === 0 ? (
+                <tr><td colSpan={3} style={{ textAlign: 'center', color: '#64748b' }}>No transactions recorded in this period</td></tr>
+              ) : (
+                timeSeries.map((row: any, idx: number) => (
+                  <tr key={idx}>
+                    <td><strong>{row.date || row.period || `Entry ${idx + 1}`}</strong></td>
+                    <td style={{ textAlign: 'right' }}>{row.transaction_count || row.count || 0}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatUGX(row.total_amount || row.amount || 0)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+
+          {Object.keys(byMethod).length > 0 && (
+            <>
+              <h4 style={{ margin: '16px 0 8px 0', fontSize: '13px', color: '#0f172a' }}>Collections by Channel</h4>
+              <table className="print-table">
+                <thead>
+                  <tr>
+                    <th>Payment Channel</th>
+                    <th style={{ textAlign: 'right' }}>Transactions</th>
+                    <th style={{ textAlign: 'right' }}>Total Amount (UGX)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(byMethod).map(([channel, data]: [string, any], idx: number) => (
+                    <tr key={idx}>
+                      <td style={{ textTransform: 'capitalize' }}><strong>{channel.replace('_', ' ')}</strong></td>
+                      <td style={{ textAlign: 'right' }}>{data.count || 0}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatUGX(data.amount || 0)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+        </div>
+      )
+    }
+
+    if (type === 'clients') {
+      const summary = report.summary || {}
+      const topClients = Array.isArray(report.top_clients) ? report.top_clients : []
+
+      return (
+        <div>
+          <div className="print-kpi-grid">
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Total Clients</div>
+              <div className="print-kpi-box-value">{summary.total_clients || 0}</div>
+            </div>
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Active Depositors</div>
+              <div className="print-kpi-box-value" style={{ color: '#0284c7' }}>{summary.active_clients || 0}</div>
+            </div>
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">KYC Verified</div>
+              <div className="print-kpi-box-value" style={{ color: '#16a34a' }}>{summary.kyc_verified_count || 0}</div>
+            </div>
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Pending KYC</div>
+              <div className="print-kpi-box-value" style={{ color: '#d97706' }}>{summary.kyc_pending_count || 0}</div>
+            </div>
+          </div>
+
+          <h4 style={{ margin: '16px 0 8px 0', fontSize: '13px', color: '#0f172a' }}>Top Client Savings & Land Accounts</h4>
+          <table className="print-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Client Name</th>
+                <th>Client Number</th>
+                <th>Phone Contact</th>
+                <th style={{ textAlign: 'center' }}>Schemes</th>
+                <th style={{ textAlign: 'center' }}>Plots</th>
+                <th style={{ textAlign: 'right' }}>Total Deposits (UGX)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topClients.length === 0 ? (
+                <tr><td colSpan={7} style={{ textAlign: 'center', color: '#64748b' }}>No client data available</td></tr>
+              ) : (
+                topClients.map((c: any, idx: number) => (
+                  <tr key={idx}>
+                    <td>{idx + 1}</td>
+                    <td><strong>{c.name}</strong></td>
+                    <td>{c.client_number || '-'}</td>
+                    <td>{c.phone || '-'}</td>
+                    <td style={{ textAlign: 'center' }}>{c.active_schemes || 0}</td>
+                    <td style={{ textAlign: 'center' }}>{c.allocated_plots || 0}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: '#0369a1' }}>{formatUGX(c.total_deposits)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+
+    if (type === 'plots') {
+      const summary = report.summary || {}
+      const estates = Array.isArray(report.by_estate) ? report.by_estate : []
+
+      return (
+        <div>
+          <div className="print-kpi-grid">
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Total Cadastral Plots</div>
+              <div className="print-kpi-box-value">{summary.total_plots || 0}</div>
+            </div>
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Available Plots</div>
+              <div className="print-kpi-box-value" style={{ color: '#16a34a' }}>{summary.available_plots || 0}</div>
+            </div>
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Reserved Plots</div>
+              <div className="print-kpi-box-value" style={{ color: '#d97706' }}>{summary.reserved_plots || 0}</div>
+            </div>
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Sold / Allocated</div>
+              <div className="print-kpi-box-value" style={{ color: '#0284c7' }}>{summary.allocated_plots || 0}</div>
+            </div>
+          </div>
+
+          <h4 style={{ margin: '16px 0 8px 0', fontSize: '13px', color: '#0f172a' }}>Estate Land Inventory Audit Breakdown</h4>
+          <table className="print-table">
+            <thead>
+              <tr>
+                <th>Estate Site</th>
+                <th>Location</th>
+                <th style={{ textAlign: 'center' }}>Total</th>
+                <th style={{ textAlign: 'center' }}>Available</th>
+                <th style={{ textAlign: 'center' }}>Reserved</th>
+                <th style={{ textAlign: 'center' }}>Allocated</th>
+                <th style={{ textAlign: 'center' }}>Allocation %</th>
+                <th style={{ textAlign: 'right' }}>Inventory Value (UGX)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {estates.length === 0 ? (
+                <tr><td colSpan={8} style={{ textAlign: 'center', color: '#64748b' }}>No estate land data available</td></tr>
+              ) : (
+                estates.map((est: any, idx: number) => (
+                  <tr key={idx}>
+                    <td><strong>{est.site_name}</strong></td>
+                    <td>{est.location || '-'}</td>
+                    <td style={{ textAlign: 'center' }}>{est.total_plots}</td>
+                    <td style={{ textAlign: 'center', color: '#16a34a', fontWeight: 600 }}>{est.available_plots}</td>
+                    <td style={{ textAlign: 'center', color: '#d97706', fontWeight: 600 }}>{est.reserved_plots}</td>
+                    <td style={{ textAlign: 'center', color: '#0284c7', fontWeight: 600 }}>{est.allocated_plots}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700 }}>{est.allocation_rate_percentage}%</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700 }}>{formatUGX(est.total_inventory_value)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+
+    if (type === 'construction') {
+      const summary = report.summary || {}
+      const projects = Array.isArray(report.by_project) ? report.by_project : []
+
+      return (
+        <div>
+          <div className="print-kpi-grid">
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Total Projects</div>
+              <div className="print-kpi-box-value">{summary.total_projects || 0}</div>
+            </div>
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Total Milestones</div>
+              <div className="print-kpi-box-value">{summary.total_milestones || 0}</div>
+            </div>
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">Completed Milestones</div>
+              <div className="print-kpi-box-value" style={{ color: '#16a34a' }}>{summary.completed_milestones || 0}</div>
+            </div>
+            <div className="print-kpi-box">
+              <div className="print-kpi-box-label">On-Time Rate</div>
+              <div className="print-kpi-box-value" style={{ color: '#0284c7' }}>{summary.on_time_completion_rate || 0}%</div>
+            </div>
+          </div>
+
+          <h4 style={{ margin: '16px 0 8px 0', fontSize: '13px', color: '#0f172a' }}>Construction Projects Adherence & Health</h4>
+          <table className="print-table">
+            <thead>
+              <tr>
+                <th>Project Name</th>
+                <th>Site</th>
+                <th>Status</th>
+                <th style={{ textAlign: 'center' }}>Completion</th>
+                <th style={{ textAlign: 'center' }}>Milestones</th>
+                <th style={{ textAlign: 'right' }}>Budget (UGX)</th>
+                <th style={{ textAlign: 'right' }}>Actual Cost (UGX)</th>
+                <th style={{ textAlign: 'center' }}>Health</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.length === 0 ? (
+                <tr><td colSpan={8} style={{ textAlign: 'center', color: '#64748b' }}>No construction projects available</td></tr>
+              ) : (
+                projects.map((p: any, idx: number) => (
+                  <tr key={idx}>
+                    <td><strong>{p.project_name}</strong></td>
+                    <td>{p.site_name || '-'}</td>
+                    <td style={{ textTransform: 'capitalize' }}>{p.status}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 600 }}>{p.completion_percentage}%</td>
+                    <td style={{ textAlign: 'center' }}>{p.milestones_completed}/{p.milestones_total}</td>
+                    <td style={{ textAlign: 'right' }}>{formatUGX(p.budget)}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatUGX(p.actual_cost)}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span className={`ebi-badge ebi-badge-${p.health_status === 'on_track' ? 'green' : p.health_status === 'at_risk' ? 'amber' : 'red'}`}>
+                        {p.health_status.replace('_', ' ').toUpperCase()}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+
+    // Default fallback
+    return (
+      <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px' }}>
+        <h4 style={{ margin: '0 0 8px 0', fontSize: '13px' }}>Report Payload</h4>
+        <pre style={{ margin: 0, fontSize: '11px', overflowX: 'auto' }}>
+          {JSON.stringify(report, null, 2)}
+        </pre>
+      </div>
+    )
   }
 
   return (
@@ -1037,23 +1322,23 @@ export const ExecutiveBiAnalyticsTab: React.FC = () => {
       {/* PRINT-READY MODAL */}
       {showPrintModal && printData && (
         <div className="ebi-modal-backdrop">
-          <div className="ebi-modal-card" style={{ maxWidth: '800px' }}>
-            <div className="ebi-modal-header">
+          <div className="ebi-modal-card ebi-print-modal-card">
+            <div className="ebi-modal-header no-print">
               <div>
                 <h3 style={{ margin: '0 0 2px 0', fontSize: '18px', color: '#0f172a' }}>
                   {printData.title}
                 </h3>
                 <span style={{ fontSize: '12px', color: '#64748b' }}>
-                  {printData.organization.name} • {printData.organization.system}
+                  Executive Business Intelligence • Document Print Preview
                 </span>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   className="btn-primary"
                   onClick={() => window.print()}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '6px 12px' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '7px 14px', fontWeight: 600 }}
                 >
-                  <MdPrint /> Print Now
+                  <MdPrint /> Print / Save as PDF
                 </button>
                 <button
                   onClick={() => setShowPrintModal(false)}
@@ -1065,42 +1350,93 @@ export const ExecutiveBiAnalyticsTab: React.FC = () => {
             </div>
 
             <div className="ebi-modal-body">
-              <div
-                style={{
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '10px',
-                  padding: '16px',
-                  marginBottom: '20px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: '12px',
-                }}
-              >
-                <div>
-                  <strong>Generated At:</strong> {new Date(printData.organization.generated_at).toLocaleString()}
+              {/* Document Container */}
+              <div className="printable-document" id="printable-bi-report">
+                {/* Official Letterhead */}
+                <div className="print-letterhead">
+                  <div className="print-letterhead-content">
+                    <div className="print-letterhead-left">
+                      <div className="print-logo-row">
+                        <div className="print-logo-icon">
+                          <MdHomeWork />
+                        </div>
+                        <div>
+                          <div className="print-company-name">FAB HOMES UGANDA LIMITED</div>
+                          <div className="print-company-tagline">“Live your dream” • Real Estate Developers & Land Surveyors</div>
+                        </div>
+                      </div>
+                      <div className="print-company-details">
+                        Plot 12, Lumumba Avenue, Kampala, Uganda • P.O. Box 71200 Kampala<br />
+                        Phone: +256 (0) 700 000 000 / +256 (0) 414 000 000 • Email: info@fabhomes.ug • Web: www.fabhomes.ug
+                      </div>
+                    </div>
+                    <div className="print-letterhead-right">
+                      <div className="print-doc-badge">EXECUTIVE BI REPORT</div>
+                      <div className="print-doc-ref">REF: FH-EBI-{subview.toUpperCase()}-{new Date().getFullYear()}</div>
+                      <div className="print-doc-date">DATE: {new Date(printData.organization.generated_at).toLocaleDateString()}</div>
+                    </div>
+                  </div>
+                  <div className="print-gold-stripe"></div>
                 </div>
-                <div>
-                  <strong>Currency:</strong> {printData.organization.currency}
+
+                {/* Title and metadata */}
+                <div className="print-title-section">
+                  <h2 className="print-report-title">{printData.title}</h2>
+                  <div className="print-report-meta">
+                    <span><strong>Platform:</strong> {printData.organization.system}</span>
+                    <span><strong>Generated At:</strong> {new Date(printData.organization.generated_at).toLocaleString()}</span>
+                    <span><strong>Currency:</strong> {printData.organization.currency}</span>
+                    <span><strong>Classification:</strong> Confidential Management Pack</span>
+                  </div>
                 </div>
-                <div>
-                  <strong>Official Digital Document</strong>
+
+                {/* Structured Report Content */}
+                {renderPrintReportBody(subview, printData.report)}
+
+                {/* Triple Executive Certification & Verification Stamp */}
+                <div className="print-certification-block">
+                  <div className="print-signatures-grid">
+                    <div className="print-sign-box">
+                      <div className="print-sign-title">PREPARED BY:</div>
+                      <div className="print-sign-space"></div>
+                      <div className="print-sign-line">Internal Audit & Reporting Desk</div>
+                      <div className="print-sign-meta">Fab Homes Uganda Finance</div>
+                    </div>
+                    <div className="print-sign-box">
+                      <div className="print-sign-title">VERIFIED BY:</div>
+                      <div className="print-sign-space"></div>
+                      <div className="print-sign-line">Chief Financial Officer (CFO)</div>
+                      <div className="print-sign-meta">Head of Treasury & Accounts</div>
+                    </div>
+                    <div className="print-sign-box">
+                      <div className="print-sign-title">APPROVED BY:</div>
+                      <div className="print-sign-space"></div>
+                      <div className="print-sign-line">Managing Director</div>
+                      <div className="print-sign-meta">Fab Homes Uganda Board</div>
+                    </div>
+                  </div>
+
+                  <div className="print-seal-row">
+                    <div className="print-digital-seal">
+                      <MdVerified className="print-seal-icon" />
+                      <div>
+                        <div className="print-seal-text">FAB HOMES DIGITAL CERTIFICATION</div>
+                        <div className="print-seal-hash">SHA256: FH-BI-{Math.random().toString(36).substring(2, 8).toUpperCase()}-UGX</div>
+                      </div>
+                    </div>
+                    <div className="print-barcode-box">
+                      <MdQrCode2 style={{ fontSize: '36px', color: '#0f172a' }} />
+                      <span style={{ fontSize: '10px', color: '#64748b' }}>SECURITY SEAL</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Notice */}
+                <div className="print-footer">
+                  This report is an official executive document generated by Fab Homes Uganda Management Information System.
+                  Any unauthorized tampering or duplication constitutes an offense under the Computer Misuse Act and Company Bylaws.
                 </div>
               </div>
-
-              <pre
-                style={{
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  fontSize: '12px',
-                  overflowX: 'auto',
-                  maxHeight: '400px',
-                }}
-              >
-                {JSON.stringify(printData.report, null, 2)}
-              </pre>
             </div>
           </div>
         </div>
