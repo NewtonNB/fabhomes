@@ -50,6 +50,19 @@ const ClientDetails: React.FC = () => {
   const [showCardModal, setShowCardModal] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  const calculateAge = (dob?: string): number | null => {
+    if (!dob) return null;
+    const birthDate = new Date(dob);
+    if (isNaN(birthDate.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age >= 0 ? age : null;
+  };
+
   useEffect(() => {
     if (uuid) {
       loadClientData(uuid);
@@ -337,7 +350,11 @@ const ClientDetails: React.FC = () => {
         <div className="info-grid">
           <div className="info-item">
             <label>Date of Birth</label>
-            <p>{client.date_of_birth || 'N/A'}</p>
+            <p>
+              {client.date_of_birth
+                ? `${client.date_of_birth} ${calculateAge(client.date_of_birth) !== null ? `(${calculateAge(client.date_of_birth)} yrs)` : ''}`
+                : 'N/A'}
+            </p>
           </div>
           <div className="info-item">
             <label>Gender</label>

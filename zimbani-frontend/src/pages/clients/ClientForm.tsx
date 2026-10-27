@@ -39,6 +39,19 @@ const ClientForm: React.FC = () => {
     tags: [],
   });
 
+  const calculateAge = (dob?: string): number | null => {
+    if (!dob) return null;
+    const birthDate = new Date(dob);
+    if (isNaN(birthDate.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age >= 0 ? age : null;
+  };
+
   useEffect(() => {
     if (isEditMode && uuid) {
       loadClient(uuid);
@@ -169,7 +182,14 @@ const ClientForm: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="date_of_birth">Date of Birth</label>
+              <label htmlFor="date_of_birth">
+                Date of Birth
+                {calculateAge(formData.date_of_birth) !== null && (
+                  <span style={{ marginLeft: '8px', color: '#0d9488', fontWeight: 600, fontSize: '0.8rem' }}>
+                    ({calculateAge(formData.date_of_birth)} years old)
+                  </span>
+                )}
+              </label>
               <input
                 type="date"
                 id="date_of_birth"
