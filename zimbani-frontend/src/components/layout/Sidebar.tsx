@@ -214,6 +214,12 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           permission: 'refunds.view|payments.view',
         },
         {
+          path: '/scheme-transfers',
+          label: 'Scheme Transfers',
+          icon: <MdCompareArrows />,
+          permission: 'accounts.view|payments.view',
+        },
+        {
           path: '/petty-cash',
           label: 'Petty Cash & Floats',
           icon: <MdAccountBalanceWallet />,

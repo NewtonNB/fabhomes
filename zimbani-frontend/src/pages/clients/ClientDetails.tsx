@@ -13,6 +13,10 @@ import {
   MdContactEmergency,
   MdReceipt,
   MdAccountBalance,
+  MdBadge,
+  MdPrint,
+  MdVerified,
+  MdClose,
 } from 'react-icons/md';
 import { clientService } from '../../services/client.service';
 import { paymentService } from '../../services/payment.service';
@@ -43,6 +47,7 @@ const ClientDetails: React.FC = () => {
   } | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [showCardModal, setShowCardModal] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
@@ -222,6 +227,16 @@ const ClientDetails: React.FC = () => {
               </button>
             </>
           )}
+          <button
+            className="btn-action"
+            style={{ backgroundColor: '#0d9488', color: '#ffffff' }}
+            onClick={() => setShowCardModal(true)}
+            disabled={actionLoading}
+            title="View & Print Official Member Identification Card (ClientCardsFrame)"
+          >
+            <MdBadge size={20} />
+            Member Card
+          </button>
           <button
             className="btn-action"
             style={{ backgroundColor: '#0284c7', color: '#ffffff' }}
@@ -627,6 +642,190 @@ const ClientDetails: React.FC = () => {
                 disabled={actionLoading || !rejectReason.trim()}
               >
                 {actionLoading ? 'Rejecting...' : 'Reject KYC'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Official Client Membership & Identification Card Modal (Legacy ClientCardsFrame) */}
+      {showCardModal && client && (
+        <div className="confirm-modal-backdrop">
+          <div className="confirm-modal-card" style={{ maxWidth: '820px', width: '95%' }}>
+            <div className="confirm-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="confirm-modal-icon-badge" style={{ backgroundColor: '#ccfbf1', color: '#0d9488' }}>
+                  <MdBadge size={22} />
+                </div>
+                <h3 className="confirm-modal-title" style={{ margin: 0 }}>
+                  Official Member Identification Card
+                </h3>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  className="btn-action"
+                  onClick={() => window.print()}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#0d9488', color: '#fff', padding: '6px 14px', borderRadius: '6px', fontSize: '13px' }}
+                >
+                  <MdPrint size={16} /> Print Card
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCardModal(false)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                >
+                  <MdClose size={22} />
+                </button>
+              </div>
+            </div>
+
+            <p style={{ color: '#64748b', fontSize: '13px', margin: '4px 0 16px 0' }}>
+              Standard ISO format membership credential for <strong>{client.full_name}</strong>. Certified for scheme identification, plot surveys, and registry operations.
+            </p>
+
+            {/* Cards Container (Front and Back) */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px', marginBottom: '1.5rem' }}>
+              {/* Card Front */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                  borderRadius: '14px',
+                  padding: '18px',
+                  color: '#ffffff',
+                  boxShadow: '0 8px 20px rgba(0,0,0,0.18)',
+                  border: '1px solid #334155',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  minHeight: '215px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                }}
+              >
+                {/* Gold Accent Bar */}
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #f59e0b, #fbbf24, #10b981)' }} />
+
+                {/* Front Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontSize: '15px', fontWeight: '800', letterSpacing: '0.8px', color: '#f8fafc' }}>
+                      FAB HOMES UGANDA
+                    </div>
+                    <div style={{ fontSize: '9.5px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '1px' }}>
+                      Member Identification Card
+                    </div>
+                  </div>
+                  <div style={{ padding: '3px 8px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(16, 185, 129, 0.4)', color: '#34d399', fontSize: '9.5px', fontWeight: '700', textTransform: 'uppercase' }}>
+                    {client.status?.toUpperCase() || 'ACTIVE'}
+                  </div>
+                </div>
+
+                {/* Front Content: Photo + Details */}
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginTop: '12px' }}>
+                  <div
+                    style={{
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '10px',
+                      background: '#334155',
+                      border: '2px solid #f59e0b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#f8fafc',
+                      fontSize: '22px',
+                      fontWeight: '800',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {client.first_name?.[0] || 'C'}{client.last_name?.[0] || 'L'}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '15px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.2px' }}>
+                      {client.full_name}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#38bdf8', fontFamily: 'monospace', fontWeight: '700', marginTop: '2px' }}>
+                      {client.client_number}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+                      {client.id_type?.toUpperCase() || 'NIN'}: {client.id_number || 'Verified'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Front Footer: Barcode + Expiry */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '14px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px' }}>
+                  <div style={{ fontSize: '10px', color: '#cbd5e1' }}>
+                    <div>District: <strong>{client.district || 'Kampala, Uganda'}</strong></div>
+                    <div>Phone: {client.phone_primary}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ letterSpacing: '2px', fontFamily: 'monospace', fontSize: '11px', color: '#94a3b8' }}>
+                      ||||| | ||| |||| | ||
+                    </div>
+                    <div style={{ fontSize: '8.5px', color: '#64748b' }}>SECURITY CHIP VERIFIED</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Back */}
+              <div
+                style={{
+                  background: '#f8fafc',
+                  borderRadius: '14px',
+                  padding: '18px',
+                  color: '#0f172a',
+                  boxShadow: '0 8px 20px rgba(0,0,0,0.12)',
+                  border: '1px solid #cbd5e1',
+                  minHeight: '215px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '10px', fontWeight: '700', color: '#0d9488', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Emergency Next of Kin & Registration
+                  </div>
+                  <div style={{ marginTop: '8px', fontSize: '12px', lineHeight: '1.5' }}>
+                    <div><strong>Next of Kin:</strong> {client.nok_name || 'Recorded on File'}</div>
+                    <div><strong>Relationship:</strong> {client.nok_relationship || '-'}</div>
+                    <div><strong>Emergency Contact:</strong> {client.nok_phone || '-'}</div>
+                  </div>
+                </div>
+
+                <div style={{ background: '#f1f5f9', padding: '8px 10px', borderRadius: '6px', fontSize: '10px', color: '#475569', margin: '8px 0' }}>
+                  This card certifies registered ownership and scheme standing under Fab Homes Uganda Land & Construction Management.
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e2e8f0', paddingTop: '8px' }}>
+                  <div style={{ fontSize: '9px', color: '#64748b' }}>
+                    <div>Kampala Head Office</div>
+                    <div>support@fabhomesug.com</div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#0d9488', fontSize: '10px', fontWeight: '700' }}>
+                    <MdVerified size={14} /> AUTHORIZED SEAL
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="confirm-modal-actions">
+              <button
+                type="button"
+                className="confirm-modal-btn cancel"
+                onClick={() => setShowCardModal(false)}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                className="confirm-modal-btn primary"
+                onClick={() => window.print()}
+                style={{ backgroundColor: '#0d9488' }}
+              >
+                Print Card
               </button>
             </div>
           </div>

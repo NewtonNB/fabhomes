@@ -84,6 +84,7 @@ import SavingsAccountDetails from './pages/savings-accounts/SavingsAccountDetail
 import TransactionsList from './pages/transactions/TransactionsList'
 import CashBookPage from './pages/cashbook/CashBookPage'
 import ClientRefundsPage from './pages/refunds/ClientRefundsPage'
+import SchemeTransfersPage from './pages/transfers/SchemeTransfersPage'
 import EmployeesPage from './pages/employees/EmployeesPage'
 import TransactionDetails from './pages/transactions/TransactionDetails'
 
@@ -533,6 +534,16 @@ function App() {
               element={
                 <PermissionRoute roles={['Super Admin', 'Admin', 'Finance Manager', 'Finance Officer', 'Director']}>
                   <ClientRefundsPage />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Scheme Transfers & Migration Desk (Legacy Manual Section 2.7) */}
+            <Route
+              path="scheme-transfers"
+              element={
+                <PermissionRoute roles={['Super Admin', 'Admin', 'Finance Manager', 'Finance Officer', 'Director']}>
+                  <SchemeTransfersPage />
                 </PermissionRoute>
               }
             />
