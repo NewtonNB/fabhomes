@@ -1,0 +1,24 @@
+/* EmployeesPage.css - Staff directory and printable payslip styles */
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-employee-payslip,
+  #printable-employee-payslip * {
+    visibility: visible;
+  }
+  #printable-employee-payslip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
