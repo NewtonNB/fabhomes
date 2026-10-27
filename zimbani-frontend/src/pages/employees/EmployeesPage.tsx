@@ -289,19 +289,19 @@ export const EmployeesPage: React.FC = () => {
 
         <div style={{ backgroundColor: '#ffffff', padding: '18px 22px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <div style={{ fontSize: '13px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase' }}>Male Employees</div>
-          <div style={{ fontSize: '30px', fontWeight: '800', color: '#0284c7', marginTop: '6px' }}>{statistics?.male_employees || 3}</div>
+          <div style={{ fontSize: '30px', fontWeight: '800', color: '#0284c7', marginTop: '6px' }}>{statistics?.male_employees ?? employees.filter(e => e.gender === 'male').length}</div>
           <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Survey, engineering, logistics</div>
         </div>
 
         <div style={{ backgroundColor: '#ffffff', padding: '18px 22px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <div style={{ fontSize: '13px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase' }}>Female Employees</div>
-          <div style={{ fontSize: '30px', fontWeight: '800', color: '#ec4899', marginTop: '6px' }}>{statistics?.female_employees || 2}</div>
+          <div style={{ fontSize: '30px', fontWeight: '800', color: '#ec4899', marginTop: '6px' }}>{statistics?.female_employees ?? employees.filter(e => e.gender === 'female').length}</div>
           <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Finance, administration, legal</div>
         </div>
 
         <div style={{ backgroundColor: '#ffffff', padding: '18px 22px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <div style={{ fontSize: '13px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase' }}>On Approved Leave</div>
-          <div style={{ fontSize: '30px', fontWeight: '800', color: '#f59e0b', marginTop: '6px' }}>{statistics?.on_leave || 0}</div>
+          <div style={{ fontSize: '30px', fontWeight: '800', color: '#f59e0b', marginTop: '6px' }}>{statistics?.on_leave ?? employees.filter(e => e.status === 'on_leave').length}</div>
           <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Annual & compassionate leave</div>
         </div>
       </div>
@@ -1393,7 +1393,7 @@ export const EmployeesPage: React.FC = () => {
                       <strong>Department:</strong> {selectedEmployeeForPayslip.department?.name || 'General Operations'}
                     </div>
                     <div>
-                      <strong>National ID (NIN):</strong> {selectedEmployeeForPayslip.nin || 'CM9001234567AB'}
+                      <strong>National ID (NIN):</strong> {selectedEmployeeForPayslip.nin || 'Not Provided'}
                     </div>
                     <div>
                       <strong>Salary Grade Level:</strong> <span style={{ fontWeight: 700, color: '#0f766e' }}>{selectedEmployeeForPayslip.salary_grade || 'G-4'}</span>

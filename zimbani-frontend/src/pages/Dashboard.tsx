@@ -27,6 +27,7 @@ import unitService from '../services/unit.service'
 import paymentService from '../services/payment.service'
 import adminService from '../services/admin.service'
 import employeeService, { EmployeeStatistics } from '../services/employee.service'
+import savingsAccountService from '../services/savings-account.service'
 import { Project } from '../types/project.types'
 import { Unit } from '../types/unit.types'
 import { Activity } from '../types/admin.types'
@@ -51,17 +52,17 @@ const Dashboard: React.FC = () => {
   const [totalCollections, setTotalCollections] = useState<number>(0)
   const [recentActivities, setRecentActivities] = useState<Activity[]>([])
   const [employeeStats, setEmployeeStats] = useState<EmployeeStatistics>({
-    total_employees: 5,
-    male_employees: 3,
-    female_employees: 2,
-    active_employees: 5,
+    total_employees: 0,
+    male_employees: 0,
+    female_employees: 0,
+    active_employees: 0,
     on_leave: 0,
   })
 
   // Schemes Statistics
-  const [schemeStats] = useState({
-    total_schemes: 6,
-    ongoing: 6,
+  const [schemeStats, setSchemeStats] = useState({
+    total_schemes: 0,
+    ongoing: 0,
     closed: 0,
   })
 
@@ -82,13 +83,14 @@ const Dashboard: React.FC = () => {
     try {
       if (!isBackground) setLoading(true)
 
-      const [projectsRes, sitesRes, unitsRes, paymentsRes, activitiesRes, empRes] = await Promise.allSettled([
+      const [projectsRes, sitesRes, unitsRes, paymentsRes, activitiesRes, empRes, savingsRes] = await Promise.allSettled([
         projectService.getProjects({ per_page: 10 }),
         siteService.getSites({ per_page: 5 }),
         unitService.getUnits({ per_page: 100 }),
         paymentService.getPayments({ per_page: 50 }),
         adminService.getActivities({ per_page: 5 }),
         employeeService.getStatistics(),
+        savingsAccountService.getSavingsAccounts({ per_page: 100 }),
       ])
 
       // Projects
@@ -132,6 +134,18 @@ const Dashboard: React.FC = () => {
       // Employees
       if (empRes.status === 'fulfilled') {
         setEmployeeStats(empRes.value)
+      }
+
+      // Schemes Statistics
+      if (savingsRes.status === 'fulfilled') {
+        const sList = savingsRes.value.data || []
+        const ongoingCount = sList.filter((s: any) => s.status === 'active' || s.status === 'in_progress').length
+        const closedCount = sList.filter((s: any) => s.status === 'closed' || s.status === 'completed').length
+        setSchemeStats({
+          total_schemes: sList.length,
+          ongoing: ongoingCount,
+          closed: closedCount,
+        })
       }
 
       setLastUpdated(new Date())
@@ -276,16 +290,16 @@ const Dashboard: React.FC = () => {
             <span style={{ fontSize: '22px', color: '#0d9488' }}><MdConstruction /></span>
           </div>
           <div style={{ fontSize: '32px', fontWeight: '800', color: '#0f172a' }}>
-            {projects.length || 1} <span style={{ fontSize: '14px', fontWeight: '500', color: '#64748b' }}>Projects</span>
+            {projects.length} <span style={{ fontSize: '14px', fontWeight: '500', color: '#64748b' }}>Projects</span>
           </div>
           <div style={{ display: 'flex', gap: '16px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #f1f5f9', fontSize: '13px' }}>
             <span style={{ color: '#0f766e', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0d9488', display: 'inline-block' }}></span>
-              Ongoing: {activeProjectsCount || 1}
+              Ongoing: {activeProjectsCount}
             </span>
             <span style={{ color: '#16a34a', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#16a34a', display: 'inline-block' }}></span>
-              Done: {completedProjectsCount || 0}
+              Done: {completedProjectsCount}
             </span>
             <Link to="/projects" style={{ marginLeft: 'auto', color: '#0d9488', textDecoration: 'none', fontWeight: '600', fontSize: '12px' }}>
               View Tasks →
@@ -513,13 +527,13 @@ const Dashboard: React.FC = () => {
                       <span className="proj-code">{project.code || project.status}</span>
                     </div>
                     <span className="proj-percent">
-                      {project.status === 'completed' ? '100%' : '65%'}
+                      {project.completion_percentage ?? project.progress_percentage ?? (project.status === 'completed' ? 100 : 0)}%
                     </span>
                   </div>
                   <div className="proj-bar">
                     <div 
                       className="proj-fill" 
-                      style={{ width: project.status === 'completed' ? '100%' : '65%' }}
+                      style={{ width: `${project.completion_percentage ?? project.progress_percentage ?? (project.status === 'completed' ? 100 : 0)}%` }}
                     />
                   </div>
                 </div>

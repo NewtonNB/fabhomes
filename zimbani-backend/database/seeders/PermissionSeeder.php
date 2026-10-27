@@ -692,6 +692,6 @@ class PermissionSeeder extends Seeder
             'notifications.view',
         ]);
 
-        $this->command->info('Role-specific permissions synchronized across all 11 roles successfully!');
+        $this->command?->info('Role-specific permissions synchronized across all 11 roles successfully!');
     }
 }

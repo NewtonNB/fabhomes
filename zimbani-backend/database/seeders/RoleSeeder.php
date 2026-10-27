@@ -86,9 +86,9 @@ class RoleSeeder extends Seeder
                 ['name' => $roleData['name'], 'guard_name' => $roleData['guard_name']]
             );
 
-            $this->command->info("Configured role: {$roleData['name']}");
+            $this->command?->info("Configured role: {$roleData['name']}");
         }
 
-        $this->command->info('All core and operational roles configured successfully!');
+        $this->command?->info('All core and operational roles configured successfully!');
     }
 }

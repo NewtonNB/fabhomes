@@ -20,17 +20,7 @@ import savingsAccountService from '../../services/savings-account.service'
 import { Client } from '../../types/client.types'
 import { SavingsAccount } from '../../types/savings-account.types'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
-
-const POPULAR_SCHEMES = [
-  'Matugga Green Valley Estate',
-  'Mukono Greenfield Scheme',
-  'Budo Heights Estate',
-  'Gayaza Hillview Estate',
-  'Kigo Royal Palms Scheme',
-  'Entebbe Breeze Phase 2',
-  'Tuzimbe Group Savings Scheme',
-  'Pearl Gardens Residential',
-]
+import siteService from '../../services/site.service'
 
 export const SchemeTransfersPage: React.FC = () => {
   const [transfers, setTransfers] = useState<SchemeTransferItem[]>([])
@@ -57,6 +47,7 @@ export const SchemeTransfersPage: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([])
   const [selectedClientId, setSelectedClientId] = useState<string | number>('')
   const [clientAccounts, setClientAccounts] = useState<SavingsAccount[]>([])
+  const [availableSchemes, setAvailableSchemes] = useState<string[]>([])
   const [fromAccountId, setFromAccountId] = useState<number | ''>('')
   const [toSchemeName, setToSchemeName] = useState<string>('')
   const [transferAmount, setTransferAmount] = useState<number | ''>('')
@@ -93,11 +84,20 @@ export const SchemeTransfersPage: React.FC = () => {
   useEffect(() => {
     const loadClients = async () => {
       try {
-        const res = await clientService.getClients({ per_page: 100 })
-        const list = (res as any)?.data?.data || (res as any)?.data || (Array.isArray(res) ? res : [])
-        setClients(Array.isArray(list) ? list : [])
+        const [clientRes, siteRes] = await Promise.allSettled([
+          clientService.getClients({ per_page: 100 }),
+          siteService.getSites({ per_page: 100 }),
+        ])
+        if (clientRes.status === 'fulfilled') {
+          const list = (clientRes.value as any)?.data?.data || (clientRes.value as any)?.data || (Array.isArray(clientRes.value) ? clientRes.value : [])
+          setClients(Array.isArray(list) ? list : [])
+        }
+        if (siteRes.status === 'fulfilled') {
+          const sList = siteRes.value.data || []
+          setAvailableSchemes(sList.map((s: any) => s.name).filter(Boolean))
+        }
       } catch (err) {
-        console.error('Failed to load clients', err)
+        console.error('Failed to load clients and schemes', err)
       }
     }
     loadClients()
@@ -729,7 +729,7 @@ export const SchemeTransfersPage: React.FC = () => {
                     style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box', outline: 'none' }}
                   />
                   <datalist id="scheme-options">
-                    {POPULAR_SCHEMES.map((s) => (
+                    {availableSchemes.map((s) => (
                       <option key={s} value={s} />
                     ))}
                   </datalist>

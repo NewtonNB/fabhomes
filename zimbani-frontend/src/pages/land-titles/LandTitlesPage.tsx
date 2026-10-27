@@ -44,18 +44,18 @@ export const LandTitlesPage: React.FC = () => {
 
   // Form State: Mother Title
   const [motherForm, setMotherForm] = useState({
-    phase: 'Phase 1',
-    scheme: 'Mukono',
+    phase: '',
+    scheme: '',
     title_no: '',
     block_no: '',
-    district: 'Mukono',
-    sub_county: 'Goma',
+    district: '',
+    sub_county: '',
     village: '',
     estate_name: '',
-    area_acres: 20,
+    area_acres: 0,
     subdivision_date: '',
     title_status: 'in_safe' as const,
-    verified_by: 'Eng. Patrick Musisi',
+    verified_by: '',
     notes: '',
   })
 
@@ -645,10 +645,10 @@ export const LandTitlesPage: React.FC = () => {
                 {units.slice(0, 20).map(u => (
                   <tr key={u.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ padding: '12px', fontWeight: '700', color: '#0d9488' }}>{u.unit_number}</td>
-                    <td style={{ padding: '12px', fontWeight: '500' }}>{u.site?.name || 'Mukono Greenfield'}</td>
-                    <td style={{ padding: '12px', color: '#64748b' }}>{(u as any).size || (u.area ? `${u.area} ${u.area_unit || 'sqm'}` : '50 x 100 ft (0.12 Dec)')}</td>
+                    <td style={{ padding: '12px', fontWeight: '500' }}>{u.site?.name || 'Unassigned Site'}</td>
+                    <td style={{ padding: '12px', color: '#64748b' }}>{(u as any).size || (u.area ? `${u.area} ${u.area_unit || 'sqm'}` : 'Standard Plot')}</td>
                     <td style={{ padding: '12px', fontWeight: '600' }}>
-                      {new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX', minimumFractionDigits: 0 }).format(Number((u as any).price || u.current_price || u.base_price) || 25000000)}
+                      {new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX', minimumFractionDigits: 0 }).format(Number((u as any).price || u.current_price || u.base_price || 0))}
                     </td>
                     <td style={{ padding: '12px' }}>
                       <span style={{

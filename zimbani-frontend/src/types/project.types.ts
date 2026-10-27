@@ -21,6 +21,7 @@ export interface Project {
   client_contact?: string
   contract_value?: number
   progress_percentage?: number
+  completion_percentage?: number
   priority?: 'low' | 'medium' | 'high' | 'critical'
   tags?: string[]
   metadata?: Record<string, any>
@@ -60,6 +61,7 @@ export interface ProjectFormData {
   client_contact?: string
   contract_value?: number
   progress_percentage?: number
+  completion_percentage?: number
   priority?: 'low' | 'medium' | 'high' | 'critical'
   tags?: string[]
   metadata?: Record<string, any>

@@ -36,8 +36,8 @@ class DatabaseSeeder extends Seeder
         
         $this->command->info('Super Admin user created: admin@zimbani.com / password');
 
-        // Seed realistic Fab Homes operational data
-        $this->call(FabHomesRealisticDataSeeder::class);
-        $this->call(LegacyManualDataSeeder::class);
+        // Note: Demo seeders (FabHomesRealisticDataSeeder and LegacyManualDataSeeder)
+        // are excluded to maintain a clean slate for live operational records.
+        // To seed demo data explicitly for testing: php artisan db:seed --class=FabHomesRealisticDataSeeder
     }
 }

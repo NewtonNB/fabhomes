@@ -144,7 +144,7 @@ export const ClientInteractiveEstateMapTab: React.FC<ClientInteractiveEstateMapT
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <MdLocationOn style={{ fontSize: 22, color: '#38bdf8' }} />
             <h3 style={{ margin: 0, fontSize: 16, color: '#fff' }}>
-              {mapData?.project?.name || 'Kigumba Royal Eco-Estate'}
+              {mapData?.project?.name || 'Estate Masterplan'}
             </h3>
           </div>
 
