@@ -42,6 +42,9 @@ export const SavingsAccountForm: React.FC = () => {
   const [clientId, setClientId] = useState<string>(initialClientId)
   const [accountType, setAccountType] = useState<AccountType>('land_saving')
   const [schemeName, setSchemeName] = useState<string>('Zimbani Prime Land Scheme')
+  const [groupCode, setGroupCode] = useState<string>('')
+  const [cohortYear, setCohortYear] = useState<string>(new Date().getFullYear().toString())
+  const [packageCode, setPackageCode] = useState<string>('PKG-A')
   const [targetAmount, setTargetAmount] = useState<number | string>(20000000)
   const [currency] = useState<string>('UGX')
   const [openedDate, setOpenedDate] = useState<string>(new Date().toISOString().split('T')[0])
@@ -91,6 +94,9 @@ export const SavingsAccountForm: React.FC = () => {
         setClientId(acc.client?.uuid || acc.client?.id?.toString() || '')
         setAccountType(acc.account_type)
         setSchemeName(acc.scheme_name || '')
+        setGroupCode(acc.group_code || '')
+        setCohortYear(acc.cohort_year || new Date().getFullYear().toString())
+        setPackageCode(acc.package_code || 'PKG-A')
         setTargetAmount(acc.target_amount)
         setOpenedDate(acc.opened_date || '')
         setTargetDate(acc.target_date || '')
@@ -130,9 +136,15 @@ export const SavingsAccountForm: React.FC = () => {
     if (type === 'land_saving') {
       setSchemeName('Zimbani Prime Land Scheme')
       setProjectId('')
-    } else {
+    } else if (type === 'construction_saving') {
       setSchemeName('Affordable Construction Savings')
       setPlotId('')
+    } else if (type === 'tuzimbe_group') {
+      setSchemeName('Tuzimbe Group Savings Program')
+      setPlotId('')
+      setProjectId('')
+      if (!groupCode) setGroupCode('GRP-KAMPALA-01')
+      if (!packageCode) setPackageCode('PKG-A')
     }
   }
 
@@ -158,6 +170,9 @@ export const SavingsAccountForm: React.FC = () => {
         const payload: UpdateSavingsAccountInput = {
           account_type: accountType,
           scheme_name: schemeName.trim() || undefined,
+          group_code: accountType === 'tuzimbe_group' ? (groupCode.trim() || undefined) : null,
+          cohort_year: accountType === 'tuzimbe_group' ? (cohortYear.trim() || undefined) : null,
+          package_code: accountType === 'tuzimbe_group' ? (packageCode.trim() || undefined) : null,
           target_amount: targetNum,
           status,
           opened_date: openedDate,
@@ -174,6 +189,9 @@ export const SavingsAccountForm: React.FC = () => {
           client_id: clientId,
           account_type: accountType,
           scheme_name: schemeName.trim() || undefined,
+          group_code: accountType === 'tuzimbe_group' ? (groupCode.trim() || undefined) : null,
+          cohort_year: accountType === 'tuzimbe_group' ? (cohortYear.trim() || undefined) : null,
+          package_code: accountType === 'tuzimbe_group' ? (packageCode.trim() || undefined) : null,
           target_amount: targetNum,
           currency,
           opened_date: openedDate,
@@ -263,6 +281,7 @@ export const SavingsAccountForm: React.FC = () => {
               >
                 <option value="land_saving">Land Saving Scheme (Acquiring Plot)</option>
                 <option value="construction_saving">Construction Saving Scheme (Building Home)</option>
+                <option value="tuzimbe_group">Tuzimbe Group Scheme (Collective Community Program)</option>
               </select>
             </div>
 
@@ -277,6 +296,51 @@ export const SavingsAccountForm: React.FC = () => {
               />
             </div>
           </div>
+
+          {/* Tuzimbe Group Collective Parameters */}
+          {accountType === 'tuzimbe_group' && (
+            <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '1rem', marginBottom: '1.25rem' }}>
+              <div style={{ fontWeight: 600, color: '#166534', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <MdAccountBalance /> Tuzimbe Collective Enrolment Parameters
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label style={{ color: '#166534' }}>Tuzimbe Group Code *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. GRP-KAMPALA-WEST, GRP-DIASPORA-UK"
+                    value={groupCode}
+                    onChange={(e) => setGroupCode(e.target.value)}
+                  />
+                  <small style={{ color: '#15803d' }}>Cohort group identifier for collective accumulation.</small>
+                </div>
+                <div className="form-group">
+                  <label style={{ color: '#166534' }}>Cohort Year *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 2024, 2025, 2026"
+                    value={cohortYear}
+                    onChange={(e) => setCohortYear(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label style={{ color: '#166534' }}>Package Code / Tier *</label>
+                  <select
+                    value={packageCode}
+                    onChange={(e) => setPackageCode(e.target.value)}
+                    required
+                  >
+                    <option value="PKG-A">PKG-A: Standard Residential Plot (50x100)</option>
+                    <option value="PKG-B">PKG-B: Commercial Plot (100x100)</option>
+                    <option value="PKG-C">PKG-C: 2-Bedroom Starter Shell</option>
+                    <option value="PKG-D">PKG-D: 3-Bedroom Turnkey Villa</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Target Financials */}
           <div className="form-row">
@@ -344,7 +408,7 @@ export const SavingsAccountForm: React.FC = () => {
                 Optionally lock this savings scheme to an existing reserved plot.
               </small>
             </div>
-          ) : (
+          ) : accountType === 'construction_saving' ? (
             <div className="form-group">
               <label>Associated Construction Project (Optional)</label>
               <select
@@ -360,6 +424,25 @@ export const SavingsAccountForm: React.FC = () => {
               </select>
               <small style={{ color: '#64748b' }}>
                 Optionally link to an active construction project budget.
+              </small>
+            </div>
+          ) : (
+            <div className="form-group">
+              <label>Associated Plot / Scheme Unit (Optional)</label>
+              <select
+                value={plotId}
+                onChange={(e) => setPlotId(e.target.value)}
+              >
+                <option value="">No pre-allocated plot selected</option>
+                {units.map((u) => (
+                  <option key={u.id} value={u.uuid || u.id}>
+                    Plot {u.unit_number} {u.block_number ? `(Block ${u.block_number})` : ''} — UGX{' '}
+                    {Number(u.current_price || 0).toLocaleString()}
+                  </option>
+                ))}
+              </select>
+              <small style={{ color: '#64748b' }}>
+                Optionally lock this Tuzimbe group membership to a specific designated plot unit.
               </small>
             </div>
           )}

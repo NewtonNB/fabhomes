@@ -18,6 +18,9 @@ class UpdateSavingsAccountRequest extends FormRequest
         return [
             'account_type' => 'nullable|in:land_saving,construction_saving,tuzimbe_group',
             'scheme_name' => 'nullable|string|max:100',
+            'group_code' => 'nullable|string|max:50',
+            'cohort_year' => 'nullable|string|max:10',
+            'package_code' => 'nullable|string|max:50',
             'target_amount' => 'nullable|numeric|min:1000',
             'status' => 'nullable|in:active,suspended,completed,closed',
             'opened_date' => 'nullable|date',

@@ -17,6 +17,7 @@ import {
   MdOpenInNew,
   MdPrint,
   MdVerified,
+  MdGroup,
 } from 'react-icons/md'
 import { SavingsAccount, AccountStatementData } from '../../types/savings-account.types'
 import { Document } from '../../types/document.types'
@@ -255,16 +256,33 @@ export const SavingsAccountDetails: React.FC = () => {
               </span>
               <span
                 className={`scheme-type-badge ${
-                  account.account_type === 'land_saving' ? 'scheme-land' : 'scheme-construction'
+                  account.account_type === 'land_saving'
+                    ? 'scheme-land'
+                    : account.account_type === 'tuzimbe_group'
+                    ? 'scheme-tuzimbe'
+                    : 'scheme-construction'
                 }`}
               >
-                {account.account_type === 'land_saving' ? <MdLandscape /> : <MdHomeRepairService />}
-                {account.account_type === 'land_saving' ? 'Land Saving' : 'Construction Saving'}
+                {account.account_type === 'land_saving' ? (
+                  <MdLandscape />
+                ) : account.account_type === 'tuzimbe_group' ? (
+                  <MdGroup />
+                ) : (
+                  <MdHomeRepairService />
+                )}
+                {account.account_type === 'land_saving'
+                  ? 'Land Saving'
+                  : account.account_type === 'tuzimbe_group'
+                  ? 'Tuzimbe Group Scheme'
+                  : 'Construction Saving'}
               </span>
             </h1>
             <p className="details-subtitle">
               Client: <strong>{account.client?.name}</strong> ({account.client?.client_number}) • Scheme:{' '}
               <strong>{account.scheme_name || 'Standard Savings Scheme'}</strong>
+              {account.account_type === 'tuzimbe_group' && account.group_code && (
+                <span> • Cohort: <strong>{account.group_code} ({account.cohort_year || 'Active'})</strong></span>
+              )}
             </p>
           </div>
         </div>
@@ -436,6 +454,58 @@ export const SavingsAccountDetails: React.FC = () => {
                   </p>
                 </div>
               )}
+            </div>
+          ) : account.account_type === 'tuzimbe_group' ? (
+            <div className="details-card">
+              <div className="details-card-header">
+                <h2>
+                  <MdGroup /> Tuzimbe Collective Enrolment Details
+                </h2>
+                {account.plot && (
+                  <Link
+                    to={`/units/${account.plot.uuid || account.plot.id}`}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    View Plot <MdOpenInNew />
+                  </Link>
+                )}
+              </div>
+
+              <div style={{ padding: '1.25rem', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0', margin: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+                  <div>
+                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#166534', fontWeight: 600 }}>Cohort Group</span>
+                    <p style={{ margin: '0.25rem 0 0', fontWeight: 700, fontSize: '1.1rem', color: '#14532d' }}>
+                      {account.group_code || 'Unassigned Group'}
+                    </p>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#166534', fontWeight: 600 }}>Cohort Year</span>
+                    <p style={{ margin: '0.25rem 0 0', fontWeight: 700, fontSize: '1.1rem', color: '#14532d' }}>
+                      {account.cohort_year || 'Active'}
+                    </p>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#166534', fontWeight: 600 }}>Package / Tier</span>
+                    <p style={{ margin: '0.25rem 0 0', fontWeight: 700, fontSize: '1.1rem', color: '#14532d' }}>
+                      {account.package_code || 'Standard (PKG-A)'}
+                    </p>
+                  </div>
+                </div>
+
+                {account.plot ? (
+                  <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #bbf7d0' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#166534', fontWeight: 600 }}>Allocated Collective Plot: </span>
+                    <span style={{ marginLeft: '0.5rem', fontWeight: 600, color: '#0f172a' }}>
+                      Plot {account.plot.unit_number} {account.plot.block_number ? `(Block ${account.plot.block_number})` : ''}
+                    </span>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: '0.75rem', fontSize: '0.82rem', color: '#15803d' }}>
+                    No specific subdivision plot assigned yet. Accumulated savings apply to the Tuzimbe group acquisition allotment.
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div className="details-card">

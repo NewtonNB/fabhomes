@@ -47,6 +47,9 @@ export interface SavingsAccount {
   account_number: string
   account_type: AccountType
   scheme_name?: string | null
+  group_code?: string | null
+  cohort_year?: string | null
+  package_code?: string | null
   target_amount: number
   current_balance: number
   remaining_amount: number
@@ -95,6 +98,9 @@ export interface CreateSavingsAccountInput {
   client_id: number | string
   account_type: AccountType
   scheme_name?: string
+  group_code?: string | null
+  cohort_year?: string | null
+  package_code?: string | null
   target_amount: number
   currency?: string
   opened_date?: string
@@ -107,6 +113,9 @@ export interface CreateSavingsAccountInput {
 export interface UpdateSavingsAccountInput {
   account_type?: AccountType
   scheme_name?: string
+  group_code?: string | null
+  cohort_year?: string | null
+  package_code?: string | null
   target_amount?: number
   status?: AccountStatus
   opened_date?: string
