@@ -425,7 +425,7 @@ const PaymentsList: React.FC = () => {
           className={`category-chip ${selectedCategory === 'pending' ? 'active' : ''}`}
           onClick={() => { setSelectedCategory('pending'); setCurrentPage(1); }}
         >
-          Pending <span className="chip-count">{counts.pending}</span>
+          Draft / Pending <span className="chip-count">{counts.pending}</span>
         </button>
         <button
           className={`category-chip ${selectedCategory === 'overdue' ? 'active' : ''}`}

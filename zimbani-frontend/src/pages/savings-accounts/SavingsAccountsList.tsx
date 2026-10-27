@@ -470,6 +470,112 @@ export const SavingsAccountsList: React.FC = () => {
         </select>
       </div>
 
+      {/* Quick Navigation Filter Chips */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <button
+          type="button"
+          onClick={() => { setSelectedStatus(''); setSelectedType(''); setPage(1); }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${selectedStatus === '' && selectedType === '' ? '#0d9488' : '#cbd5e1'}`,
+            background: selectedStatus === '' && selectedType === '' ? '#0d9488' : '#ffffff',
+            color: selectedStatus === '' && selectedType === '' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          All Schemes ({stats?.total_accounts ?? accounts.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => { setSelectedStatus('active'); setSelectedType(''); setPage(1); }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${selectedStatus === 'active' && selectedType === '' ? '#16a34a' : '#cbd5e1'}`,
+            background: selectedStatus === 'active' && selectedType === '' ? '#16a34a' : '#ffffff',
+            color: selectedStatus === 'active' && selectedType === '' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Active Accounts ({stats?.active_accounts ?? 0})
+        </button>
+        <button
+          type="button"
+          onClick={() => { setSelectedType('tuzimbe_group'); setSelectedStatus(''); setPage(1); }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${selectedType === 'tuzimbe_group' ? '#2563eb' : '#cbd5e1'}`,
+            background: selectedType === 'tuzimbe_group' ? '#2563eb' : '#ffffff',
+            color: selectedType === 'tuzimbe_group' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Tuzimbe Group Cohorts
+        </button>
+        <button
+          type="button"
+          onClick={() => { setSelectedType('land_saving'); setSelectedStatus(''); setPage(1); }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${selectedType === 'land_saving' ? '#d97706' : '#cbd5e1'}`,
+            background: selectedType === 'land_saving' ? '#d97706' : '#ffffff',
+            color: selectedType === 'land_saving' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Land Saving Schemes ({stats?.land_savings?.count ?? 0})
+        </button>
+        <button
+          type="button"
+          onClick={() => { setSelectedType('construction_saving'); setSelectedStatus(''); setPage(1); }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${selectedType === 'construction_saving' ? '#7c3aed' : '#cbd5e1'}`,
+            background: selectedType === 'construction_saving' ? '#7c3aed' : '#ffffff',
+            color: selectedType === 'construction_saving' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Construction Schemes ({stats?.construction_savings?.count ?? 0})
+        </button>
+        <button
+          type="button"
+          onClick={() => { setSelectedStatus('completed'); setSelectedType(''); setPage(1); }}
+          style={{
+            padding: '7px 14px',
+            borderRadius: '20px',
+            border: `1px solid ${selectedStatus === 'completed' ? '#0f766e' : '#cbd5e1'}`,
+            background: selectedStatus === 'completed' ? '#0f766e' : '#ffffff',
+            color: selectedStatus === 'completed' ? '#ffffff' : '#475569',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          Target Achieved ({stats?.completed_accounts ?? 0})
+        </button>
+      </div>
+
       {/* Main Table Card */}
       <div className="savings-table-card">
         <div className="savings-table-wrap">

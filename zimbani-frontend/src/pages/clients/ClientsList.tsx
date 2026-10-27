@@ -224,7 +224,7 @@ const ClientsList: React.FC = () => {
           className={`category-chip ${selectedCategory === 'pending_kyc' ? 'active' : ''}`}
           onClick={() => { setSelectedCategory('pending_kyc'); setCurrentPage(1); }}
         >
-          Pending KYC <span className="chip-count">{counts.pending_kyc}</span>
+          Draft / Pending KYC <span className="chip-count">{counts.pending_kyc}</span>
         </button>
         <button
           className={`category-chip ${selectedCategory === 'verified_kyc' ? 'active' : ''}`}
