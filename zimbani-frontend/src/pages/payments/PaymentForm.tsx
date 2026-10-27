@@ -143,10 +143,15 @@ const PaymentForm: React.FC<{ isEdit?: boolean }> = ({ isEdit = false }) => {
       setLoading(true)
       if (isEdit && uuid) {
         await paymentService.updatePayment(uuid, formData)
+        navigate(`/payments/${uuid}`)
       } else {
-        await paymentService.createPayment(formData)
+        const created = await paymentService.createPayment(formData)
+        if (created?.uuid) {
+          navigate(`/payments/${created.uuid}`)
+        } else {
+          navigate('/payments')
+        }
       }
-      navigate('/payments')
     } catch (err: any) {
       setError(err.message || 'Failed to submit payment')
     } finally {

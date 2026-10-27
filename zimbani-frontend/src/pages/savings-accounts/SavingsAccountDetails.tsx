@@ -15,8 +15,10 @@ import {
   MdClose,
   MdReceipt,
   MdOpenInNew,
+  MdPrint,
+  MdVerified,
 } from 'react-icons/md'
-import { SavingsAccount } from '../../types/savings-account.types'
+import { SavingsAccount, AccountStatementData } from '../../types/savings-account.types'
 import { Document } from '../../types/document.types'
 import savingsAccountService from '../../services/savings-account.service'
 import documentService from '../../services/document.service'
@@ -43,6 +45,9 @@ export const SavingsAccountDetails: React.FC = () => {
   // Modals
   const [actionLoading, setActionLoading] = useState<boolean>(false)
   const [uploadModalOpen, setUploadModalOpen] = useState<boolean>(false)
+  const [statementModalOpen, setStatementModalOpen] = useState<boolean>(false)
+  const [statementData, setStatementData] = useState<AccountStatementData | null>(null)
+  const [loadingStatement, setLoadingStatement] = useState<boolean>(false)
 
   const [adjustModalOpen, setAdjustModalOpen] = useState<boolean>(false)
   const [adjustType, setAdjustType] = useState<'credit' | 'debit' | 'set_exact'>('credit')
@@ -98,6 +103,20 @@ export const SavingsAccountDetails: React.FC = () => {
   const triggerSuccess = (msg: string) => {
     setSuccessMessage(msg)
     setTimeout(() => setSuccessMessage(null), 5000)
+  }
+
+  const handleOpenStatement = async () => {
+    if (!account) return
+    try {
+      setLoadingStatement(true)
+      const data = await savingsAccountService.getStatement(account.uuid)
+      setStatementData(data)
+      setStatementModalOpen(true)
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to generate account statement.')
+    } finally {
+      setLoadingStatement(false)
+    }
   }
 
   const handleActivate = () => {
@@ -305,6 +324,17 @@ export const SavingsAccountDetails: React.FC = () => {
             <MdReceipt /> View Ledger
           </Link>
 
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={handleOpenStatement}
+            disabled={loadingStatement}
+            style={{ backgroundColor: '#f8fafc', color: '#1e293b', borderColor: '#cbd5e1' }}
+            title="View & Print Official Savings Account Statement"
+          >
+            <MdPrint /> {loadingStatement ? 'Loading...' : 'Official Statement'}
+          </button>
+
           <Link to={`/savings-accounts/${account.uuid}/edit`} className="btn btn-secondary">
             <MdEdit /> Edit
           </Link>
@@ -490,6 +520,7 @@ export const SavingsAccountDetails: React.FC = () => {
                       <th>Method</th>
                       <th>Amount (UGX)</th>
                       <th>Status</th>
+                      <th style={{ textAlign: 'right' }}>Receipt</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -509,6 +540,16 @@ export const SavingsAccountDetails: React.FC = () => {
                           <span className={`status-badge badge-${p.status || 'confirmed'}`}>
                             {(p.status || 'confirmed').toUpperCase()}
                           </span>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <Link
+                            to={`/payments/${p.uuid}`}
+                            className="btn btn-secondary btn-sm"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', padding: '3px 8px' }}
+                            title="View & Print Official Receipt"
+                          >
+                            <MdReceipt size={13} /> Official Receipt
+                          </Link>
                         </td>
                       </tr>
                     ))}
@@ -812,6 +853,184 @@ export const SavingsAccountDetails: React.FC = () => {
           defaultDocumentableId={account.id.toString()}
           title="Upload Savings Scheme Contract or Receipt"
         />
+      )}
+
+      {/* Official Account Statement Modal */}
+      {statementModalOpen && statementData && (
+        <div className="modal-overlay no-print-backdrop">
+          <div className="modal-content statement-modal-card" style={{ maxWidth: '850px', width: '95%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="modal-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.5rem', borderBottom: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <MdReceipt size={22} color="#0d9488" />
+                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Official Account Statement</h2>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => window.print()}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <MdPrint size={16} /> Print Statement
+                </button>
+                <button
+                  type="button"
+                  className="modal-close-btn"
+                  onClick={() => setStatementModalOpen(false)}
+                >
+                  <MdClose size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="statement-printable-body" style={{ padding: '2rem' }}>
+              {/* Official Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #0f172a', paddingBottom: '1.25rem', marginBottom: '1.5rem' }}>
+                <div>
+                  <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>FAB HOMES UGANDA</h1>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: '#475569', fontWeight: 600 }}>
+                    Official Land & Construction Savings Scheme Statement
+                  </p>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+                    Plot 24, Kampala Road • P.O. Box 1024, Kampala, Uganda • +256 700 000 000 • accounts@fabhomesug.com
+                  </p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Account Number</div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>{statementData.account.account_number}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+                    Date Generated: <strong>{new Date().toLocaleDateString('en-GB')}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Client & Scheme Details Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '1.5rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Account Holder</div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>{statementData.account.client?.name}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#475569' }}>ID: {statementData.account.client?.client_number}</div>
+                  {statementData.account.client?.phone && (
+                    <div style={{ fontSize: '0.8rem', color: '#475569' }}>Phone: {statementData.account.client.phone}</div>
+                  )}
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Scheme & Purpose</div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>{statementData.account.scheme_name || 'Standard Savings Scheme'}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#475569', textTransform: 'capitalize' }}>
+                    Type: {statementData.account.account_type?.replace('_', ' ')}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#475569' }}>
+                    Frequency: {((statementData.account as any).frequency || 'Monthly').toUpperCase()}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Account Status</div>
+                  <div style={{ marginTop: '4px' }}>
+                    <span className={`status-badge badge-${statementData.account.status}`} style={{ fontSize: '0.8rem', padding: '3px 10px' }}>
+                      {statementData.account.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '6px' }}>
+                    Opened: {statementData.account.opened_date || 'Active'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Financial Metrics Summary */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ padding: '0.85rem 1rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#166534', fontWeight: 600, textTransform: 'uppercase' }}>Total Deposited to Date</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#15803d', marginTop: '4px' }}>
+                    UGX {Number(statementData.total_deposited).toLocaleString()}
+                  </div>
+                </div>
+                <div style={{ padding: '0.85rem 1rem', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#1e40af', fontWeight: 600, textTransform: 'uppercase' }}>Target Scheme Goal</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1d4ed8', marginTop: '4px' }}>
+                    UGX {Number(statementData.target_amount).toLocaleString()}
+                  </div>
+                </div>
+                <div style={{ padding: '0.85rem 1rem', background: '#fefce8', border: '1px solid #fef08a', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#854d0e', fontWeight: 600, textTransform: 'uppercase' }}>Remaining Target Balance</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#a16207', marginTop: '4px' }}>
+                    UGX {Math.max(0, Number(statementData.target_amount) - Number(statementData.total_deposited)).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>
+                  <span>Scheme Completion Progress</span>
+                  <span>{statementData.progress_percentage}% Completed</span>
+                </div>
+                <div style={{ width: '100%', height: '10px', background: '#e2e8f0', borderRadius: '5px', overflow: 'hidden' }}>
+                  <div style={{ width: `${Math.min(100, statementData.progress_percentage)}%`, height: '100%', background: '#0d9488', borderRadius: '5px' }}></div>
+                </div>
+              </div>
+
+              {/* Statement Ledger Table */}
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.75rem' }}>
+                Transaction & Deposit History ({statementData.transactions_count} recorded)
+              </h3>
+              {!statementData.recent_payments || statementData.recent_payments.length === 0 ? (
+                <div style={{ padding: '2rem', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', color: '#64748b' }}>
+                  No transaction records logged on this account yet.
+                </div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+                  <thead>
+                    <tr style={{ background: '#f1f5f9', borderBottom: '2px solid #cbd5e1', textAlign: 'left' }}>
+                      <th style={{ padding: '8px 12px' }}>Date</th>
+                      <th style={{ padding: '8px 12px' }}>Payment / Receipt #</th>
+                      <th style={{ padding: '8px 12px' }}>Channel / Ref</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'right' }}>Amount (UGX)</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'center' }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {statementData.recent_payments.map((p: any, idx: number) => (
+                      <tr key={p.id || idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '8px 12px' }}>{p.payment_date}</td>
+                        <td style={{ padding: '8px 12px', fontWeight: 600 }}>{p.payment_number}</td>
+                        <td style={{ padding: '8px 12px', textTransform: 'capitalize' }}>
+                          {p.payment_method?.replace('_', ' ') || 'Cash / Mobile Money'}
+                          {p.reference_number && ` (${p.reference_number})`}
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: '#15803d' }}>
+                          UGX {Number(p.amount).toLocaleString()}
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                          <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '10px', background: '#dcfce7', color: '#166534', textTransform: 'uppercase' }}>
+                            {p.status || 'CONFIRMED'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+
+              {/* Legal & Digital Verification Seal */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e2e8f0', paddingTop: '1.25rem', marginTop: '1.5rem' }}>
+                <div style={{ maxWidth: '60%' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontStyle: 'italic' }}>
+                    Note: This document is an official electronic statement issued by Fab Homes Uganda. All deposits are protected under escrow agreements. For discrepancies, contact finance@fabhomesug.com within 14 calendar days.
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', padding: '10px 14px', border: '1px dashed #0d9488', borderRadius: '8px', background: '#f0fdfa' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end', color: '#0d9488', fontWeight: 700, fontSize: '0.8rem' }}>
+                    <MdVerified size={16} /> CERTIFIED OFFICIAL RECORD
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>
+                    Finance & Accounts Directorate • Fab Homes Uganda
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Soft Confirmation Modal for Reactivation */}

@@ -200,3 +200,46 @@
   font-size: 0.85rem;
   color: #64748b;
 }
+
+/* Print Rules for Official Statement */
+@media print {
+  .no-print,
+  .no-print-backdrop {
+    background: transparent !important;
+  }
+
+  .sidebar,
+  .main-header,
+  .header,
+  .details-header,
+  .savings-progress-hero,
+  .savings-columns-grid,
+  .modal-header.no-print {
+    display: none !important;
+  }
+
+  body, html {
+    background: #ffffff !important;
+  }
+
+  .modal-overlay {
+    position: static !important;
+    background: none !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  .statement-modal-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .statement-printable-body {
+    padding: 0 !important;
+  }
+}
