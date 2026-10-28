@@ -353,6 +353,17 @@ Route::prefix('v1')->middleware(['auth:sanctum', app()->environment('production'
         Route::post('/{uuid}/reject', [\App\Http\Controllers\Api\SchemeTransferController::class, 'reject']);
     });
 
+    // Other Fees Management (Legacy Manual Section 2.2 Panel 5: OtherFeesMgt.java)
+    Route::prefix('other-fees')->middleware('permission:payments.view|accounts.view')->group(function () {
+        Route::get('/categories', [\App\Http\Controllers\Api\OtherFeeController::class, 'categories']);
+        Route::get('/', [\App\Http\Controllers\Api\OtherFeeController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\OtherFeeController::class, 'store']);
+        Route::get('/{identifier}', [\App\Http\Controllers\Api\OtherFeeController::class, 'show']);
+        Route::post('/{identifier}/payment', [\App\Http\Controllers\Api\OtherFeeController::class, 'recordPayment']);
+        Route::post('/{identifier}/waive', [\App\Http\Controllers\Api\OtherFeeController::class, 'waive']);
+        Route::delete('/{identifier}', [\App\Http\Controllers\Api\OtherFeeController::class, 'destroy']);
+    });
+
     // CashBook Management (Manual Section 9: Overall CashBook & Saving CashBook)
     Route::prefix('cashbook')->middleware('permission:cashbook.view|transactions.view')->group(function () {
         Route::get('/overall', [CashBookController::class, 'overallCashBook']);

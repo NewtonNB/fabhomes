@@ -44,6 +44,7 @@ class WipeDemoDataCommand extends Command
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
         $tablesToWipe = [
+            'other_fees',
             'payment_refunds',
             'scheme_transfers',
             'petty_cash_transactions',
@@ -112,6 +113,7 @@ class WipeDemoDataCommand extends Command
         $this->info('Verifying security roles and permissions...');
         $this->call('db:seed', ['--class' => RoleSeeder::class, '--force' => true]);
         $this->call('db:seed', ['--class' => PermissionSeeder::class, '--force' => true]);
+        $this->call('db:seed', ['--class' => \Database\Seeders\OtherFeeCategorySeeder::class, '--force' => true]);
 
         // Ensure Super Admin user exists
         $admin = User::firstOrCreate(

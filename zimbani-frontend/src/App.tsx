@@ -85,6 +85,7 @@ import TransactionsList from './pages/transactions/TransactionsList'
 import CashBookPage from './pages/cashbook/CashBookPage'
 import ClientRefundsPage from './pages/refunds/ClientRefundsPage'
 import SchemeTransfersPage from './pages/transfers/SchemeTransfersPage'
+import OtherFeesPage from './pages/other-fees/OtherFeesPage'
 import EmployeesPage from './pages/employees/EmployeesPage'
 import TransactionDetails from './pages/transactions/TransactionDetails'
 
@@ -544,6 +545,16 @@ function App() {
               element={
                 <PermissionRoute roles={['Super Admin', 'Admin', 'Finance Manager', 'Finance Officer', 'Director']}>
                   <SchemeTransfersPage />
+                </PermissionRoute>
+              }
+            />
+
+            {/* Other Fees Management Desk (Legacy Manual Section 2.2 Panel 5: OtherFeesMgt.java) */}
+            <Route
+              path="other-fees"
+              element={
+                <PermissionRoute roles={['Super Admin', 'Admin', 'Finance Manager', 'Finance Officer', 'Director', 'Company Admin']}>
+                  <OtherFeesPage />
                 </PermissionRoute>
               }
             />

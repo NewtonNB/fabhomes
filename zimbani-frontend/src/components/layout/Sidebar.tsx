@@ -220,6 +220,12 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           permission: 'accounts.view|payments.view',
         },
         {
+          path: '/other-fees',
+          label: 'Other Fees Management',
+          icon: <MdReceiptLong />,
+          permission: 'payments.view|accounts.view',
+        },
+        {
           path: '/petty-cash',
           label: 'Petty Cash & Floats',
           icon: <MdAccountBalanceWallet />,
